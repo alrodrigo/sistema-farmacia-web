@@ -213,8 +213,29 @@ npx serve .
 - ✅ Proyecto iniciado y limpio
 - ✅ Decisión: Vanilla JS para cliente real (farmacia)
 - ✅ Estrategia: Fundamentos sólidos + portfolio real
-- 🎯 Siguiente: Setup del backend Node.js
+- ✅ Git y GitHub configurados (repo: alrodrigo/sistema-farmacia-web)
+- ✅ .gitignore creado para proteger archivos sensibles
+- 🎯 Siguiente: Inicializar proyecto Node.js
+- notas sobre github:
+🔄 Cambiar entre ramas:
+ git checkout main              # Ir a main
+ git checkout develop           # Ir a develop  
+ git checkout feature/setup-backend  # Ir a feature
+ Descartar cambios (SALVAVIDAS):
+ # Descartar cambios de un archivo específico
+git checkout -- archivo.js
 
+# Descartar TODOS los cambios no committeados
+git reset --hard HEAD
+
+# Descartar último commit (pero mantener archivos)
+git reset --soft HEAD~1
+
+# Descartar último commit Y archivos
+git reset --hard HEAD~1
+🆘 EMERGENCIA - Volver a estado seguro:
+git checkout main    # Ir a versión estable
+git pull origin main # Asegurar última versión
 ### [Aquí iremos agregando notas conforme avancemos]
 
 ---
