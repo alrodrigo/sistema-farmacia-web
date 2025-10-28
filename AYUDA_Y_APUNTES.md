@@ -46,59 +46,33 @@ Un trigger es como un "empleado invisible" que trabaja automáticamente:
 - **JavaScript (ES6+)** - Interactividad
 - **Chart.js** - Gráficos para reportes
 
-### Backend
-- **Node.js** - Runtime de JavaScript
-- **Express.js** - Framework web
-- **SQLite** - Base de datos (archivo local)
-- **JWT** - Tokens de autenticación
-- **bcrypt** - Encriptación de contraseñas
+### Backend (BaaS - Backend as a Service)
+- **Firebase Authentication** - Sistema de login seguro
+- **Cloud Firestore** - Base de datos NoSQL en tiempo real
+- **Firebase Hosting** - Hosting gratuito con SSL automático
+- **Firebase Storage** - Almacenamiento de imágenes (opcional)
 
 ### Herramientas
-- **Nodemon** - Recarga automática en desarrollo
-- **dotenv** - Variables de entorno
-- **CORS** - Comunicación frontend-backend
+- **Firebase CLI** - Herramientas de línea de comandos
+- **Live Server** - Servidor de desarrollo local
 
 ---
 
 ## 📁 **ESTRUCTURA FINAL DEL PROYECTO**
 
-```
 sistema_farmacia_web/
-├── 📚 AYUDA_Y_APUNTES.md        ← Este archivo (conceptos)
-├── 📖 README.md                  ← Descripción del proyecto
-├── 🚀 package.json               ← Configuración principal
-├── 🔒 .env                       ← Variables secretas
-├── 🚫 .gitignore                 ← Archivos a ignorar en Git
-│
-├── 📱 frontend/                  ← INTERFAZ DE USUARIO
-│   ├── index.html               ← Página de login
-│   ├── dashboard.html           ← Página principal
-│   ├── productos.html           ← Gestión de productos
-│   ├── ventas.html              ← Punto de venta
-│   ├── reportes.html            ← Reportes y gráficos
-│   └── assets/
-│       ├── css/                 ← Estilos
-│       ├── js/                  ← JavaScript del frontend
-│       └── images/              ← Imágenes y logos
-│
-├── ⚙️ backend/                   ← LÓGICA DEL SERVIDOR
-│   ├── src/
-│   │   ├── app.js               ← Configuración principal
-│   │   ├── server.js            ← Arranca el servidor
-│   │   ├── routes/              ← Rutas de la API
-│   │   ├── controllers/         ← Lógica de negocio
-│   │   ├── models/              ← Definición de datos
-│   │   └── middleware/          ← Filtros de seguridad
-│   ├── database/                ← Base de datos
-│   └── package.json             ← Dependencias del backend
-│
-└── 📚 docs/                      ← DOCUMENTACIÓN TÉCNICA
-    ├── requirements.md          ← Qué debe hacer el sistema
-    ├── database-design.md       ← Diseño de BD
-    ├── development-plan.md      ← Plan paso a paso
-    └── wireframes/              ← Diseños de pantallas
-```
-
+├── public/               ← Todo el frontend aquí
+│   ├── css/
+│   ├── js/
+│   │   ├── config/      ← Firebase config
+│   │   ├── services/    ← CRUD y lógica
+│   │   ├── components/  ← Componentes UI
+│   │   └── utils/       ← Helpers
+│   └── images/
+├── firebase.json         ← Config Firebase
+├── firestore.rules       ← Seguridad
+├── firestore.indexes.json
+└── docs/                 ← Documentación
 ---
 
 ## 🎯 **PLAN DE DESARROLLO (Orden a seguir)**
@@ -215,7 +189,18 @@ npx serve .
 - ✅ Estrategia: Fundamentos sólidos + portfolio real
 - ✅ Git y GitHub configurados (repo: alrodrigo/sistema-farmacia-web)
 - ✅ .gitignore creado para proteger archivos sensibles
+- ✅ Ramas profesionales configuradas (main/develop/feature/*)
 - 🎯 Siguiente: Inicializar proyecto Node.js
+
+### Día 7 - [28/10/2025]
+- ✅ Análisis profundo: Node.js vs Firebase
+- ✅ Requisito adicional: Categorización por laboratorio (ya contemplado)
+- � DECISIÓN ESTRATÉGICA: Migrar a Firebase
+  - Razón: Garantizar entrega en 1 mes
+  - Tiempo: Node.js (26-36 días) vs Firebase (16-21 días)
+  - Costo: $0 para farmacia pequeña (límites Firebase suficientes)
+  - Plan: Firebase ahora, Node.js después (portfolio diverso)
+- 🚀 Reconfigurando proyecto para Firebase
 - notas sobre github:
 🔄 Cambiar entre ramas:
  git checkout main              # Ir a main

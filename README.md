@@ -1,7 +1,7 @@
 # 💊 Sistema de Gestión de Farmacia
 
 ## 📋 Descripción del Proyecto
-Sistema web completo para la gestión de inventario, ventas y reportes de una farmacia. Desarrollado con tecnologías modernas JavaScript para garantizar escalabilidad y facilidad de uso.
+Sistema web completo para la gestión de inventario, ventas y reportes de una farmacia. Desarrollado con tecnologías modernas JavaScript y Firebase para garantizar entrega rápida, escalabilidad y facilidad de uso.
 
 ## 🎯 Objetivos del Proyecto
 - ✅ Control eficiente de inventario
@@ -9,25 +9,25 @@ Sistema web completo para la gestión de inventario, ventas y reportes de una fa
 - ✅ Generación de comprobantes y reportes
 - ✅ Sistema multiusuario con roles
 - ✅ Interface intuitiva y responsiva
+- ✅ **Entrega garantizada en 1 mes**
 
 ## 🛠️ Stack Tecnológico
 
 ### Frontend
 - **HTML5** - Estructura semántica
 - **CSS3** - Diseño responsivo y moderno
-- **JavaScript (ES6+)** - Interactividad y consumo de API
+- **JavaScript (ES6+)** - Interactividad
 - **Chart.js** - Gráficos y reportes visuales
 
-### Backend
-- **Node.js** - Runtime de JavaScript
-- **Express.js** - Framework web minimalista
-- **SQLite/PostgreSQL** - Base de datos relacional
-- **JWT** - Autenticación segura
-- **PDFKit** - Generación de comprobantes
+### Backend (BaaS)
+- **Firebase Authentication** - Sistema de login seguro
+- **Cloud Firestore** - Base de datos NoSQL en tiempo real
+- **Firebase Hosting** - Hosting gratuito con SSL
+- **Firebase Functions** - Funciones serverless (opcional)
 
 ### Herramientas de Desarrollo
-- **Nodemon** - Desarrollo con hot reload
-- **dotenv** - Gestión de variables de entorno
+- **Firebase CLI** - Herramientas de línea de comandos
+- **Live Server** - Servidor de desarrollo local
 - **bcrypt** - Encriptación de contraseñas
 - **CORS** - Comunicación entre frontend y backend
 

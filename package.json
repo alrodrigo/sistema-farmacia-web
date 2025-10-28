@@ -1,0 +1,38 @@
+{
+  "name": "sistema-farmacia-web",
+  "version": "1.0.0",
+  "description": "Sistema completo de gestión para farmacia con Firebase",
+  "main": "public/index.html",
+  "scripts": {
+    "firebase": "firebase",
+    "login": "firebase login",
+    "init": "firebase init",
+    "serve": "firebase serve",
+    "deploy": "firebase deploy",
+    "deploy:hosting": "firebase deploy --only hosting",
+    "deploy:rules": "firebase deploy --only firestore:rules",
+    "logs": "firebase functions:log",
+    "emulators": "firebase emulators:start"
+  },
+  "keywords": [
+    "farmacia",
+    "pharmacy",
+    "pos",
+    "inventory",
+    "firebase",
+    "firestore",
+    "vanilla-js"
+  ],
+  "author": "Rodrigo <alrodrigo25@hotmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alrodrigo/sistema-farmacia-web.git"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "devDependencies": {
+    "firebase-tools": "^13.35.1"
+  }
+}

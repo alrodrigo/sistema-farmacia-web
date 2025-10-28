@@ -1,0 +1,69 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Función auxiliar para verificar autenticación
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    // Función para verificar si el usuario es admin
+    function isAdmin() {
+      return isSignedIn() && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    // Función para verificar si el usuario es empleado o admin
+    function isEmployee() {
+      return isSignedIn() && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'employee'];
+    }
+    
+    // USUARIOS - Solo admin puede crear/modificar
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow create: if isAdmin();
+      allow update, delete: if isAdmin() || request.auth.uid == userId;
+    }
+    
+    // CATEGORÍAS - Admin crea, todos leen
+    match /categories/{categoryId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+    
+    // PROVEEDORES/LABORATORIOS - Admin crea, todos leen
+    match /suppliers/{supplierId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+    
+    // PRODUCTOS - Admin gestiona, empleados leen
+    match /products/{productId} {
+      allow read: if isSignedIn();
+      allow create, update: if isEmployee();
+      allow delete: if isAdmin();
+    }
+    
+    // VENTAS - Empleados pueden crear y leer
+    match /sales/{saleId} {
+      allow read: if isSignedIn();
+      allow create: if isEmployee();
+      allow update, delete: if isAdmin();
+    }
+    
+    // ITEMS DE VENTA - Relacionados con ventas
+    match /sale_items/{itemId} {
+      allow read: if isSignedIn();
+      allow create: if isEmployee();
+      allow update, delete: if isAdmin();
+    }
+    
+    // MOVIMIENTOS DE INVENTARIO - Solo lectura para empleados
+    match /inventory_movements/{movementId} {
+      allow read: if isSignedIn();
+      allow create: if isEmployee();
+      allow update, delete: if isAdmin();
+    }
+  }
+}
