@@ -18,9 +18,6 @@ ui-debug.log
 .env.test.local
 .env.production.local
 
-# Firebase config (NO subir claves)
-public/js/config/firebase.js
-
 # Logs
 logs
 *.log

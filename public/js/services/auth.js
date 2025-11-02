@@ -6,6 +6,7 @@
  * @param {string} password 
  * @returns {Promise}
  */
+
 async function loginUser(email, password) {
     try {
         const userCredential = await firebaseAuth.signInWithEmailAndPassword(email, password);

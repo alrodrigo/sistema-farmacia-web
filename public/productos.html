@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Productos - Sistema Farmacia</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💊</text></svg>">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/productos.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-left">
+            <button class="menu-toggle" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="logo">
+                <i class="fas fa-prescription-bottle-medical"></i>
+                <span>Sistema Farmacia</span>
+            </div>
+        </div>
+        
+        <div class="navbar-right">
+            <div class="user-info">
+                <i class="fas fa-user-circle"></i>
+                <span id="userName">Usuario</span>
+            </div>
+            <button class="btn-logout" id="btnLogout">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Salir</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- ==================== CONTENEDOR PRINCIPAL ==================== -->
+    <div class="main-container">
+        
+        <!-- ==================== SIDEBAR (Menú lateral) ==================== -->
+        <aside class="sidebar" id="sidebar">
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="nav-item">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="productos.html" class="nav-item active">
+                    <i class="fas fa-pills"></i>
+                    <span>Productos</span>
+                </a>
+                <a href="ventas.html" class="nav-item">
+                    <i class="fas fa-cash-register"></i>
+                    <span>Ventas</span>
+                </a>
+                <a href="reportes.html" class="nav-item">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Reportes</span>
+                </a>
+                <a href="configuracion.html" class="nav-item">
+                    <i class="fas fa-cog"></i>
+                    <span>Configuración</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- ==================== CONTENIDO PRINCIPAL ==================== -->
+        <main class="content">
+            <!-- Header de la página -->
+            <div class="page-header">
+                <div class="page-title">
+                    <h1><i class="fas fa-pills"></i> Gestión de Productos</h1>
+                    <p>Administra el inventario de tu farmacia</p>
+                </div>
+                <button class="btn-primary" id="btnNuevoProducto">
+                    <i class="fas fa-plus"></i>
+                    Nuevo Producto
+                </button>
+            </div>
+
+            <!-- Barra de búsqueda y filtros -->
+            <div class="filters-section">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input 
+                        type="text" 
+                        id="searchInput" 
+                        placeholder="Buscar por nombre, SKU o código de barras..."
+                    >
+                </div>
+                
+                <div class="filter-group">
+                    <select id="filterCategoria" class="filter-select">
+                        <option value="">Todas las categorías</option>
+                        <!-- Se llenarán con JavaScript -->
+                    </select>
+                    
+                    <select id="filterProveedor" class="filter-select">
+                        <option value="">Todos los proveedores</option>
+                        <!-- Se llenarán con JavaScript -->
+                    </select>
+                    
+                    <select id="filterStock" class="filter-select">
+                        <option value="">Todo el stock</option>
+                        <option value="bajo">Stock bajo</option>
+                        <option value="normal">Stock normal</option>
+                        <option value="alto">Stock alto</option>
+                    </select>
+                    
+                    <button class="btn-secondary" id="btnLimpiarFiltros">
+                        <i class="fas fa-eraser"></i>
+                        Limpiar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Información rápida -->
+            <div class="info-cards">
+                <div class="info-card">
+                    <div class="info-icon blue">
+                        <i class="fas fa-boxes"></i>
+                    </div>
+                    <div class="info-content">
+                        <span class="info-label">Total Productos</span>
+                        <span class="info-value" id="totalProductos">0</span>
+                    </div>
+                </div>
+                
+                <div class="info-card">
+                    <div class="info-icon green">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <div class="info-content">
+                        <span class="info-label">Valor Total Inventario</span>
+                        <span class="info-value" id="valorInventario">$0.00</span>
+                    </div>
+                </div>
+                
+                <div class="info-card">
+                    <div class="info-icon orange">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="info-content">
+                        <span class="info-label">Stock Bajo</span>
+                        <span class="info-value" id="stockBajo">0</span>
+                    </div>
+                </div>
+                
+                <div class="info-card">
+                    <div class="info-icon purple">
+                        <i class="fas fa-layer-group"></i>
+                    </div>
+                    <div class="info-content">
+                        <span class="info-label">Categorías</span>
+                        <span class="info-value" id="totalCategorias">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabla de productos -->
+            <div class="table-container">
+                <div class="table-header">
+                    <h3><i class="fas fa-list"></i> Listado de Productos</h3>
+                    <div class="table-actions">
+                        <button class="btn-icon" id="btnExportar" title="Exportar a Excel">
+                            <i class="fas fa-file-excel"></i>
+                        </button>
+                        <button class="btn-icon" id="btnImprimir" title="Imprimir">
+                            <i class="fas fa-print"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-wrapper">
+                    <table class="productos-table" id="productosTable">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Nombre</th>
+                                <th>Categoría</th>
+                                <th>Proveedor</th>
+                                <th>Stock</th>
+                                <th>Stock Mín.</th>
+                                <th>Precio</th>
+                                <th>Estado</th>
+                                <th class="text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productosTableBody">
+                            <!-- Se llenará con JavaScript -->
+                            <tr class="loading-row">
+                                <td colspan="9" class="text-center">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                    Cargando productos...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Paginación -->
+                <div class="pagination" id="pagination">
+                    <button class="pagination-btn" id="btnPrevPage" disabled>
+                        <i class="fas fa-chevron-left"></i>
+                        Anterior
+                    </button>
+                    <span class="pagination-info" id="paginationInfo">
+                        Página 1 de 1
+                    </span>
+                    <button class="pagination-btn" id="btnNextPage" disabled>
+                        Siguiente
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Modal de Producto -->
+    <div class="modal" id="productoModal">
+        <div class="modal-overlay" id="modalOverlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">
+                    <i class="fas fa-box"></i> 
+                    <span id="modalTitleText">Nuevo Producto</span>
+                </h2>
+                <button class="modal-close" id="btnCerrarModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <form id="productoForm" class="modal-body">
+                <!-- Información básica -->
+                <div class="form-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-info-circle"></i> Información Básica
+                    </h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="inputNombre">
+                                Nombre del Producto <span class="required">*</span>
+                            </label>
+                            <input 
+                                type="text" 
+                                id="inputNombre" 
+                                class="form-control" 
+                                placeholder="Ej: Paracetamol 500mg"
+                                required
+                            >
+                            <span class="error-message" id="errorNombre"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="inputSKU">
+                                SKU <span class="required">*</span>
+                            </label>
+                            <input 
+                                type="text" 
+                                id="inputSKU" 
+                                class="form-control" 
+                                placeholder="Ej: PARA-500"
+                                required
+                            >
+                            <span class="error-message" id="errorSKU"></span>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="inputBarcode">Código de Barras</label>
+                            <input 
+                                type="text" 
+                                id="inputBarcode" 
+                                class="form-control" 
+                                placeholder="Ej: 7501234567890"
+                            >
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Clasificación -->
+                <div class="form-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-tags"></i> Clasificación
+                    </h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="inputCategoria">
+                                Categoría <span class="required">*</span>
+                            </label>
+                            <select id="inputCategoria" class="form-control" required>
+                                <option value="">Selecciona una categoría</option>
+                                <option value="Analgésicos">Analgésicos</option>
+                                <option value="Antibióticos">Antibióticos</option>
+                                <option value="Vitaminas">Vitaminas</option>
+                                <option value="Dermatológicos">Dermatológicos</option>
+                                <option value="Gastrointestinales">Gastrointestinales</option>
+                                <option value="Respiratorios">Respiratorios</option>
+                                <option value="Suplementos">Suplementos</option>
+                            </select>
+                            <span class="error-message" id="errorCategoria"></span>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="inputProveedor">
+                                Laboratorio/Proveedor <span class="required">*</span>
+                            </label>
+                            <select id="inputProveedor" class="form-control" required>
+                                <option value="">Selecciona un laboratorio</option>
+                                <option value="Bayer">Bayer</option>
+                                <option value="Pfizer">Pfizer</option>
+                                <option value="Novartis">Novartis</option>
+                                <option value="Genomma Lab">Genomma Lab</option>
+                                <option value="Sanofi">Sanofi</option>
+                                <option value="GSK">GSK</option>
+                            </select>
+                            <span class="error-message" id="errorProveedor"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Precios -->
+                <div class="form-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-dollar-sign"></i> Precios
+                    </h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="inputCosto">
+                                Costo (sin IVA) <span class="required">*</span>
+                            </label>
+                            <input 
+                                type="number" 
+                                id="inputCosto" 
+                                class="form-control" 
+                                placeholder="0.00"
+                                step="0.01"
+                                min="0"
+                                required
+                            >
+                            <span class="error-message" id="errorCosto"></span>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="inputPrecio">
+                                Precio de Venta <span class="required">*</span>
+                            </label>
+                            <input 
+                                type="number" 
+                                id="inputPrecio" 
+                                class="form-control" 
+                                placeholder="0.00"
+                                step="0.01"
+                                min="0"
+                                required
+                            >
+                            <span class="error-message" id="errorPrecio"></span>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="margenGanancia">Margen de Ganancia</label>
+                            <input 
+                                type="text" 
+                                id="margenGanancia" 
+                                class="form-control" 
+                                readonly
+                                placeholder="0%"
+                            >
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Inventario -->
+                <div class="form-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-boxes"></i> Inventario
+                    </h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="inputStockActual">
+                                Stock Actual <span class="required">*</span>
+                            </label>
+                            <input 
+                                type="number" 
+                                id="inputStockActual" 
+                                class="form-control" 
+                                placeholder="0"
+                                min="0"
+                                required
+                            >
+                            <span class="error-message" id="errorStockActual"></span>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="inputStockMinimo">
+                                Stock Mínimo <span class="required">*</span>
+                            </label>
+                            <input 
+                                type="number" 
+                                id="inputStockMinimo" 
+                                class="form-control" 
+                                placeholder="0"
+                                min="0"
+                                required
+                            >
+                            <span class="error-message" id="errorStockMinimo"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Información adicional -->
+                <div class="form-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-file-alt"></i> Información Adicional
+                    </h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group full-width">
+                            <label for="inputDescripcion">Descripción</label>
+                            <textarea 
+                                id="inputDescripcion" 
+                                class="form-control" 
+                                rows="3"
+                                placeholder="Descripción detallada del producto..."
+                            ></textarea>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="btnCancelar">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+                <button type="submit" form="productoForm" class="btn btn-primary" id="btnGuardar">
+                    <i class="fas fa-save"></i> <span id="btnGuardarText">Guardar Producto</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+
+    <!-- Configuración de Firebase -->
+    <script src="js/config/firebase.js"></script>
+
+    <!-- Utilidades -->
+    <script src="js/utils/helpers.js"></script>
+
+    <!-- Scripts de Productos -->
+    <script src="js/productos.js"></script>
+</body>
+</html>

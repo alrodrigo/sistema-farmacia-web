@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agregar Productos de Prueba</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        .btn {
+            background: #3498db;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        .btn:hover {
+            background: #2980b9;
+        }
+        .btn-danger {
+            background: #e74c3c;
+        }
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+        .mensaje {
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            display: none;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        #resultado {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Agregar Productos de Prueba</h1>
+        <p>Esta herramienta agregará productos de ejemplo a tu base de datos para probar el dashboard.</p>
+        
+        <div id="mensaje" class="mensaje"></div>
+        
+        <button class="btn" onclick="agregarProductos()">
+            Agregar 10 Productos de Prueba
+        </button>
+        
+        <button class="btn btn-danger" onclick="limpiarProductos()">
+            Limpiar Todos los Productos
+        </button>
+        
+        <button class="btn" onclick="window.location.href='/dashboard.html'">
+            Ir al Dashboard
+        </button>
+        
+        <div id="resultado"></div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    
+    <script>
+        // Inicializar Firebase directamente aquí
+        if (!firebase.apps.length) {
+            const firebaseConfig = {
+                apiKey: "AIzaSyD7Li27bUVpcPv412xashHQqGpQnHa-17k",
+                authDomain: "sistema-farmacia-web.firebaseapp.com",
+                projectId: "sistema-farmacia-web",
+                storageBucket: "sistema-farmacia-web.firebasestorage.app",
+                messagingSenderId: "789396395435",
+                appId: "1:789396395435:web:6857ba18bbf9ce1b672eee",
+                measurementId: "G-V78KYB29R7"
+            };
+            firebase.initializeApp(firebaseConfig);
+        }
+        
+        // Referencias a Firebase
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+        
+        // Productos de ejemplo para una farmacia
+        const productosEjemplo = [
+            {
+                name: 'Paracetamol 500mg',
+                sku: 'MED-001',
+                barcode: '7501234567890',
+                price: 15.50,
+                cost: 8.00,
+                current_stock: 150,
+                min_stock: 50,
+                category: 'Analgésicos',
+                supplier: 'Laboratorio Genomma Lab',
+                description: 'Analgésico y antipirético',
+                created_at: new Date(),
+                updated_at: new Date()
+            },
+            {
+                name: 'Ibuprofeno 600mg',
+                sku: 'MED-002',
+                barcode: '7501234567891',
+                price: 25.00,
+                cost: 12.00,
+                current_stock: 8,
+                min_stock: 30,
+                category: 'Analgésicos',
+                supplier: 'Laboratorio Bayer',
+                description: 'Antiinflamatorio no esteroideo',
+                created_at: new Date(),
+                updated_at: new Date()
+            },
+            {
+                name: 'Amoxicilina 500mg',
+                sku: 'MED-003',
+                barcode: '7501234567892',
+                price: 45.00,
+                cost: 25.00,
+                current_stock: 75,
+                min_stock: 40,
+                category: 'Antibióticos',
+                supplier: 'Laboratorio Pisa',
+                description: 'Antibiótico de amplio espectro',
+                created_at: new Date(),
+                updated_at: new Date()
+            },
+            {
+                name: 'Loratadina 10mg',
+                sku: 'MED-004',
+                barcode: '7501234567893',
+                price: 18.00,
+                cost: 9.00,
+                current_stock: 5,
+                min_stock: 25,
+                category: 'Antihistamínicos',
+                supplier: 'Laboratorio Sanfer',
+                description: 'Antihistamínico para alergias',
+                created_at: new Date(),
+                updated_at: new Date()
+            },
+            {
+                name: 'Omeprazol 20mg',
+                sku: 'MED-005',
+                barcode: '7501234567894',
+                price: 35.00,
+                cost: 18.00,
+                current_stock: 100,
+                min_stock: 50,
+                category: 'Gastroenterología',
+                supplier: 'Laboratorio Armstrong',
+                description: 'Inhibidor de la bomba de protones',
+                created_at: new Date(),
+                updated_at: new Date()
+            },
+            {
+                name: 'Losartán 50mg',
+                sku: 'MED-006',
+                barcode: '7501234567895',
+                price: 55.00,
+                cost: 30.00,
+                current_stock: 12,
+                min_stock: 30,
+                category: 'Cardiovasculares',
+                supplier: 'Laboratorio Rimsa',
+                description: 'Antihipertensivo',
+                created_at: new Date(),
+                updated_at: new Date()
+            },
+            {
+                name: 'Metformina 850mg',
+                sku: 'MED-007',
+                barcode: '7501234567896',
+                price: 42.00,
+                cost: 22.00,
+                current_stock: 90,
+                min_stock: 60,
+                category: 'Antidiabéticos',
+                supplier: 'Laboratorio Silanes',
+                description: 'Hipoglucemiante oral',
+                created_at: new Date(),
+                updated_at: new Date()
+            },
+            {
+                name: 'Alcohol en Gel 500ml',
+                sku: 'HIG-001',
+                barcode: '7501234567897',
+                price: 35.00,
+                cost: 20.00,
+                current_stock: 3,
+                min_stock: 20,
+                category: 'Higiene',
+                supplier: 'Gerber Products',
+                description: 'Gel antibacterial',
+                created_at: new Date(),
+                updated_at: new Date()
+            },
+            {
+                name: 'Termómetro Digital',
+                sku: 'EQP-001',
+                barcode: '7501234567898',
+                price: 120.00,
+                cost: 70.00,
+                current_stock: 15,
+                min_stock: 10,
+                category: 'Equipos',
+                supplier: 'Omron Healthcare',
+                description: 'Termómetro de uso oral',
+                created_at: new Date(),
+                updated_at: new Date()
+            },
+            {
+                name: 'Vitamina C 1000mg',
+                sku: 'VIT-001',
+                barcode: '7501234567899',
+                price: 85.00,
+                cost: 45.00,
+                current_stock: 2,
+                min_stock: 15,
+                category: 'Vitaminas',
+                supplier: 'Laboratorio GNC',
+                description: 'Suplemento vitamínico',
+                created_at: new Date(),
+                updated_at: new Date()
+            }
+        ];
+
+        async function agregarProductos() {
+            const mensaje = document.getElementById('mensaje');
+            const resultado = document.getElementById('resultado');
+            
+            mensaje.style.display = 'block';
+            mensaje.className = 'mensaje';
+            mensaje.innerHTML = '<div class="loading">⏳ Agregando productos...</div>';
+            resultado.innerHTML = '';
+            
+            try {
+                let agregados = 0;
+                let errores = 0;
+                let detalles = '';
+                
+                for (const producto of productosEjemplo) {
+                    try {
+                        await db.collection('products').add(producto);
+                        agregados++;
+                        detalles += `✓ ${producto.name}\n`;
+                    } catch (error) {
+                        errores++;
+                        detalles += `✗ ${producto.name}: ${error.message}\n`;
+                    }
+                }
+                
+                mensaje.className = 'mensaje success';
+                mensaje.innerHTML = `
+                    <strong>¡Éxito!</strong><br>
+                    Productos agregados: ${agregados}<br>
+                    Errores: ${errores}
+                `;
+                
+                resultado.innerHTML = detalles;
+                
+            } catch (error) {
+                mensaje.className = 'mensaje error';
+                mensaje.innerHTML = `<strong>Error:</strong> ${error.message}`;
+            }
+        }
+
+        async function limpiarProductos() {
+            if (!confirm('¿Estás seguro de eliminar TODOS los productos? Esta acción no se puede deshacer.')) {
+                return;
+            }
+            
+            const mensaje = document.getElementById('mensaje');
+            const resultado = document.getElementById('resultado');
+            
+            mensaje.style.display = 'block';
+            mensaje.className = 'mensaje';
+            mensaje.innerHTML = '<div class="loading">⏳ Eliminando productos...</div>';
+            resultado.innerHTML = '';
+            
+            try {
+                const snapshot = await db.collection('products').get();
+                let eliminados = 0;
+                
+                for (const doc of snapshot.docs) {
+                    await doc.ref.delete();
+                    eliminados++;
+                }
+                
+                mensaje.className = 'mensaje success';
+                mensaje.innerHTML = `<strong>¡Listo!</strong> Se eliminaron ${eliminados} productos.`;
+                
+            } catch (error) {
+                mensaje.className = 'mensaje error';
+                mensaje.innerHTML = `<strong>Error:</strong> ${error.message}`;
+            }
+        }
+        
+        // Verificar autenticación
+        auth.onAuthStateChanged(user => {
+            if (!user) {
+                alert('Debes iniciar sesión primero');
+                window.location.href = '/index.html';
+            }
+        });
+    </script>
+</body>
+</html>

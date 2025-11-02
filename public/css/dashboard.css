@@ -1,0 +1,525 @@
+/* =====================================================
+   ARCHIVO: dashboard.css
+   PROPÓSITO: Estilos del dashboard principal
+   ===================================================== */
+
+/* ===== 1. VARIABLES CSS (Colores y tamaños reutilizables) ===== */
+:root {
+    /* Colores principales */
+    --primary-color: #4f46e5;      /* Morado/Índigo principal */
+    --primary-dark: #4338ca;       /* Morado oscuro (hover) */
+    --secondary-color: #10b981;    /* Verde (éxito) */
+    --danger-color: #ef4444;       /* Rojo (peligro/eliminar) */
+    --warning-color: #f59e0b;      /* Amarillo (advertencia) */
+    
+    /* Colores de texto */
+    --text-dark: #1f2937;          /* Texto principal oscuro */
+    --text-light: #6b7280;         /* Texto secundario gris */
+    
+    /* Colores de fondo */
+    --bg-light: #f9fafb;           /* Fondo claro */
+    --white: #ffffff;              /* Blanco puro */
+    --sidebar-bg: #1e293b;         /* Fondo del menú lateral */
+    
+    /* Sombras */
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+    
+    /* Medidas */
+    --navbar-height: 70px;         /* Altura de la barra superior */
+    --sidebar-width: 250px;        /* Ancho del menú lateral */
+}
+
+/* ===== 2. RESET Y BASE ===== */
+/* Elimina márgenes y padding por defecto del navegador */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;  /* Los padding/border no aumentan el tamaño */
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background: var(--bg-light);
+    color: var(--text-dark);
+    overflow-x: hidden;  /* Evita scroll horizontal */
+}
+
+/* ===== 3. NAVBAR (Barra superior) ===== */
+.navbar {
+    position: fixed;           /* Se queda fijo arriba al hacer scroll */
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--navbar-height);
+    background: var(--white);
+    display: flex;
+    justify-content: space-between;  /* Izquierda y derecha separados */
+    align-items: center;
+    padding: 0 30px;
+    box-shadow: var(--shadow);
+    z-index: 1000;  /* Aparece sobre otros elementos */
+}
+
+.navbar-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;  /* Espacio entre elementos */
+}
+
+.menu-toggle {
+    display: none;  /* Oculto en pantallas grandes */
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: var(--text-dark);
+    cursor: pointer;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.logo i {
+    font-size: 28px;
+}
+
+.navbar-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-dark);
+}
+
+.user-info i {
+    font-size: 32px;
+    color: var(--primary-color);
+}
+
+.btn-logout {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: var(--danger-color);
+    color: var(--white);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    transition: all 0.3s ease;  /* Animación suave */
+}
+
+.btn-logout:hover {
+    background: #dc2626;  /* Rojo más oscuro al pasar mouse */
+    transform: translateY(-2px);  /* Se eleva un poco */
+}
+
+/* ===== 4. CONTENEDOR PRINCIPAL ===== */
+.main-container {
+    display: flex;
+    margin-top: var(--navbar-height);  /* Espacio para el navbar fijo */
+    min-height: calc(100vh - var(--navbar-height));  /* Ocupa toda la altura */
+}
+
+/* ===== 5. SIDEBAR (Menú lateral) ===== */
+.sidebar {
+    width: var(--sidebar-width);
+    background: var(--sidebar-bg);
+    padding: 20px 0;
+    position: fixed;
+    top: var(--navbar-height);
+    left: 0;
+    bottom: 0;
+    overflow-y: auto;  /* Scroll si el menú es muy largo */
+}
+
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px 25px;
+    color: #94a3b8;  /* Gris claro */
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.nav-item i {
+    font-size: 20px;
+    width: 24px;  /* Ancho fijo para alinear iconos */
+}
+
+.nav-item:hover {
+    background: rgba(255, 255, 255, 0.05);  /* Fondo sutil al pasar mouse */
+    color: var(--white);
+}
+
+.nav-item.active {
+    background: var(--primary-color);
+    color: var(--white);
+    border-left: 4px solid var(--white);  /* Barra lateral indicadora */
+}
+
+/* ===== 6. CONTENIDO PRINCIPAL ===== */
+.content {
+    flex: 1;  /* Ocupa todo el espacio disponible */
+    margin-left: var(--sidebar-width);
+    padding: 30px;
+}
+
+.content-header {
+    margin-bottom: 30px;
+}
+
+.content-header h1 {
+    font-size: 32px;
+    color: var(--text-dark);
+    margin-bottom: 5px;
+}
+
+.content-header p {
+    color: var(--text-light);
+    font-size: 16px;
+}
+
+/* ===== 7. TARJETAS DE ESTADÍSTICAS ===== */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);  /* 4 columnas iguales */
+    gap: 20px;
+    margin-bottom: 40px;
+}
+
+.stat-card {
+    background: var(--white);
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);  /* Efecto elevación al pasar mouse */
+    box-shadow: var(--shadow-lg);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+}
+
+.stat-details h3 {
+    font-size: 32px;
+    color: var(--text-dark);
+    margin-bottom: 5px;
+}
+
+.stat-details p {
+    font-size: 14px;
+    color: var(--text-light);
+}
+
+/* ===== 8. ACCIONES RÁPIDAS ===== */
+.quick-actions {
+    background: var(--white);
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+}
+
+/* ===== 7.5 SECCIÓN DE STOCK BAJO ===== */
+.stock-bajo-section {
+    background: var(--white);
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    margin-bottom: 30px;
+    border-left: 4px solid var(--warning-color);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.section-header h2 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 20px;
+    color: var(--text-dark);
+}
+
+.section-header h2 i {
+    color: var(--warning-color);
+}
+
+.badge-warning {
+    background: var(--warning-color);
+    color: var(--white);
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.stock-bajo-table {
+    overflow-x: auto;
+}
+
+.stock-bajo-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.stock-bajo-table thead {
+    background: var(--bg-light);
+}
+
+.stock-bajo-table th {
+    padding: 12px;
+    text-align: left;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-dark);
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.stock-bajo-table td {
+    padding: 12px;
+    font-size: 14px;
+    color: var(--text-dark);
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.stock-bajo-table tbody tr:hover {
+    background: var(--bg-light);
+}
+
+.badge-danger {
+    background: #fee2e2;
+    color: #991b1b;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.btn-small {
+    padding: 6px 12px;
+    background: var(--primary-color);
+    color: var(--white);
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-small:hover {
+    background: var(--primary-dark);
+}
+
+/* ===== 8. ACCIONES RÁPIDAS (continuación) ===== */
+
+.quick-actions h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: var(--text-dark);
+}
+
+.actions-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);  /* 4 botones por fila */
+    gap: 20px;
+}
+
+.action-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 30px 20px;
+    background: var(--bg-light);
+    border: 2px solid transparent;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Poppins', sans-serif;
+}
+
+.action-btn i {
+    font-size: 36px;
+    color: var(--primary-color);
+}
+
+.action-btn span {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-dark);
+}
+
+.action-btn:hover {
+    background: var(--white);
+    border-color: var(--primary-color);
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+}
+
+/* ===== 9. RESPONSIVE (Para móviles y tablets) ===== */
+
+/* Tablets (pantallas medianas) */
+@media (max-width: 1024px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);  /* 2 columnas en vez de 4 */
+    }
+    
+    .actions-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Móviles (pantallas pequeñas) */
+@media (max-width: 768px) {
+    /* Mostrar botón de menú hamburguesa */
+    .menu-toggle {
+        display: block;
+    }
+    
+    /* Sidebar oculto por defecto en móviles */
+    .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        z-index: 2000;
+    }
+    
+    /* Sidebar visible cuando está activo */
+    .sidebar.active {
+        transform: translateX(0);
+        box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+    }
+    
+    /* Overlay cuando el sidebar está abierto */
+    .sidebar.active::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: var(--sidebar-width);
+        width: calc(100vw - var(--sidebar-width));
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: -1;
+    }
+    
+    /* Contenido sin margen lateral en móviles */
+    .content {
+        margin-left: 0 !important;
+        width: 100%;
+        padding: 20px 15px;
+    }
+    
+    /* Ajustar estadísticas */
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .stat-card {
+        padding: 20px;
+    }
+    
+    /* Ajustar acciones */
+    .actions-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+    
+    /* Navbar más compacta */
+    .navbar {
+        padding: 0 15px;
+    }
+    
+    .logo {
+        font-size: 18px;
+    }
+    
+    .logo i {
+        font-size: 24px;
+    }
+}
+
+/* Móviles pequeños */
+@media (max-width: 480px) {
+    .content {
+        padding: 15px 10px;
+    }
+    
+    /* Una sola columna para acciones */
+    .actions-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    /* Ocultar nombre de usuario en móviles muy pequeños */
+    .user-info span {
+        display: none;
+    }
+    
+    /* Ajustar tamaños de las tarjetas */
+    .stat-card {
+        padding: 18px;
+    }
+    
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 24px;
+    }
+    
+    .stat-details h3 {
+        font-size: 28px;
+    }
+    
+    .stat-details p {
+        font-size: 13px;
+    }
+    
+    .action-btn {
+        padding: 20px;
+    }
+    
+    .action-btn i {
+        font-size: 32px;
+    }
+    
+    .action-btn span {
+        font-size: 13px;
+    }
+}

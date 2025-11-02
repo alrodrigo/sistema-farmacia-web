@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Sistema Farmacia</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💊</text></svg>">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome (Para los iconos) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- CSS del Dashboard -->
+    <link rel="stylesheet" href="css/dashboard.css">
+</head>
+<body>
+    <!-- ==================== NAVBAR SUPERIOR ==================== -->
+    <nav class="navbar">
+        <div class="navbar-left">
+            <button class="menu-toggle" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="logo">
+                <i class="fas fa-prescription-bottle-medical"></i>
+                <span>Sistema Farmacia</span>
+            </div>
+        </div>
+        
+        <div class="navbar-right">
+            <div class="user-info">
+                <i class="fas fa-user-circle"></i>
+                <span id="userName">Cargando...</span>
+            </div>
+            <button class="btn-logout" id="btnLogout">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Salir</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- ==================== CONTENEDOR PRINCIPAL ==================== -->
+    <div class="main-container">
+        
+        <!-- ==================== SIDEBAR (Menú lateral) ==================== -->
+        <aside class="sidebar" id="sidebar">
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="nav-item active">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="productos.html" class="nav-item">
+                    <i class="fas fa-pills"></i>
+                    <span>Productos</span>
+                </a>
+                <a href="ventas.html" class="nav-item">
+                    <i class="fas fa-cash-register"></i>
+                    <span>Ventas</span>
+                </a>
+                <a href="reportes.html" class="nav-item">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Reportes</span>
+                </a>
+                <a href="configuracion.html" class="nav-item">
+                    <i class="fas fa-cog"></i>
+                    <span>Configuración</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- ==================== CONTENIDO PRINCIPAL ==================== -->
+        <main class="content">
+            <div class="content-header">
+                <h1>Dashboard</h1>
+                <p>Resumen general del sistema</p>
+            </div>
+
+            <!-- Tarjetas de estadísticas -->
+            <div class="stats-grid">
+                <!-- Tarjeta 1: Total Productos -->
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #e0e7ff;">
+                        <i class="fas fa-boxes" style="color: #4f46e5;"></i>
+                    </div>
+                    <div class="stat-details">
+                        <h3 id="totalProductos">0</h3>
+                        <p>Total Productos</p>
+                    </div>
+                </div>
+
+                <!-- Tarjeta 2: Productos con Stock Bajo -->
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #fef3c7;">
+                        <i class="fas fa-exclamation-triangle" style="color: #f59e0b;"></i>
+                    </div>
+                    <div class="stat-details">
+                        <h3 id="stockBajo">0</h3>
+                        <p>Stock Bajo</p>
+                    </div>
+                </div>
+
+                <!-- Tarjeta 3: Ventas del Día -->
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #d1fae5;">
+                        <i class="fas fa-shopping-cart" style="color: #10b981;"></i>
+                    </div>
+                    <div class="stat-details">
+                        <h3 id="ventasHoy">0</h3>
+                        <p>Ventas Hoy</p>
+                    </div>
+                </div>
+
+                <!-- Tarjeta 4: Total Ingresos del Día -->
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #dbeafe;">
+                        <i class="fas fa-dollar-sign" style="color: #3b82f6;"></i>
+                    </div>
+                    <div class="stat-details">
+                        <h3 id="ingresosHoy">Bs. 0</h3>
+                        <p>Ingresos Hoy</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ⚠️ NUEVA SECCIÓN: Productos con Stock Bajo -->
+            <div class="stock-bajo-section" id="stockBajoSection" style="display: none;">
+                <div class="section-header">
+                    <h2>
+                        <i class="fas fa-exclamation-triangle"></i>
+                        Productos con Stock Bajo
+                    </h2>
+                    <span class="badge-warning" id="badgeStockBajo">0</span>
+                </div>
+                
+                <div class="stock-bajo-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th>Stock Actual</th>
+                                <th>Stock Mínimo</th>
+                                <th>Faltante</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="stockBajoTableBody">
+                            <!-- Se llena con JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Acciones rápidas -->
+            <div class="quick-actions">
+                <h2>Acciones Rápidas</h2>
+                <div class="actions-grid">
+                    <button class="action-btn" onclick="window.location.href='ventas.html'">
+                        <i class="fas fa-cash-register"></i>
+                        <span>Nueva Venta</span>
+                    </button>
+                    <button class="action-btn" onclick="window.location.href='productos.html'">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>Agregar Producto</span>
+                    </button>
+                    <button class="action-btn" onclick="window.location.href='reportes.html'">
+                        <i class="fas fa-file-invoice"></i>
+                        <span>Ver Reportes</span>
+                    </button>
+                    <button class="action-btn" id="btnScanQR">
+                        <i class="fas fa-qrcode"></i>
+                        <span>Escanear QR</span>
+                    </button>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+
+    <!-- Configuración de Firebase -->
+    <script src="js/config/firebase.js"></script>
+
+    <!-- Utilidades -->
+    <script src="js/utils/helpers.js"></script>
+
+    <!-- Scripts del Dashboard -->
+    <script src="js/dashboard.js"></script>
+</body>
+</html>
