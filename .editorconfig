@@ -1,0 +1,38 @@
+# EditorConfig - Configuración de estándares de código
+# https://editorconfig.org
+
+# Este archivo asegura que todos los editores usen el mismo formato
+# Útil cuando trabajas en equipo o con freelancers
+
+root = true
+
+# Reglas para TODOS los archivos
+[*]
+charset = utf-8                    # Todos los archivos en UTF-8
+end_of_line = lf                   # Line endings estilo Unix (mejor para Git)
+insert_final_newline = true        # Agregar línea vacía al final
+trim_trailing_whitespace = true    # Eliminar espacios al final de líneas
+
+# JavaScript, JSON y CSS - 2 espacios de indentación
+[*.{js,json,css}]
+indent_style = space
+indent_size = 2
+
+# HTML - 2 espacios de indentación
+[*.html]
+indent_style = space
+indent_size = 2
+
+# Markdown - No eliminar espacios al final (se usan para saltos de línea)
+[*.md]
+trim_trailing_whitespace = false
+indent_size = 2
+
+# YAML (para GitHub Actions) - 2 espacios
+[*.{yml,yaml}]
+indent_style = space
+indent_size = 2
+
+# Archivos de configuración
+[*.{json,rc}]
+indent_size = 2

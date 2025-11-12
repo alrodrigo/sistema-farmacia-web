@@ -498,7 +498,7 @@ async function eliminarProducto(id, nombre) {
     }
     
     try {
-        await firebaseDB.collection('products').doc(id).delete();
+        await firebaseDB.collection('products').pri.delete();
         console.log('✅ Producto eliminado:', id);
         
         alert(`✅ Producto "${nombre}" eliminado correctamente`);

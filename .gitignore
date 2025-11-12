@@ -67,3 +67,15 @@ Desktop.ini
 # Build outputs
 dist/
 build/
+
+# Development and testing tools
+docs/tools/
+*.test.html
+*.backup.*
+*.old
+
+# IDE-specific files
+.idea/
+*.swp
+*.swo
+*~

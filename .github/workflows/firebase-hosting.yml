@@ -1,0 +1,41 @@
+# ============================================
+# GitHub Actions - Deploy Automático a Firebase
+# ============================================
+# Este workflow se ejecuta automáticamente cuando:
+# 1. Haces push a la rama 'main'
+# 2. Haces merge de un Pull Request
+#
+# ¿Qué hace?
+# - Verifica el código
+# - Despliega a Firebase Hosting
+# - Te notifica si algo falla
+# ============================================
+
+name: Deploy to Firebase Hosting
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Desplegar a Firebase
+    runs-on: ubuntu-latest
+    
+    steps:
+      # PASO 1: Obtener el código del repositorio
+      - name: 📥 Checkout del código
+        uses: actions/checkout@v4
+      
+      # PASO 2: Desplegar a Firebase Hosting
+      - name: 🚀 Deploy a Firebase Hosting
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_SISTEMA_FARMACIA_WEB }}'
+          channelId: live
+          projectId: sistema-farmacia-web
