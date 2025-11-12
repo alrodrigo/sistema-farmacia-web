@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Punto de Venta - Sistema Farmacia</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💊</text></svg>">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/ventas.css">
+</head>
+<body>
+    <!-- ==================== NAVBAR SUPERIOR ==================== -->
+    <nav class="navbar">
+        <div class="navbar-left">
+            <button class="menu-toggle" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="logo">
+                <i class="fas fa-prescription-bottle-medical"></i>
+                <span>Sistema Farmacia</span>
+            </div>
+        </div>
+        
+        <div class="navbar-right">
+            <div class="user-info">
+                <i class="fas fa-user-circle"></i>
+                <span id="userName">Usuario</span>
+            </div>
+            <button class="btn-logout" id="btnLogout">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Salir</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- ==================== CONTENEDOR PRINCIPAL ==================== -->
+    <div class="main-container">
+        
+        <!-- ==================== SIDEBAR (Menú lateral) ==================== -->
+        <aside class="sidebar" id="sidebar">
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="nav-item">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="productos.html" class="nav-item">
+                    <i class="fas fa-pills"></i>
+                    <span>Productos</span>
+                </a>
+                <a href="ventas.html" class="nav-item active">
+                    <i class="fas fa-cash-register"></i>
+                    <span>Ventas</span>
+                </a>
+                <a href="reportes.html" class="nav-item">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Reportes</span>
+                </a>
+                <a href="configuracion.html" class="nav-item">
+                    <i class="fas fa-cog"></i>
+                    <span>Configuración</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- ==================== CONTENIDO PRINCIPAL ==================== -->
+        <main class="content">
+            <!-- Header de la página -->
+            <div class="page-header">
+                <div class="page-title">
+                    <h1><i class="fas fa-cash-register"></i> Punto de Venta (POS)</h1>
+                    <p>Registra las ventas de tu farmacia</p>
+                </div>
+                <div class="header-actions">
+                    <span class="sale-number">Venta #<span id="saleNumber">0001</span></span>
+                    <span class="sale-date" id="saleDate">12/11/2025 - 10:30 AM</span>
+                </div>
+            </div>
+
+            <!-- Layout de 2 columnas: Búsqueda + Carrito -->
+            <div class="pos-layout">
+                
+                <!-- ===== COLUMNA IZQUIERDA: Búsqueda de productos ===== -->
+                <div class="pos-left">
+                    
+                    <!-- Búsqueda -->
+                    <div class="search-section">
+                        <h3><i class="fas fa-search"></i> Buscar Producto</h3>
+                        <div class="search-box">
+                            <input 
+                                type="text" 
+                                id="searchProductInput" 
+                                placeholder="Buscar por nombre, SKU o código de barras..."
+                                autofocus
+                            >
+                            <button class="btn-search" id="btnSearch">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                        <div class="search-tips">
+                            💡 <strong>Tip:</strong> Puedes escanear el código de barras directamente
+                        </div>
+                    </div>
+
+                    <!-- Resultados de búsqueda -->
+                    <div class="results-section">
+                        <div class="results-header">
+                            <h3><i class="fas fa-box-open"></i> Productos Disponibles</h3>
+                            <span class="results-count" id="resultsCount">0 productos</span>
+                        </div>
+                        
+                        <div class="results-container" id="searchResults">
+                            <!-- Mensaje inicial -->
+                            <div class="empty-results">
+                                <i class="fas fa-barcode"></i>
+                                <p>Busca un producto para comenzar</p>
+                                <small>Usa el buscador o escanea el código de barras</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== COLUMNA DERECHA: Carrito y total ===== -->
+                <div class="pos-right">
+                    
+                    <!-- Carrito de compra -->
+                    <div class="cart-section">
+                        <div class="cart-header">
+                            <h3><i class="fas fa-shopping-cart"></i> Carrito de Venta</h3>
+                            <button class="btn-clear-cart" id="btnClearCart" disabled>
+                                <i class="fas fa-trash"></i> Limpiar
+                            </button>
+                        </div>
+
+                        <div class="cart-container" id="cartContainer">
+                            <!-- Carrito vacío inicial -->
+                            <div class="empty-cart">
+                                <i class="fas fa-shopping-cart"></i>
+                                <p>El carrito está vacío</p>
+                                <small>Agrega productos desde el buscador</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Resumen de la venta -->
+                    <div class="summary-section">
+                        <h3><i class="fas fa-calculator"></i> Resumen de Venta</h3>
+                        
+                        <div class="summary-details">
+                            <div class="summary-row">
+                                <span>Productos:</span>
+                                <strong id="totalItems">0</strong>
+                            </div>
+                            <div class="summary-row">
+                                <span>Subtotal:</span>
+                                <strong id="subtotal">Bs. 0.00</strong>
+                            </div>
+                            <div class="summary-row total-row">
+                                <span>TOTAL A PAGAR:</span>
+                                <strong id="total">Bs. 0.00</strong>
+                            </div>
+                        </div>
+
+                        <!-- Botones de acción -->
+                        <div class="action-buttons">
+                            <button class="btn-cancel" id="btnCancelSale">
+                                <i class="fas fa-times"></i>
+                                Cancelar Venta
+                            </button>
+                            <button class="btn-process" id="btnProcessSale" disabled>
+                                <i class="fas fa-check-circle"></i>
+                                Procesar Venta
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- ==================== MODAL DE CONFIRMACIÓN DE VENTA ==================== -->
+    <div class="modal" id="saleModal">
+        <div class="modal-overlay" id="modalOverlay"></div>
+        <div class="modal-content modal-sale">
+            <div class="modal-header success">
+                <div class="success-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <h2>¡Venta Procesada!</h2>
+                <button class="modal-close" id="btnCloseModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <div class="sale-info">
+                    <div class="info-row">
+                        <span>Número de Venta:</span>
+                        <strong id="modalSaleNumber">#0001</strong>
+                    </div>
+                    <div class="info-row">
+                        <span>Fecha:</span>
+                        <strong id="modalSaleDate">12/11/2025 10:30 AM</strong>
+                    </div>
+                    <div class="info-row">
+                        <span>Vendedor:</span>
+                        <strong id="modalSeller">Usuario</strong>
+                    </div>
+                    <div class="info-row total">
+                        <span>Total:</span>
+                        <strong id="modalTotal">Bs. 0.00</strong>
+                    </div>
+                </div>
+
+                <div class="sale-actions">
+                    <button class="btn-print" id="btnPrintReceipt">
+                        <i class="fas fa-print"></i>
+                        Imprimir Recibo
+                    </button>
+                    <button class="btn-new-sale" id="btnNewSale">
+                        <i class="fas fa-plus-circle"></i>
+                        Nueva Venta
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <!-- Configuración de Firebase -->
+    <script src="js/config/firebase.js"></script>
+
+    <!-- Utilidades -->
+    <script src="js/utils/helpers.js"></script>
+
+    <!-- Scripts de Ventas -->
+    <script src="js/ventas.js"></script>
+</body>
+</html>
