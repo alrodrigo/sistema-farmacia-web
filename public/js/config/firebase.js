@@ -15,7 +15,8 @@ firebase.initializeApp(firebaseConfig);
 // Servicios de Firebase que usaremos
 const auth = firebase.auth();
 const db = firebase.firestore();
-const storage = firebase.storage();
+// Storage comentado hasta que se necesite (requiere SDK adicional)
+// const storage = firebase.storage();
 
 // Configurar idioma español para errores de autenticación
 auth.languageCode = 'es';
@@ -29,6 +30,6 @@ auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
 // Exportar servicios para usar en otros archivos
 window.firebaseAuth = auth;
 window.firebaseDB = db;
-window.firebaseStorage = storage;
+// window.firebaseStorage = storage;
 
 console.log('🔥 Firebase inicializado correctamente');

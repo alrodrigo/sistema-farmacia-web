@@ -15,6 +15,9 @@ let todosLosProductos = []; // Todos los productos disponibles
 let carrito = []; // Array que guarda los productos en el carrito
 let numeroVentaActual = 1; // Número de venta (se incrementará)
 
+// MODO DE DESARROLLO (cambiar a false en producción)
+const MODO_DESARROLLO = false;
+
 // ===== 3. CUANDO LA PÁGINA CARGA =====
 document.addEventListener('DOMContentLoaded', async function() {
   console.log('📄 DOM cargado, iniciando POS...');
@@ -30,11 +33,34 @@ document.addEventListener('DOMContentLoaded', async function() {
   
   // Actualizar fecha/hora
   actualizarFechaHora();
+  
+  // Actualizar fecha/hora cada minuto
+  setInterval(actualizarFechaHora, 60000);
 });
 
 // ===== 4. VERIFICAR AUTENTICACIÓN =====
 async function verificarAutenticacion() {
   console.log('🔐 Verificando autenticación...');
+  
+  // MODO DE DESARROLLO: simular usuario
+  if (MODO_DESARROLLO) {
+    console.log('⚠️ MODO DE DESARROLLO ACTIVADO');
+    currentUser = {
+      uid: 'dev-user-123',
+      email: 'admin@farmacia.com',
+      first_name: 'Admin',
+      last_name: 'Desarrollo'
+    };
+    mostrarNombreUsuario();
+    return Promise.resolve(true);
+  }
+  
+  // MODO PRODUCCIÓN: verificar con Firebase
+  if (!firebaseAuth) {
+    console.error('❌ Firebase Auth no está inicializado');
+    redirectTo('index.html');
+    return Promise.resolve(false);
+  }
   
   return new Promise((resolve) => {
     firebaseAuth.onAuthStateChanged(async (user) => {
@@ -166,10 +192,10 @@ function configurarEventos() {
   }
   
   // Botón cerrar modal
-  const btnCloseModal = document.getElementById('btnCloseModal');
-  const modalOverlay = document.getElementById('modalOverlay');
+  const closeModalBtn = document.getElementById('closeModalBtn');
+  const modalOverlay = document.querySelector('#saleSuccessModal .modal-overlay');
   
-  if (btnCloseModal) btnCloseModal.addEventListener('click', cerrarModal);
+  if (closeModalBtn) closeModalBtn.addEventListener('click', cerrarModal);
   if (modalOverlay) modalOverlay.addEventListener('click', cerrarModal);
   
   // Botón nueva venta
@@ -227,6 +253,69 @@ async function cargarDatosIniciales() {
 async function cargarProductos() {
   console.log('📦 Cargando productos desde Firestore...');
   
+  // MODO DE DESARROLLO: usar productos de prueba
+  if (MODO_DESARROLLO) {
+    console.log('⚠️ Usando productos de prueba');
+    todosLosProductos = [
+      {
+        id: 'prod-1',
+        name: 'Paracetamol 500mg',
+        sku: 'PAR-500',
+        barcode: '7501234567890',
+        price: 12.50,
+        current_stock: 150,
+        min_stock: 20
+      },
+      {
+        id: 'prod-2',
+        name: 'Ibuprofeno 400mg',
+        sku: 'IBU-400',
+        barcode: '7501234567891',
+        price: 18.00,
+        current_stock: 80,
+        min_stock: 15
+      },
+      {
+        id: 'prod-3',
+        name: 'Amoxicilina 500mg',
+        sku: 'AMO-500',
+        barcode: '7501234567892',
+        price: 45.00,
+        current_stock: 60,
+        min_stock: 10
+      },
+      {
+        id: 'prod-4',
+        name: 'Omeprazol 20mg',
+        sku: 'OME-20',
+        barcode: '7501234567893',
+        price: 32.00,
+        current_stock: 5,
+        min_stock: 10
+      },
+      {
+        id: 'prod-5',
+        name: 'Losartán 50mg',
+        sku: 'LOS-50',
+        barcode: '7501234567894',
+        price: 28.50,
+        current_stock: 120,
+        min_stock: 20
+      },
+      {
+        id: 'prod-6',
+        name: 'Metformina 850mg',
+        sku: 'MET-850',
+        barcode: '7501234567895',
+        price: 22.00,
+        current_stock: 95,
+        min_stock: 15
+      }
+    ];
+    console.log(`✅ ${todosLosProductos.length} productos de prueba cargados`);
+    return;
+  }
+  
   try {
     const snapshot = await firebaseDB.collection('products').get();
     
@@ -248,6 +337,15 @@ async function cargarProductos() {
 
 // ===== 10. OBTENER NÚMERO DE VENTA =====
 async function obtenerNumeroVenta() {
+  // MODO DE DESARROLLO: usar número fijo
+  if (MODO_DESARROLLO) {
+    numeroVentaActual = 1;
+    document.getElementById('saleNumber').textContent = 
+      String(numeroVentaActual).padStart(4, '0');
+    console.log(`📝 Número de venta (DEV): ${numeroVentaActual}`);
+    return;
+  }
+  
   try {
     // Obtener la última venta para generar el número siguiente
     const snapshot = await firebaseDB.collection('sales')
@@ -628,6 +726,38 @@ async function procesarVenta() {
     const totalItems = carrito.reduce((sum, item) => sum + item.cantidad, 0);
     const total = carrito.reduce((sum, item) => sum + (item.price * item.cantidad), 0);
     
+    // MODO DE DESARROLLO: simular venta exitosa
+    if (MODO_DESARROLLO) {
+      console.log('⚠️ MODO DE DESARROLLO: Simulando venta exitosa');
+      console.log('📊 Datos de venta:', {
+        numero: numeroVentaActual,
+        items: carrito.length,
+        total: total
+      });
+      
+      // Simular delay de red
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Mostrar modal de éxito
+      mostrarModalExito(numeroVentaActual, total);
+      
+      // Limpiar carrito
+      carrito = [];
+      actualizarCarrito();
+      
+      // Incrementar número de venta
+      numeroVentaActual++;
+      document.getElementById('saleNumber').textContent = 
+        String(numeroVentaActual).padStart(4, '0');
+      
+      // Restaurar botón
+      btnProcesar.disabled = false;
+      btnProcesar.innerHTML = textoOriginal;
+      
+      return;
+    }
+    
+    // MODO PRODUCCIÓN: guardar en Firebase
     // Preparar datos de la venta
     const ventaData = {
       sale_number: numeroVentaActual,
@@ -698,24 +828,21 @@ function mostrarModalExito(numeroVenta, total) {
   document.getElementById('modalSaleNumber').textContent = 
     '#' + String(numeroVenta).padStart(4, '0');
   
-  const ahora = new Date();
-  document.getElementById('modalSaleDate').textContent = 
-    ahora.toLocaleString('es-BO');
-  
-  document.getElementById('modalSeller').textContent = 
-    currentUser.first_name || currentUser.email;
-  
   document.getElementById('modalTotal').textContent = 
     formatCurrency(total);
   
   // Mostrar modal
-  document.getElementById('saleModal').classList.add('active');
+  const modal = document.getElementById('saleSuccessModal');
+  modal.style.display = 'flex';
+  modal.classList.add('active');
   document.body.style.overflow = 'hidden';
 }
 
 // ===== 24. CERRAR MODAL =====
 function cerrarModal() {
-  document.getElementById('saleModal').classList.remove('active');
+  const modal = document.getElementById('saleSuccessModal');
+  modal.classList.remove('active');
+  modal.style.display = 'none';
   document.body.style.overflow = 'auto';
 }
 
