@@ -73,7 +73,14 @@ function mostrarNombreUsuario() {
     const userNameElement = document.getElementById('userName');
     
     if (currentUser && userNameElement) {
-        const displayName = currentUser.first_name || currentUser.email;
+        // Buscar nombre en diferentes campos posibles
+        const displayName = currentUser.name || 
+                          currentUser.nombre || 
+                          currentUser.first_name || 
+                          currentUser.displayName ||
+                          currentUser.email?.split('@')[0] || 
+                          'Usuario';
+        
         userNameElement.textContent = displayName;
         console.log('👤 Usuario mostrado:', displayName);
     }

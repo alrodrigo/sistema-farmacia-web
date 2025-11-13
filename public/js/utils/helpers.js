@@ -150,6 +150,25 @@ function isUserLoggedIn() {
 }
 
 /**
+ * Obtiene el nombre de usuario de forma inteligente
+ * Busca en diferentes campos posibles
+ * @param {object} userData - Datos del usuario
+ * @returns {string}
+ */
+function getUserDisplayName(userData) {
+    if (!userData) return 'Usuario';
+    
+    // Intentar obtener el nombre de diferentes campos
+    return userData.name || 
+           userData.nombre || 
+           userData.first_name || 
+           userData.firstName ||
+           userData.displayName ||
+           userData.email?.split('@')[0] || 
+           'Usuario';
+}
+
+/**
  * Manejo de errores de Firebase
  * @param {object} error 
  * @returns {string}

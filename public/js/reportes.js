@@ -30,10 +30,26 @@ async function loadUserData(uid) {
         const userDoc = await firebase.firestore().collection('users').doc(uid).get();
         if (userDoc.exists) {
             const userData = userDoc.data();
-            document.getElementById('userName').textContent = userData.nombre || 'Usuario';
+            
+            // Debug: Ver todos los campos del usuario
+            console.log('📋 Datos completos del usuario:', userData);
+            console.log('📋 Campos disponibles:', Object.keys(userData));
+            
+            // Buscar el nombre en diferentes campos posibles
+            const userName = userData.name || 
+                            userData.nombre || 
+                            userData.first_name || 
+                            userData.displayName ||
+                            userData.email?.split('@')[0] || 
+                            'Usuario';
+            
+            document.getElementById('userName').textContent = userName;
+            console.log('👤 Usuario mostrado:', userName);
+        } else {
+            console.error('❌ Documento de usuario no encontrado');
         }
     } catch (error) {
-        console.error('Error cargando datos del usuario:', error);
+        console.error('❌ Error cargando datos del usuario:', error);
     }
 }
 

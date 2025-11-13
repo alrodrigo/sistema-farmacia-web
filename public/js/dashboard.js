@@ -55,6 +55,10 @@ async function verificarAutenticacion() {
                         
                         // Mostrar nombre del usuario en el navbar
                         mostrarNombreUsuario();
+                        
+                        // Actualizar menú según rol
+                        actualizarMenuPorRol();
+                        
                         resolve(true);
                     } else {
                         console.error('❌ Documento de usuario no encontrado');
@@ -82,8 +86,14 @@ function mostrarNombreUsuario() {
     const userNameElement = document.getElementById('userName');
     
     if (currentUser && userNameElement) {
-        // Mostrar: "Rodrigo" o "Admin Sistema"
-        const displayName = currentUser.first_name || currentUser.email;
+        // Buscar nombre en diferentes campos posibles
+        const displayName = currentUser.name || 
+                          currentUser.nombre || 
+                          currentUser.first_name || 
+                          currentUser.displayName ||
+                          currentUser.email?.split('@')[0] || 
+                          'Usuario';
+        
         userNameElement.textContent = displayName;
         console.log('👤 Usuario mostrado:', displayName);
     }
@@ -383,6 +393,36 @@ async function cargarIngresosHoy() {
     } catch (error) {
         console.error('❌ Error al cargar ingresos:', error);
         document.getElementById('ingresosHoy').textContent = 'Bs. -';
+    }
+}
+
+// ===== ACTUALIZAR MENÚ POR ROL =====
+/**
+ * Oculta opciones del menú según el rol del usuario
+ */
+function actualizarMenuPorRol() {
+    if (!currentUser) return;
+    
+    const role = currentUser.role || 'empleado';
+    console.log('🔐 Actualizando menú para rol:', role);
+    
+    // Si es empleado, ocultar opciones de admin
+    if (role === 'empleado') {
+        // Ocultar productos
+        const productosMenu = document.querySelector('a[href="productos.html"]');
+        if (productosMenu) productosMenu.style.display = 'none';
+        
+        // Ocultar utilidades
+        const utilidadesMenu = document.querySelector('#menuUtilidades');
+        if (utilidadesMenu) utilidadesMenu.style.display = 'none';
+        
+        // Ocultar configuración
+        const configMenu = document.querySelector('a[href="configuracion.html"]');
+        if (configMenu) configMenu.style.display = 'none';
+        
+        console.log('👤 Menú de empleado aplicado');
+    } else {
+        console.log('👑 Menú de admin aplicado (completo)');
     }
 }
 
