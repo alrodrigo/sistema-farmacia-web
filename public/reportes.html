@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reportes - Sistema Farmacia</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💊</text></svg>">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/reportes.css">
+</head>
+<body>
+    <!-- ==================== NAVBAR SUPERIOR ==================== -->
+    <nav class="navbar">
+        <div class="navbar-left">
+            <button class="menu-toggle" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="logo">
+                <i class="fas fa-prescription-bottle-medical"></i>
+                <span>Sistema Farmacia</span>
+            </div>
+        </div>
+        
+        <div class="navbar-right">
+            <div class="user-info">
+                <i class="fas fa-user-circle"></i>
+                <span id="userName">Usuario</span>
+            </div>
+            <button class="btn-logout" id="btnLogout">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Salir</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- ==================== CONTENEDOR PRINCIPAL ==================== -->
+    <div class="main-container">
+        
+        <!-- ==================== SIDEBAR ==================== -->
+        <aside class="sidebar" id="sidebar">
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="nav-item">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="productos.html" class="nav-item">
+                    <i class="fas fa-pills"></i>
+                    <span>Productos</span>
+                </a>
+                <a href="ventas.html" class="nav-item">
+                    <i class="fas fa-cash-register"></i>
+                    <span>Ventas</span>
+                </a>
+                <a href="reportes.html" class="nav-item active">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Reportes</span>
+                </a>
+                <a href="configuracion.html" class="nav-item">
+                    <i class="fas fa-cog"></i>
+                    <span>Configuración</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- ==================== CONTENIDO PRINCIPAL ==================== -->
+        <main class="content">
+            <!-- Header de la página -->
+            <div class="page-header">
+                <div class="page-title">
+                    <h1><i class="fas fa-chart-bar"></i> Reportes de Ventas</h1>
+                    <p>Análisis y estadísticas de tu farmacia</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn-export btn-pdf" id="btnExportPDF">
+                        <i class="fas fa-file-pdf"></i>
+                        Exportar a PDF
+                    </button>
+                    <button class="btn-export btn-excel" id="btnExportExcel">
+                        <i class="fas fa-file-excel"></i>
+                        Exportar a Excel
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filtros de fecha -->
+            <div class="filters-section">
+                <div class="filter-card">
+                    <div class="filter-group">
+                        <label for="fechaInicio">
+                            <i class="fas fa-calendar-alt"></i>
+                            Fecha Inicio:
+                        </label>
+                        <input type="date" id="fechaInicio" class="form-control">
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="fechaFin">
+                            <i class="fas fa-calendar-alt"></i>
+                            Fecha Fin:
+                        </label>
+                        <input type="date" id="fechaFin" class="form-control">
+                    </div>
+                    
+                    <div class="filter-actions">
+                        <button class="btn-filter" id="btnFiltrar">
+                            <i class="fas fa-search"></i>
+                            Filtrar
+                        </button>
+                        <button class="btn-reset" id="btnResetFiltros">
+                            <i class="fas fa-redo"></i>
+                            Limpiar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Botones rápidos -->
+                <div class="quick-filters">
+                    <button class="btn-quick" data-period="today">Hoy</button>
+                    <button class="btn-quick" data-period="week">Esta Semana</button>
+                    <button class="btn-quick" data-period="month">Este Mes</button>
+                </div>
+            </div>
+
+            <!-- Tarjetas de resumen -->
+            <div class="summary-cards">
+                <div class="summary-card">
+                    <div class="card-icon sales">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3>Total Ventas</h3>
+                        <p class="card-value" id="totalVentas">0</p>
+                        <small>Transacciones realizadas</small>
+                    </div>
+                </div>
+
+                <div class="summary-card">
+                    <div class="card-icon revenue">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3>Ingresos Totales</h3>
+                        <p class="card-value" id="ingresosTotales">Bs. 0.00</p>
+                        <small>Monto total generado</small>
+                    </div>
+                </div>
+
+                <div class="summary-card">
+                    <div class="card-icon products">
+                        <i class="fas fa-box"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3>Productos Vendidos</h3>
+                        <p class="card-value" id="productosVendidos">0</p>
+                        <small>Unidades totales</small>
+                    </div>
+                </div>
+
+                <div class="summary-card">
+                    <div class="card-icon average">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3>Ticket Promedio</h3>
+                        <p class="card-value" id="ticketPromedio">Bs. 0.00</p>
+                        <small>Venta promedio</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lista de ventas -->
+            <div class="table-section">
+                <div class="table-header">
+                    <h2>
+                        <i class="fas fa-list"></i>
+                        Detalle de Ventas
+                    </h2>
+                    <span class="results-count" id="resultsCount">0 ventas</span>
+                </div>
+
+                <div class="table-container">
+                    <div id="loadingState" class="loading-state">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Cargando reportes...</p>
+                    </div>
+
+                    <div id="emptyState" class="empty-state" style="display: none;">
+                        <i class="fas fa-inbox"></i>
+                        <p>No hay ventas en el periodo seleccionado</p>
+                        <small>Intenta cambiar el rango de fechas</small>
+                    </div>
+
+                    <table id="salesTable" style="display: none;">
+                        <thead>
+                            <tr>
+                                <th>N° Venta</th>
+                                <th>Fecha</th>
+                                <th>Vendedor</th>
+                                <th>Productos</th>
+                                <th>Items</th>
+                                <th>Total</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="salesTableBody">
+                            <!-- Ventas se cargarán aquí -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Productos más vendidos -->
+            <div class="top-products-section">
+                <div class="section-header">
+                    <h2>
+                        <i class="fas fa-trophy"></i>
+                        Productos Más Vendidos
+                    </h2>
+                </div>
+                
+                <div class="top-products-grid" id="topProductsGrid">
+                    <!-- Productos se cargarán aquí -->
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- ==================== MODAL DETALLE DE VENTA ==================== -->
+    <div id="saleDetailModal" class="modal" style="display: none;">
+        <div class="modal-overlay"></div>
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2>
+                    <i class="fas fa-receipt"></i>
+                    Detalle de Venta
+                </h2>
+                <button class="modal-close" id="closeDetailModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="sale-detail-info">
+                    <div class="info-group">
+                        <label>Número de Venta:</label>
+                        <span id="detailSaleNumber">-</span>
+                    </div>
+                    <div class="info-group">
+                        <label>Fecha:</label>
+                        <span id="detailSaleDate">-</span>
+                    </div>
+                    <div class="info-group">
+                        <label>Vendedor:</label>
+                        <span id="detailSeller">-</span>
+                    </div>
+                </div>
+
+                <div class="sale-items-table">
+                    <h3>Productos Vendidos</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th>Cantidad</th>
+                                <th>Precio Unit.</th>
+                                <th>Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody id="detailItemsBody">
+                            <!-- Items se cargarán aquí -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="sale-total">
+                    <span>TOTAL:</span>
+                    <strong id="detailTotal">Bs. 0.00</strong>
+                </div>
+
+                <div class="modal-actions">
+                    <button class="btn-print-receipt" id="btnPrintReceipt">
+                        <i class="fas fa-print"></i>
+                        Imprimir Recibo
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <!-- SheetJS para exportar Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <!-- jsPDF para exportar PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+    <!-- Configuración de Firebase -->
+    <script src="js/config/firebase.js"></script>
+
+    <!-- Utilidades -->
+    <script src="js/utils/helpers.js"></script>
+
+    <!-- Scripts de Reportes -->
+    <script src="js/reportes.js"></script>
+</body>
+</html>

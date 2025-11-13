@@ -773,7 +773,8 @@ async function procesarVenta() {
       total: total,
       seller_id: currentUser.uid,
       seller_name: currentUser.first_name || currentUser.email,
-      created_at: firebase.firestore.FieldValue.serverTimestamp(),
+      fecha: firebase.firestore.FieldValue.serverTimestamp(), // Nombre en español
+      created_at: firebase.firestore.FieldValue.serverTimestamp(), // Mantener por compatibilidad
       status: 'completed'
     };
     
