@@ -308,16 +308,15 @@
                             <label for="inputCategoria">
                                 Categoría <span class="required">*</span>
                             </label>
-                            <select id="inputCategoria" class="form-control" required>
-                                <option value="">Selecciona una categoría</option>
-                                <option value="Analgésicos">Analgésicos</option>
-                                <option value="Antibióticos">Antibióticos</option>
-                                <option value="Vitaminas">Vitaminas</option>
-                                <option value="Dermatológicos">Dermatológicos</option>
-                                <option value="Gastrointestinales">Gastrointestinales</option>
-                                <option value="Respiratorios">Respiratorios</option>
-                                <option value="Suplementos">Suplementos</option>
-                            </select>
+                            <div class="input-with-action">
+                                <select id="inputCategoria" class="form-control" required>
+                                    <option value="">Selecciona una categoría</option>
+                                    <!-- Se cargarán dinámicamente desde Firestore -->
+                                </select>
+                                <button type="button" class="btn-add-option" id="btnNuevaCategoria" title="Crear nueva categoría">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
                             <span class="error-message" id="errorCategoria"></span>
                         </div>
                         
@@ -325,15 +324,15 @@
                             <label for="inputProveedor">
                                 Laboratorio/Proveedor <span class="required">*</span>
                             </label>
-                            <select id="inputProveedor" class="form-control" required>
-                                <option value="">Selecciona un laboratorio</option>
-                                <option value="Bayer">Bayer</option>
-                                <option value="Pfizer">Pfizer</option>
-                                <option value="Novartis">Novartis</option>
-                                <option value="Genomma Lab">Genomma Lab</option>
-                                <option value="Sanofi">Sanofi</option>
-                                <option value="GSK">GSK</option>
-                            </select>
+                            <div class="input-with-action">
+                                <select id="inputProveedor" class="form-control" required>
+                                    <option value="">Selecciona un laboratorio</option>
+                                    <!-- Se cargarán dinámicamente desde Firestore -->
+                                </select>
+                                <button type="button" class="btn-add-option" id="btnNuevoProveedor" title="Crear nuevo laboratorio">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
                             <span class="error-message" id="errorProveedor"></span>
                         </div>
                     </div>
@@ -456,6 +455,124 @@
                 </button>
                 <button type="submit" form="productoForm" class="btn btn-primary" id="btnGuardar">
                     <i class="fas fa-save"></i> <span id="btnGuardarText">Guardar Producto</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL RÁPIDO: NUEVA CATEGORÍA ==================== -->
+    <div class="quick-modal" id="modalNuevaCategoria">
+        <div class="quick-modal-content">
+            <div class="quick-modal-header">
+                <h3><i class="fas fa-tag"></i> Nueva Categoría</h3>
+                <button type="button" class="quick-modal-close" id="btnCerrarNuevaCategoria">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="quick-modal-body">
+                <div class="form-group">
+                    <label for="inputNombreCategoria">
+                        Nombre de la Categoría <span class="required">*</span>
+                    </label>
+                    <input 
+                        type="text" 
+                        id="inputNombreCategoria" 
+                        class="form-control" 
+                        placeholder="Ej: Medicamentos, Vitaminas..."
+                        maxlength="50"
+                        autocomplete="off"
+                    >
+                </div>
+                <div class="form-group">
+                    <label for="inputDescripcionCategoria">
+                        Descripción (Opcional)
+                    </label>
+                    <textarea 
+                        id="inputDescripcionCategoria" 
+                        class="form-control" 
+                        placeholder="Descripción breve..."
+                        rows="2"
+                        maxlength="200"
+                    ></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group" style="flex: 1;">
+                        <label for="inputColorCategoria">Color</label>
+                        <input 
+                            type="color" 
+                            id="inputColorCategoria" 
+                            class="form-control color-input" 
+                            value="#6a5acd"
+                        >
+                    </div>
+                    <div class="form-group" style="flex: 2;">
+                        <label for="inputIconoCategoria">Icono</label>
+                        <select id="inputIconoCategoria" class="form-control">
+                            <option value="fa-pills">💊 Pastillas</option>
+                            <option value="fa-capsules">💊 Cápsulas</option>
+                            <option value="fa-syringe">💉 Jeringas</option>
+                            <option value="fa-heartbeat">❤️ Cardio</option>
+                            <option value="fa-band-aid">🩹 Vendas</option>
+                            <option value="fa-leaf">🍃 Natural</option>
+                            <option value="fa-baby">👶 Bebé</option>
+                            <option value="fa-tag">🏷️ General</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="quick-modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('btnCerrarNuevaCategoria').click()">
+                    Cancelar
+                </button>
+                <button type="button" class="btn btn-primary btn-sm" id="btnGuardarCategoria">
+                    <i class="fas fa-save"></i> Guardar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MODAL RÁPIDO: NUEVO LABORATORIO ==================== -->
+    <div class="quick-modal" id="modalNuevoProveedor">
+        <div class="quick-modal-content">
+            <div class="quick-modal-header">
+                <h3><i class="fas fa-flask"></i> Nuevo Laboratorio</h3>
+                <button type="button" class="quick-modal-close" id="btnCerrarNuevoProveedor">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="quick-modal-body">
+                <div class="form-group">
+                    <label for="inputNombreProveedor">
+                        Nombre del Laboratorio <span class="required">*</span>
+                    </label>
+                    <input 
+                        type="text" 
+                        id="inputNombreProveedor" 
+                        class="form-control" 
+                        placeholder="Ej: Bayer, Pfizer, Novartis..."
+                        maxlength="100"
+                        autocomplete="off"
+                    >
+                </div>
+                <div class="form-group">
+                    <label for="inputPaisProveedor">
+                        País (Opcional)
+                    </label>
+                    <input 
+                        type="text" 
+                        id="inputPaisProveedor" 
+                        class="form-control" 
+                        placeholder="Ej: México, Alemania, Estados Unidos..."
+                        maxlength="50"
+                    >
+                </div>
+            </div>
+            <div class="quick-modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('btnCerrarNuevoProveedor').click()">
+                    Cancelar
+                </button>
+                <button type="button" class="btn btn-primary btn-sm" id="btnGuardarProveedor">
+                    <i class="fas fa-save"></i> Guardar
                 </button>
             </div>
         </div>

@@ -126,6 +126,19 @@ async function cargarCategorias() {
             ...doc.data()
         }));
         
+        // Si no hay categorías, crear las predefinidas
+        if (categorias.length === 0) {
+            console.log('⚠️ No hay categorías, creando categorías predefinidas...');
+            await crearCategoriasPredefinidas();
+            // Recargar después de crear
+            const newSnapshot = await db.collection('categorias').get();
+            categorias = newSnapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+            categorias.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+        }
+        
         console.log(`✅ ${categorias.length} categorías cargadas`);
         
         renderizarCategorias();
@@ -143,6 +156,17 @@ async function cargarCategorias() {
                     id: doc.id,
                     ...doc.data()
                 }));
+                
+                // Si no hay categorías, crear las predefinidas
+                if (categorias.length === 0) {
+                    console.log('⚠️ No hay categorías, creando categorías predefinidas...');
+                    await crearCategoriasPredefinidas();
+                    const newSnapshot = await db.collection('categorias').get();
+                    categorias = newSnapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    }));
+                }
                 
                 // Ordenar manualmente en JavaScript
                 categorias.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));

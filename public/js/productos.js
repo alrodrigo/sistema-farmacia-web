@@ -16,6 +16,10 @@ let productosFiltrados = []; // Productos después de aplicar filtros
 let paginaActual = 1;
 const productosPorPagina = 10;
 
+// Caché de categorías y proveedores para lookups
+let categoriasMap = {}; // { id: { nombre, color, icono, ... } }
+let proveedoresMap = {}; // { id: { nombre, pais, ... } }
+
 // ===== 3. CUANDO LA PÁGINA CARGA =====
 document.addEventListener('DOMContentLoaded', async function() {
     console.log('📄 DOM cargado, iniciando página de productos...');
@@ -222,6 +226,12 @@ async function cargarDatosIniciales() {
     console.log('📊 Cargando datos iniciales...');
     
     try {
+        // Cargar categorías y proveedores primero (para lookups)
+        await Promise.all([
+            cargarCategoriasCache(),
+            cargarProveedoresCache()
+        ]);
+        
         // Cargar productos
         await cargarProductos();
         
@@ -234,6 +244,46 @@ async function cargarDatosIniciales() {
     } catch (error) {
         console.error('❌ Error al cargar datos:', error);
         mostrarError('Error al cargar los datos. Por favor, recarga la página.');
+    }
+}
+
+// ===== 8.1. CARGAR CACHÉ DE CATEGORÍAS =====
+async function cargarCategoriasCache() {
+    try {
+        const snapshot = await firebaseDB.collection('categorias')
+            .where('activa', '==', true)
+            .get();
+        
+        categoriasMap = {};
+        snapshot.forEach(doc => {
+            categoriasMap[doc.id] = {
+                id: doc.id,
+                ...doc.data()
+            };
+        });
+        
+        console.log(`✅ ${Object.keys(categoriasMap).length} categorías cargadas en caché`);
+    } catch (error) {
+        console.error('❌ Error al cargar categorías:', error);
+    }
+}
+
+// ===== 8.2. CARGAR CACHÉ DE PROVEEDORES =====
+async function cargarProveedoresCache() {
+    try {
+        const snapshot = await firebaseDB.collection('proveedores').get();
+        
+        proveedoresMap = {};
+        snapshot.forEach(doc => {
+            proveedoresMap[doc.id] = {
+                id: doc.id,
+                ...doc.data()
+            };
+        });
+        
+        console.log(`✅ ${Object.keys(proveedoresMap).length} proveedores cargados en caché`);
+    } catch (error) {
+        console.error('❌ Error al cargar proveedores:', error);
     }
 }
 
@@ -297,12 +347,22 @@ function mostrarProductos() {
     }
     
     // Generar filas de la tabla
-    tbody.innerHTML = productosActuales.map(producto => `
+    tbody.innerHTML = productosActuales.map(producto => {
+        // Obtener nombres desde el caché
+        const categoriaNombre = producto.category && categoriasMap[producto.category] 
+            ? categoriasMap[producto.category].nombre 
+            : (producto.category || 'Sin categoría');
+        
+        const proveedorNombre = producto.supplier && proveedoresMap[producto.supplier]
+            ? proveedoresMap[producto.supplier].nombre
+            : (producto.supplier || 'Sin proveedor');
+        
+        return `
         <tr data-id="${producto.id}">
             <td><strong>${producto.sku || 'N/A'}</strong></td>
             <td>${producto.name}</td>
-            <td>${producto.category || 'Sin categoría'}</td>
-            <td>${producto.supplier || 'Sin proveedor'}</td>
+            <td>${categoriaNombre}</td>
+            <td>${proveedorNombre}</td>
             <td>
                 <strong>${producto.current_stock || 0}</strong>
             </td>
@@ -323,7 +383,8 @@ function mostrarProductos() {
                 </div>
             </td>
         </tr>
-    `).join('');
+        `;
+    }).join('');
     
     // Actualizar paginación
     actualizarPaginacion();
@@ -541,6 +602,10 @@ function abrirModalNuevo() {
     document.getElementById('productoForm').reset();
     limpiarErrores();
     
+    // Cargar categorías y proveedores
+    cargarCategoriasSelect();
+    cargarProveedoresSelect();
+    
     // Mostrar modal
     document.getElementById('productoModal').classList.add('active');
     document.body.style.overflow = 'hidden';
@@ -556,20 +621,26 @@ function abrirModalEditar(producto) {
     document.getElementById('modalTitleText').textContent = 'Editar Producto';
     document.getElementById('btnGuardarText').textContent = 'Actualizar Producto';
     
-    // Llenar formulario con datos del producto
-    document.getElementById('inputNombre').value = producto.name || '';
-    document.getElementById('inputSKU').value = producto.sku || '';
-    document.getElementById('inputBarcode').value = producto.barcode || '';
-    document.getElementById('inputCategoria').value = producto.category || '';
-    document.getElementById('inputProveedor').value = producto.supplier || '';
-    document.getElementById('inputCosto').value = producto.cost || '';
-    document.getElementById('inputPrecio').value = producto.price || '';
-    document.getElementById('inputStockActual').value = producto.current_stock || 0;
-    document.getElementById('inputStockMinimo').value = producto.min_stock || 0;
-    document.getElementById('inputDescripcion').value = producto.description || '';
-    
-    // Calcular margen
-    calcularMargen();
+    // Cargar categorías y proveedores primero
+    Promise.all([
+        cargarCategoriasSelect(),
+        cargarProveedoresSelect()
+    ]).then(() => {
+        // Llenar formulario con datos del producto
+        document.getElementById('inputNombre').value = producto.name || '';
+        document.getElementById('inputSKU').value = producto.sku || '';
+        document.getElementById('inputBarcode').value = producto.barcode || '';
+        document.getElementById('inputCategoria').value = producto.category || '';
+        document.getElementById('inputProveedor').value = producto.supplier || '';
+        document.getElementById('inputCosto').value = producto.cost || '';
+        document.getElementById('inputPrecio').value = producto.price || '';
+        document.getElementById('inputStockActual').value = producto.current_stock || 0;
+        document.getElementById('inputStockMinimo').value = producto.min_stock || 0;
+        document.getElementById('inputDescripcion').value = producto.description || '';
+        
+        // Calcular margen
+        calcularMargen();
+    });
     
     limpiarErrores();
     
@@ -810,6 +881,360 @@ function actualizarMenuPorRol() {
     } else {
         console.log('👑 Menú de admin aplicado (completo)');
     }
+}
+
+// ===== CARGAR CATEGORÍAS DESDE FIRESTORE =====
+async function cargarCategoriasSelect() {
+    console.log('📁 Cargando categorías desde Firestore...');
+    
+    const selectCategoria = document.getElementById('inputCategoria');
+    if (!selectCategoria) return;
+    
+    try {
+        let snapshot = await firebaseDB.collection('categorias')
+            .where('activa', '==', true)
+            .get();
+        
+        // Limpiar opciones excepto la primera
+        selectCategoria.innerHTML = '<option value="">Selecciona una categoría</option>';
+        
+        if (snapshot.empty) {
+            console.log('⚠️ No hay categorías activas, creando categorías por defecto...');
+            
+            // Crear categorías por defecto
+            await crearCategoriasPorDefecto();
+            
+            // Recargar
+            snapshot = await firebaseDB.collection('categorias')
+                .where('activa', '==', true)
+                .get();
+            
+            if (snapshot.empty) {
+                selectCategoria.innerHTML += '<option value="" disabled>No hay categorías disponibles</option>';
+                return;
+            }
+        }
+        
+        // Ordenar alfabéticamente
+        const categorias = [];
+        snapshot.forEach(doc => {
+            categorias.push({
+                id: doc.id,
+                ...doc.data()
+            });
+        });
+        
+        categorias.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+        
+        // Agregar opciones
+        categorias.forEach(cat => {
+            const option = document.createElement('option');
+            option.value = cat.id;
+            option.textContent = cat.nombre;
+            selectCategoria.appendChild(option);
+        });
+        
+        console.log(`✅ ${categorias.length} categorías cargadas`);
+        
+    } catch (error) {
+        console.error('❌ Error al cargar categorías:', error);
+        selectCategoria.innerHTML = '<option value="" disabled>Error al cargar categorías</option>';
+    }
+}
+
+// ===== CREAR CATEGORÍAS POR DEFECTO =====
+async function crearCategoriasPorDefecto() {
+    const categoriasDefault = [
+        { nombre: 'Medicamentos', descripcion: 'Medicamentos de venta libre y con receta', color: '#3b82f6', icono: 'fa-pills' },
+        { nombre: 'Vitaminas y Suplementos', descripcion: 'Vitaminas, minerales y suplementos alimenticios', color: '#10b981', icono: 'fa-leaf' },
+        { nombre: 'Cuidado Personal', descripcion: 'Productos de higiene y cuidado personal', color: '#8b5cf6', icono: 'fa-soap' },
+        { nombre: 'Primeros Auxilios', descripcion: 'Vendas, curitas y material médico', color: '#ef4444', icono: 'fa-band-aid' },
+        { nombre: 'Bebé y Maternidad', descripcion: 'Productos para bebés y madres', color: '#f59e0b', icono: 'fa-baby' },
+        { nombre: 'Otros', descripcion: 'Otros productos de farmacia', color: '#6b7280', icono: 'fa-tag' }
+    ];
+    
+    try {
+        for (const cat of categoriasDefault) {
+            await firebaseDB.collection('categorias').add({
+                ...cat,
+                activa: true,
+                productosCount: 0,
+                created_at: firebase.firestore.FieldValue.serverTimestamp(),
+                updated_at: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        }
+        console.log('✅ Categorías por defecto creadas');
+    } catch (error) {
+        console.error('❌ Error al crear categorías por defecto:', error);
+    }
+}
+
+// ===== CARGAR PROVEEDORES DESDE FIRESTORE =====
+async function cargarProveedoresSelect() {
+    console.log('🏭 Cargando proveedores desde Firestore...');
+    
+    const selectProveedor = document.getElementById('inputProveedor');
+    if (!selectProveedor) return;
+    
+    try {
+        const snapshot = await firebaseDB.collection('proveedores').get();
+        
+        // Limpiar opciones excepto la primera
+        selectProveedor.innerHTML = '<option value="">Selecciona un laboratorio</option>';
+        
+        if (snapshot.empty) {
+            console.log('⚠️ No hay proveedores registrados, creando proveedores por defecto...');
+            await crearProveedoresPorDefecto();
+            // Recargar después de crear
+            await cargarProveedoresSelect();
+            return;
+        }
+        
+        // Ordenar alfabéticamente
+        const proveedores = [];
+        snapshot.forEach(doc => {
+            proveedores.push({
+                id: doc.id,
+                ...doc.data()
+            });
+        });
+        
+        proveedores.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+        
+        // Agregar opciones
+        proveedores.forEach(prov => {
+            const option = document.createElement('option');
+            option.value = prov.id;
+            option.textContent = prov.nombre;
+            selectProveedor.appendChild(option);
+        });
+        
+        console.log(`✅ ${proveedores.length} proveedores cargados`);
+        
+    } catch (error) {
+        console.error('❌ Error al cargar proveedores:', error);
+        selectProveedor.innerHTML = '<option value="" disabled>Error al cargar laboratorios</option>';
+    }
+}
+
+// ===== CREAR PROVEEDORES POR DEFECTO =====
+async function crearProveedoresPorDefecto() {
+    const proveedoresDefault = [
+        { nombre: 'Bayer', pais: 'Alemania' },
+        { nombre: 'Pfizer', pais: 'Estados Unidos' },
+        { nombre: 'Novartis', pais: 'Suiza' },
+        { nombre: 'Genomma Lab', pais: 'México' },
+        { nombre: 'Sanofi', pais: 'Francia' },
+        { nombre: 'GSK', pais: 'Reino Unido' }
+    ];
+    
+    try {
+        for (const prov of proveedoresDefault) {
+            await firebaseDB.collection('proveedores').add({
+                ...prov,
+                created_at: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        }
+        console.log('✅ Proveedores por defecto creados');
+    } catch (error) {
+        console.error('❌ Error al crear proveedores:', error);
+    }
+}
+
+// ===== MODAL RÁPIDO: NUEVA CATEGORÍA =====
+const modalNuevaCategoria = document.getElementById('modalNuevaCategoria');
+const btnNuevaCategoria = document.getElementById('btnNuevaCategoria');
+const btnCerrarNuevaCategoria = document.getElementById('btnCerrarNuevaCategoria');
+const btnGuardarCategoria = document.getElementById('btnGuardarCategoria');
+
+if (btnNuevaCategoria) {
+    btnNuevaCategoria.addEventListener('click', () => {
+        modalNuevaCategoria.classList.add('active');
+        document.getElementById('inputNombreCategoria').focus();
+    });
+}
+
+if (btnCerrarNuevaCategoria) {
+    btnCerrarNuevaCategoria.addEventListener('click', () => {
+        modalNuevaCategoria.classList.remove('active');
+        limpiarFormularioCategoria();
+    });
+}
+
+if (btnGuardarCategoria) {
+    btnGuardarCategoria.addEventListener('click', async () => {
+        const nombre = document.getElementById('inputNombreCategoria').value.trim();
+        const descripcion = document.getElementById('inputDescripcionCategoria').value.trim();
+        const color = document.getElementById('inputColorCategoria').value;
+        const icono = document.getElementById('inputIconoCategoria').value;
+        
+        if (!nombre) {
+            alert('Por favor, ingresa el nombre de la categoría');
+            document.getElementById('inputNombreCategoria').focus();
+            return;
+        }
+        
+        try {
+            btnGuardarCategoria.disabled = true;
+            btnGuardarCategoria.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+            
+            const nuevaCategoria = {
+                nombre: nombre,
+                descripcion: descripcion || '',
+                color: color,
+                icono: icono,
+                activa: true,
+                productosCount: 0,
+                created_at: firebase.firestore.FieldValue.serverTimestamp(),
+                updated_at: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            
+            const docRef = await firebaseDB.collection('categorias').add(nuevaCategoria);
+            
+            console.log('✅ Categoría creada:', docRef.id);
+            
+            // Recargar caché de categorías
+            await cargarCategoriasCache();
+            
+            // Recargar select de categorías
+            await cargarCategoriasSelect();
+            
+            // Seleccionar la nueva categoría
+            document.getElementById('inputCategoria').value = docRef.id;
+            
+            // Cerrar modal
+            modalNuevaCategoria.classList.remove('active');
+            limpiarFormularioCategoria();
+            
+            // Mostrar mensaje de éxito
+            mostrarExito('Categoría creada exitosamente');
+            
+        } catch (error) {
+            console.error('❌ Error al crear categoría:', error);
+            alert('Error al crear la categoría: ' + error.message);
+        } finally {
+            btnGuardarCategoria.disabled = false;
+            btnGuardarCategoria.innerHTML = '<i class="fas fa-save"></i> Guardar';
+        }
+    });
+}
+
+function limpiarFormularioCategoria() {
+    document.getElementById('inputNombreCategoria').value = '';
+    document.getElementById('inputDescripcionCategoria').value = '';
+    document.getElementById('inputColorCategoria').value = '#6a5acd';
+    document.getElementById('inputIconoCategoria').value = 'fa-pills';
+}
+
+// ===== MODAL RÁPIDO: NUEVO PROVEEDOR =====
+const modalNuevoProveedor = document.getElementById('modalNuevoProveedor');
+const btnNuevoProveedor = document.getElementById('btnNuevoProveedor');
+const btnCerrarNuevoProveedor = document.getElementById('btnCerrarNuevoProveedor');
+const btnGuardarProveedor = document.getElementById('btnGuardarProveedor');
+
+if (btnNuevoProveedor) {
+    btnNuevoProveedor.addEventListener('click', () => {
+        modalNuevoProveedor.classList.add('active');
+        document.getElementById('inputNombreProveedor').focus();
+    });
+}
+
+if (btnCerrarNuevoProveedor) {
+    btnCerrarNuevoProveedor.addEventListener('click', () => {
+        modalNuevoProveedor.classList.remove('active');
+        limpiarFormularioProveedor();
+    });
+}
+
+if (btnGuardarProveedor) {
+    btnGuardarProveedor.addEventListener('click', async () => {
+        const nombre = document.getElementById('inputNombreProveedor').value.trim();
+        const pais = document.getElementById('inputPaisProveedor').value.trim();
+        
+        if (!nombre) {
+            alert('Por favor, ingresa el nombre del laboratorio');
+            document.getElementById('inputNombreProveedor').focus();
+            return;
+        }
+        
+        try {
+            btnGuardarProveedor.disabled = true;
+            btnGuardarProveedor.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+            
+            const nuevoProveedor = {
+                nombre: nombre,
+                pais: pais || '',
+                created_at: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            
+            const docRef = await firebaseDB.collection('proveedores').add(nuevoProveedor);
+            
+            console.log('✅ Proveedor creado:', docRef.id);
+            
+            // Recargar caché de proveedores
+            await cargarProveedoresCache();
+            
+            // Recargar select de proveedores
+            await cargarProveedoresSelect();
+            
+            // Seleccionar el nuevo proveedor
+            document.getElementById('inputProveedor').value = docRef.id;
+            
+            // Cerrar modal
+            modalNuevoProveedor.classList.remove('active');
+            limpiarFormularioProveedor();
+            
+            // Mostrar mensaje de éxito
+            mostrarExito('Laboratorio creado exitosamente');
+            
+        } catch (error) {
+            console.error('❌ Error al crear proveedor:', error);
+            alert('Error al crear el laboratorio: ' + error.message);
+        } finally {
+            btnGuardarProveedor.disabled = false;
+            btnGuardarProveedor.innerHTML = '<i class="fas fa-save"></i> Guardar';
+        }
+    });
+}
+
+function limpiarFormularioProveedor() {
+    document.getElementById('inputNombreProveedor').value = '';
+    document.getElementById('inputPaisProveedor').value = '';
+}
+
+// ===== HELPER: MOSTRAR MENSAJE DE ÉXITO =====
+function mostrarExito(mensaje) {
+    // Crear elemento de notificación
+    const notif = document.createElement('div');
+    notif.className = 'notification success';
+    notif.innerHTML = `
+        <i class="fas fa-check-circle"></i>
+        <span>${mensaje}</span>
+    `;
+    notif.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-weight: 600;
+        animation: slideInRight 0.3s ease;
+    `;
+    
+    document.body.appendChild(notif);
+    
+    // Eliminar después de 3 segundos
+    setTimeout(() => {
+        notif.style.animation = 'slideOutRight 0.3s ease';
+        setTimeout(() => notif.remove(), 300);
+    }, 3000);
 }
 
 console.log('✅ Productos.js completamente cargado');

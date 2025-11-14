@@ -165,26 +165,28 @@
                     <label for="nombreCategoria">
                         <i class="fas fa-tag"></i>
                         Nombre de la Categoría
+                        <span class="required">*</span>
                     </label>
                     <input 
                         type="text" 
                         id="nombreCategoria" 
                         name="nombreCategoria"
-                        placeholder="Ej: Medicamentos, Vitaminas, etc."
+                        placeholder="Ej: Medicamentos, Vitaminas, Suplementos..."
                         required
                         maxlength="50"
+                        autocomplete="off"
                     >
                 </div>
 
                 <div class="form-group">
                     <label for="descripcionCategoria">
                         <i class="fas fa-align-left"></i>
-                        Descripción (Opcional)
+                        Descripción
                     </label>
                     <textarea 
                         id="descripcionCategoria" 
                         name="descripcionCategoria"
-                        placeholder="Descripción breve de la categoría"
+                        placeholder="Describe el tipo de productos que incluye esta categoría..."
                         rows="3"
                         maxlength="200"
                     ></textarea>
@@ -201,6 +203,7 @@
                             id="colorCategoria" 
                             name="colorCategoria"
                             value="#6a5acd"
+                            title="Selecciona un color para identificar visualmente esta categoría"
                         >
                         <span id="colorHex">#6a5acd</span>
                     </div>
@@ -209,7 +212,7 @@
                 <div class="form-group">
                     <label for="iconoCategoria">
                         <i class="fas fa-icons"></i>
-                        Icono (Font Awesome)
+                        Icono Representativo
                     </label>
                     <select id="iconoCategoria" name="iconoCategoria">
                         <option value="fa-pills">💊 Pastillas (fa-pills)</option>

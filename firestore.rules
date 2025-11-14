@@ -32,8 +32,20 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
     
+    // CATEGORÍAS (español) - Admin crea, todos leen
+    match /categorias/{categoryId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+    
     // PROVEEDORES/LABORATORIOS - Admin crea, todos leen
     match /suppliers/{supplierId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+    
+    // PROVEEDORES (español) - Admin crea, todos leen
+    match /proveedores/{proveedorId} {
       allow read: if isSignedIn();
       allow write: if isAdmin();
     }
