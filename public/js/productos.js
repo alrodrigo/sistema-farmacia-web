@@ -51,6 +51,10 @@ async function verificarAutenticacion() {
                         
                         // Mostrar nombre del usuario en el navbar
                         mostrarNombreUsuario();
+                        
+                        // Actualizar menú según rol
+                        actualizarMenuPorRol();
+                        
                         resolve(true);
                     } else {
                         console.error('❌ Documento de usuario no encontrado');
@@ -782,6 +786,29 @@ function mostrarError(mensaje) {
                 </td>
             </tr>
         `;
+    }
+}
+
+// ===== ACTUALIZAR MENÚ POR ROL =====
+function actualizarMenuPorRol() {
+    if (!currentUser) return;
+    
+    const role = currentUser.role || 'empleado';
+    console.log('🔐 Actualizando menú para rol:', role);
+    
+    // Si es empleado, ocultar opciones de admin
+    if (role === 'empleado') {
+        // Ocultar categorías
+        const categoriasMenu = document.querySelector('#menuCategorias');
+        if (categoriasMenu) categoriasMenu.style.display = 'none';
+        
+        // Ocultar utilidades
+        const utilidadesMenu = document.querySelector('#menuUtilidades');
+        if (utilidadesMenu) utilidadesMenu.style.display = 'none';
+        
+        console.log('👤 Menú de empleado aplicado');
+    } else {
+        console.log('👑 Menú de admin aplicado (completo)');
     }
 }
 

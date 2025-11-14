@@ -78,6 +78,7 @@ async function verificarAutenticacion() {
             };
             
             mostrarNombreUsuario();
+            actualizarMenuPorRol();
             resolve(true);
           } else {
             console.error('❌ Documento de usuario no encontrado');
@@ -863,6 +864,37 @@ function mostrarNotificacion(mensaje) {
   // Por ahora solo un console.log
   // Podrías implementar un toast notification aquí
   console.log('📢', mensaje);
+}
+
+// ===== ACTUALIZAR MENÚ POR ROL =====
+function actualizarMenuPorRol() {
+  if (!currentUser) return;
+  
+  const role = currentUser.role || 'empleado';
+  console.log('🔐 Actualizando menú para rol:', role);
+  
+  // Si es empleado, ocultar opciones de admin
+  if (role === 'empleado') {
+    // Ocultar productos
+    const productosMenu = document.querySelector('a[href="productos.html"]');
+    if (productosMenu) productosMenu.style.display = 'none';
+    
+    // Ocultar categorías
+    const categoriasMenu = document.querySelector('#menuCategorias');
+    if (categoriasMenu) categoriasMenu.style.display = 'none';
+    
+    // Ocultar utilidades
+    const utilidadesMenu = document.querySelector('#menuUtilidades');
+    if (utilidadesMenu) utilidadesMenu.style.display = 'none';
+    
+    // Ocultar configuración
+    const configMenu = document.querySelector('a[href="configuracion.html"]');
+    if (configMenu) configMenu.style.display = 'none';
+    
+    console.log('👤 Menú de empleado aplicado');
+  } else {
+    console.log('👑 Menú de admin aplicado (completo)');
+  }
 }
 
 console.log('✅ Ventas.js completamente cargado');

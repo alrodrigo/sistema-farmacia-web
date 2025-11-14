@@ -7,9 +7,9 @@ let currentUser = null;
 let categorias = [];
 let editingCategoryId = null;
 
-// Referencias Firebase
-const db = firebase.firestore();
-const auth = firebase.auth();
+// Referencias Firebase (db y auth ya están declarados en firebase.js)
+// const db = firebase.firestore(); // Ya declarado globalmente
+// const auth = firebase.auth(); // Ya declarado globalmente
 
 // ==================== INICIALIZACIÓN ====================
 document.addEventListener('DOMContentLoaded', async function() {
@@ -132,7 +132,32 @@ async function cargarCategorias() {
         
     } catch (error) {
         console.error('❌ Error al cargar categorías:', error);
-        alert('Error al cargar las categorías. Por favor, recarga la página.');
+        console.error('Detalles del error:', error.message);
+        
+        // Si el error es por falta de índice o colección vacía, intentar sin orderBy
+        if (error.code === 'failed-precondition' || error.message.includes('index')) {
+            console.log('⚠️ Intentando cargar sin ordenar...');
+            try {
+                const snapshot = await db.collection('categorias').get();
+                categorias = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                
+                // Ordenar manualmente en JavaScript
+                categorias.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+                
+                console.log(`✅ ${categorias.length} categorías cargadas (sin índice)`);
+                renderizarCategorias();
+                return;
+            } catch (retryError) {
+                console.error('❌ Error en reintento:', retryError);
+            }
+        }
+        
+        // Si la colección está vacía, mostrar estado vacío
+        categorias = [];
+        renderizarCategorias();
     }
 }
 
@@ -390,18 +415,28 @@ async function crearCategoriasPredefinidas() {
     ];
     
     try {
+        console.log('🚀 Creando categorías predefinidas...');
+        
         for (const cat of predefinidas) {
             await db.collection('categorias').add({
                 ...cat,
                 activa: true,
                 productosCount: 0,
-                created_at: firebase.firestore.FieldValue.serverTimestamp()
+                created_at: firebase.firestore.FieldValue.serverTimestamp(),
+                updated_at: firebase.firestore.FieldValue.serverTimestamp()
             });
+            console.log(`✅ Categoría creada: ${cat.nombre}`);
         }
-        console.log('✅ Categorías predefinidas creadas');
+        
+        console.log('✅ Todas las categorías predefinidas fueron creadas exitosamente');
+        alert('✅ ¡6 categorías predefinidas creadas con éxito!');
+        
         await cargarCategorias();
+        await cargarEstadisticas();
+        
     } catch (error) {
-        console.error('Error al crear categorías predefinidas:', error);
+        console.error('❌ Error al crear categorías predefinidas:', error);
+        alert('Error al crear categorías predefinidas: ' + error.message);
     }
 }
 

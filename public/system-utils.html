@@ -116,6 +116,10 @@
                     <i class="fas fa-pills"></i>
                     <span>Productos</span>
                 </a>
+                <a href="categorias.html" id="menuCategorias">
+                    <i class="fas fa-tags"></i>
+                    <span>Categorías</span>
+                </a>
                 <a href="ventas.html">
                     <i class="fas fa-cash-register"></i>
                     <span>Ventas</span>
@@ -258,17 +262,38 @@
     <script src="js/config/firebase.js"></script>
     <script src="js/utils/helpers.js"></script>
     <script src="js/utils/roles.js"></script>
-    <script src="js/services/auth.js"></script>
     
     <script>
-        // Proteger página
+        // Variables globales
+        let currentUser = null;
+        
+        // Proteger página y verificar autenticación
         document.addEventListener('DOMContentLoaded', async function() {
-            await protectPage();
-            
-            const user = getCurrentUser();
-            if (user) {
-                document.getElementById('userName').textContent = user.name || user.email;
-            }
+            // Verificar autenticación
+            firebase.auth().onAuthStateChanged(async (user) => {
+                if (user) {
+                    console.log('✅ Usuario autenticado:', user.email);
+                    
+                    // Obtener datos del usuario
+                    const userDoc = await firebase.firestore().collection('users').doc(user.uid).get();
+                    
+                    if (userDoc.exists) {
+                        currentUser = {
+                            uid: user.uid,
+                            email: user.email,
+                            ...userDoc.data()
+                        };
+                        
+                        const userName = getUserDisplayName(currentUser);
+                        document.getElementById('userName').textContent = userName;
+                        
+                        console.log('👤 Usuario cargado en system-utils:', userName);
+                    }
+                } else {
+                    console.log('❌ No autenticado, redirigiendo...');
+                    window.location.href = 'index.html';
+                }
+            });
             
             // Botón actualizar admin
             document.getElementById('btnUpdateAdmin').addEventListener('click', async function() {
@@ -342,6 +367,18 @@
                 debugPermissions();
             });
         });
+
+        // Función de logout
+        function logoutUser() {
+            firebase.auth().signOut()
+                .then(() => {
+                    window.location.href = 'index.html';
+                })
+                .catch((error) => {
+                    console.error('Error al cerrar sesión:', error);
+                    alert('Error al cerrar sesión. Intenta nuevamente.');
+                });
+        }
     </script>
 </body>
 </html>
