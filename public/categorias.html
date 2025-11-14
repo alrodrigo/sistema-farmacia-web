@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Categorías - Sistema Farmacia</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💊</text></svg>">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/categorias.css">
+</head>
+<body>
+    <!-- ==================== NAVBAR SUPERIOR ==================== -->
+    <nav class="navbar">
+        <div class="navbar-left">
+            <button class="menu-toggle" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="logo">
+                <i class="fas fa-prescription-bottle-medical"></i>
+                <span>Sistema Farmacia</span>
+            </div>
+        </div>
+        
+        <div class="navbar-right">
+            <div class="user-info">
+                <i class="fas fa-user-circle"></i>
+                <span id="userName">Usuario</span>
+            </div>
+            <button class="btn-logout" id="btnLogout">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Salir</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- ==================== CONTENEDOR PRINCIPAL ==================== -->
+    <div class="main-container">
+        
+        <!-- ==================== SIDEBAR ==================== -->
+        <aside class="sidebar" id="sidebar">
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="nav-item">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="productos.html" class="nav-item">
+                    <i class="fas fa-pills"></i>
+                    <span>Productos</span>
+                </a>
+                <a href="categorias.html" class="nav-item active">
+                    <i class="fas fa-tags"></i>
+                    <span>Categorías</span>
+                </a>
+                <a href="ventas.html" class="nav-item">
+                    <i class="fas fa-cash-register"></i>
+                    <span>Ventas</span>
+                </a>
+                <a href="reportes.html" class="nav-item">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Reportes</span>
+                </a>
+                <a href="system-utils.html" class="nav-item" id="menuUtilidades">
+                    <i class="fas fa-tools"></i>
+                    <span>Utilidades</span>
+                </a>
+                <a href="configuracion.html" class="nav-item">
+                    <i class="fas fa-cog"></i>
+                    <span>Configuración</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- ==================== CONTENIDO PRINCIPAL ==================== -->
+        <main class="content">
+            <!-- Header de la página -->
+            <div class="content-header">
+                <div>
+                    <h1><i class="fas fa-tags"></i> Gestión de Categorías</h1>
+                    <p>Organiza tus productos por categorías</p>
+                </div>
+                <button class="btn-primary" id="btnNuevaCategoria">
+                    <i class="fas fa-plus"></i>
+                    <span>Nueva Categoría</span>
+                </button>
+            </div>
+
+            <!-- Estadísticas rápidas -->
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #e0e7ff;">
+                        <i class="fas fa-tags" style="color: #4f46e5;"></i>
+                    </div>
+                    <div class="stat-details">
+                        <h3 id="totalCategorias">0</h3>
+                        <p>Total Categorías</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #dbeafe;">
+                        <i class="fas fa-boxes" style="color: #3b82f6;"></i>
+                    </div>
+                    <div class="stat-details">
+                        <h3 id="totalProductos">0</h3>
+                        <p>Productos Total</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #d1fae5;">
+                        <i class="fas fa-check-circle" style="color: #10b981;"></i>
+                    </div>
+                    <div class="stat-details">
+                        <h3 id="categoriasActivas">0</h3>
+                        <p>Categorías Activas</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grid de categorías -->
+            <div class="categorias-grid" id="categoriasGrid">
+                <!-- Las categorías se cargarán aquí dinámicamente -->
+            </div>
+
+            <!-- Estado vacío -->
+            <div class="empty-state" id="emptyState" style="display: none;">
+                <i class="fas fa-tags"></i>
+                <h3>No hay categorías</h3>
+                <p>Comienza creando tu primera categoría para organizar tus productos</p>
+                <button class="btn-primary" onclick="document.getElementById('btnNuevaCategoria').click()">
+                    <i class="fas fa-plus"></i>
+                    <span>Crear Primera Categoría</span>
+                </button>
+            </div>
+        </main>
+    </div>
+
+    <!-- ==================== MODAL NUEVA/EDITAR CATEGORÍA ==================== -->
+    <div class="modal" id="modalCategoria">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">
+                    <i class="fas fa-tag"></i>
+                    Nueva Categoría
+                </h2>
+                <button class="modal-close" id="btnCloseModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form id="formCategoria">
+                <div class="form-group">
+                    <label for="nombreCategoria">
+                        <i class="fas fa-tag"></i>
+                        Nombre de la Categoría
+                    </label>
+                    <input 
+                        type="text" 
+                        id="nombreCategoria" 
+                        name="nombreCategoria"
+                        placeholder="Ej: Medicamentos, Vitaminas, etc."
+                        required
+                        maxlength="50"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="descripcionCategoria">
+                        <i class="fas fa-align-left"></i>
+                        Descripción (Opcional)
+                    </label>
+                    <textarea 
+                        id="descripcionCategoria" 
+                        name="descripcionCategoria"
+                        placeholder="Descripción breve de la categoría"
+                        rows="3"
+                        maxlength="200"
+                    ></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="colorCategoria">
+                        <i class="fas fa-palette"></i>
+                        Color Identificativo
+                    </label>
+                    <div class="color-picker">
+                        <input 
+                            type="color" 
+                            id="colorCategoria" 
+                            name="colorCategoria"
+                            value="#6a5acd"
+                        >
+                        <span id="colorHex">#6a5acd</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="iconoCategoria">
+                        <i class="fas fa-icons"></i>
+                        Icono (Font Awesome)
+                    </label>
+                    <select id="iconoCategoria" name="iconoCategoria">
+                        <option value="fa-pills">💊 Pastillas (fa-pills)</option>
+                        <option value="fa-capsules">💊 Cápsulas (fa-capsules)</option>
+                        <option value="fa-syringe">💉 Jeringas (fa-syringe)</option>
+                        <option value="fa-heartbeat">❤️ Cardio (fa-heartbeat)</option>
+                        <option value="fa-band-aid">🩹 Vendas (fa-band-aid)</option>
+                        <option value="fa-stethoscope">🩺 Médico (fa-stethoscope)</option>
+                        <option value="fa-baby">👶 Bebé (fa-baby)</option>
+                        <option value="fa-soap">🧼 Higiene (fa-soap)</option>
+                        <option value="fa-spray-can">🧴 Aerosol (fa-spray-can)</option>
+                        <option value="fa-eye-dropper">💧 Gotas (fa-eye-dropper)</option>
+                        <option value="fa-thermometer">🌡️ Termómetro (fa-thermometer)</option>
+                        <option value="fa-notes-medical">📋 Médico (fa-notes-medical)</option>
+                        <option value="fa-briefcase-medical">💼 Botiquín (fa-briefcase-medical)</option>
+                        <option value="fa-leaf">🍃 Natural (fa-leaf)</option>
+                        <option value="fa-mortar-pestle">⚗️ Farmacia (fa-mortar-pestle)</option>
+                        <option value="fa-tag">🏷️ Etiqueta (fa-tag)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input 
+                            type="checkbox" 
+                            id="activaCategoria" 
+                            name="activaCategoria"
+                            checked
+                        >
+                        <span>Categoría activa</span>
+                    </label>
+                </div>
+
+                <input type="hidden" id="categoriaId" name="categoriaId">
+
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" id="btnCancelar">
+                        <i class="fas fa-times"></i>
+                        Cancelar
+                    </button>
+                    <button type="submit" class="btn-primary" id="btnGuardar">
+                        <i class="fas fa-save"></i>
+                        Guardar Categoría
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    
+    <!-- Scripts -->
+    <script src="js/config/firebase.js"></script>
+    <script src="js/utils/helpers.js"></script>
+    <script src="js/utils/roles.js"></script>
+    <script src="js/categorias.js"></script>
+</body>
+</html>
