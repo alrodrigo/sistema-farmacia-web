@@ -250,15 +250,18 @@ async function cargarDatosIniciales() {
 // ===== 8.1. CARGAR CACHÉ DE CATEGORÍAS =====
 async function cargarCategoriasCache() {
     try {
-        const snapshot = await firebaseDB.collection('categorias')
-            .where('activa', '==', true)
-            .get();
+        // Cargar TODAS las categorías (no solo activas) para lookup completo
+        const snapshot = await firebaseDB.collection('categorias').get();
+        
+        console.log('🔍 DEBUG CACHÉ: Snapshot size:', snapshot.size);
         
         categoriasMap = {};
         snapshot.forEach(doc => {
+            const data = doc.data();
+            console.log('🔍 DEBUG CACHÉ: Categoría:', doc.id, data.nombre);
             categoriasMap[doc.id] = {
                 id: doc.id,
-                ...doc.data()
+                ...data
             };
         });
         
@@ -463,33 +466,49 @@ function limpiarFiltros() {
 
 // ===== 14. CARGAR OPCIONES DE FILTROS =====
 function cargarOpcionesFiltros() {
-    // Obtener categorías únicas
-    const categorias = [...new Set(todosLosProductos.map(p => p.category).filter(c => c))];
+    // Obtener IDs de categorías únicas
+    const categoriaIds = [...new Set(todosLosProductos.map(p => p.category).filter(c => c))];
     const selectCategoria = document.getElementById('filterCategoria');
     
     if (selectCategoria) {
-        categorias.sort().forEach(cat => {
+        // Ordenar por nombre usando el caché
+        const categoriasOrdenadas = categoriaIds
+            .map(id => ({
+                id: id,
+                nombre: categoriasMap[id] ? categoriasMap[id].nombre : id
+            }))
+            .sort((a, b) => a.nombre.localeCompare(b.nombre));
+        
+        categoriasOrdenadas.forEach(cat => {
             const option = document.createElement('option');
-            option.value = cat;
-            option.textContent = cat;
+            option.value = cat.id;
+            option.textContent = cat.nombre;
             selectCategoria.appendChild(option);
         });
     }
     
-    // Obtener proveedores únicos
-    const proveedores = [...new Set(todosLosProductos.map(p => p.supplier).filter(s => s))];
+    // Obtener IDs de proveedores únicos
+    const proveedorIds = [...new Set(todosLosProductos.map(p => p.supplier).filter(s => s))];
     const selectProveedor = document.getElementById('filterProveedor');
     
     if (selectProveedor) {
-        proveedores.sort().forEach(prov => {
+        // Ordenar por nombre usando el caché
+        const proveedoresOrdenados = proveedorIds
+            .map(id => ({
+                id: id,
+                nombre: proveedoresMap[id] ? proveedoresMap[id].nombre : id
+            }))
+            .sort((a, b) => a.nombre.localeCompare(b.nombre));
+        
+        proveedoresOrdenados.forEach(prov => {
             const option = document.createElement('option');
-            option.value = prov;
-            option.textContent = prov;
+            option.value = prov.id;
+            option.textContent = prov.nombre;
             selectProveedor.appendChild(option);
         });
     }
     
-    console.log(`📋 Filtros cargados: ${categorias.length} categorías, ${proveedores.length} proveedores`);
+    console.log(`📋 Filtros cargados: ${categoriaIds.length} categorías, ${proveedorIds.length} proveedores`);
 }
 
 // ===== 15. ACTUALIZAR TARJETAS INFORMATIVAS =====
@@ -588,7 +607,7 @@ async function eliminarProducto(id, nombre) {
 let modoEdicion = false;
 let productoEditandoId = null;
 
-function abrirModalNuevo() {
+async function abrirModalNuevo() {
     console.log('📝 Abriendo modal para nuevo producto');
     
     modoEdicion = false;
@@ -602,9 +621,11 @@ function abrirModalNuevo() {
     document.getElementById('productoForm').reset();
     limpiarErrores();
     
-    // Cargar categorías y proveedores
-    cargarCategoriasSelect();
-    cargarProveedoresSelect();
+    // Cargar categorías y proveedores (ESPERAR a que terminen)
+    await Promise.all([
+        cargarCategoriasSelect(),
+        cargarProveedoresSelect()
+    ]);
     
     // Mostrar modal
     document.getElementById('productoModal').classList.add('active');
@@ -891,23 +912,23 @@ async function cargarCategoriasSelect() {
     if (!selectCategoria) return;
     
     try {
-        let snapshot = await firebaseDB.collection('categorias')
-            .where('activa', '==', true)
-            .get();
+        // Cargar TODAS las categorías (activas e inactivas)
+        let snapshot = await firebaseDB.collection('categorias').get();
+        
+        console.log('🔍 DEBUG: Snapshot size:', snapshot.size);
+        console.log('🔍 DEBUG: Snapshot empty?', snapshot.empty);
         
         // Limpiar opciones excepto la primera
         selectCategoria.innerHTML = '<option value="">Selecciona una categoría</option>';
         
         if (snapshot.empty) {
-            console.log('⚠️ No hay categorías activas, creando categorías por defecto...');
+            console.log('⚠️ No hay categorías, creando categorías por defecto...');
             
             // Crear categorías por defecto
             await crearCategoriasPorDefecto();
             
             // Recargar
-            snapshot = await firebaseDB.collection('categorias')
-                .where('activa', '==', true)
-                .get();
+            snapshot = await firebaseDB.collection('categorias').get();
             
             if (snapshot.empty) {
                 selectCategoria.innerHTML += '<option value="" disabled>No hay categorías disponibles</option>';
@@ -918,11 +939,15 @@ async function cargarCategoriasSelect() {
         // Ordenar alfabéticamente
         const categorias = [];
         snapshot.forEach(doc => {
+            const data = doc.data();
+            console.log('🔍 DEBUG: Categoría encontrada:', doc.id, data.nombre, data);
             categorias.push({
                 id: doc.id,
-                ...doc.data()
+                ...data
             });
         });
+        
+        console.log('🔍 DEBUG: Total categorías en array:', categorias.length);
         
         categorias.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
         
@@ -1238,3 +1263,5 @@ function mostrarExito(mensaje) {
 }
 
 console.log('✅ Productos.js completamente cargado');
+console.log('🔄 Versión: 2025-11-14-16:50 - DEBUG ACTIVADO');
+
