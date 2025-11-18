@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Usuarios - Sistema de Farmacia</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/usuarios.css">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <i class="fas fa-pills"></i>
+            <h2>Farmacia</h2>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="dashboard.html" class="nav-item">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            
+            <a href="productos.html" class="nav-item">
+                <i class="fas fa-boxes"></i>
+                <span>Productos</span>
+            </a>
+            
+            <a href="ventas.html" class="nav-item">
+                <i class="fas fa-cash-register"></i>
+                <span>Ventas</span>
+            </a>
+            
+            <a href="reportes.html" class="nav-item">
+                <i class="fas fa-chart-bar"></i>
+                <span>Reportes</span>
+            </a>
+            
+            <a href="categorias.html" class="nav-item" id="menuCategorias">
+                <i class="fas fa-tags"></i>
+                <span>Categorías</span>
+            </a>
+            
+            <a href="usuarios.html" class="nav-item active" id="menuUsuarios">
+                <i class="fas fa-users"></i>
+                <span>Usuarios</span>
+            </a>
+            
+            <div class="nav-separator"></div>
+            
+            <a href="system-utils.html" class="nav-item" id="menuUtilidades">
+                <i class="fas fa-cog"></i>
+                <span>Utilidades</span>
+            </a>
+            
+            <a href="#" class="nav-item" onclick="logoutUser(); return false;">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Cerrar Sesión</span>
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Header -->
+        <header class="content-header">
+            <div class="header-left">
+                <h1><i class="fas fa-users"></i> Gestión de Usuarios</h1>
+                <p>Administra las cuentas de usuario del sistema</p>
+            </div>
+            <div class="header-right">
+                <div class="user-info">
+                    <i class="fas fa-user-circle"></i>
+                    <span id="userName">Cargando...</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Tarjetas Informativas -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon blue">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-label">Total Usuarios</span>
+                    <span class="stat-value" id="totalUsuarios">0</span>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon green">
+                    <i class="fas fa-user-shield"></i>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-label">Administradores</span>
+                    <span class="stat-value" id="totalAdmins">0</span>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon purple">
+                    <i class="fas fa-user-tag"></i>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-label">Empleados</span>
+                    <span class="stat-value" id="totalEmpleados">0</span>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon orange">
+                    <i class="fas fa-user-clock"></i>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-label">Activos Hoy</span>
+                    <span class="stat-value" id="activosHoy">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="toolbar">
+            <div class="toolbar-left">
+                <button class="btn btn-primary" id="btnNuevoUsuario">
+                    <i class="fas fa-plus"></i>
+                    Nuevo Usuario
+                </button>
+            </div>
+            <div class="toolbar-right">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Buscar por nombre, email...">
+                </div>
+                <select id="filterRol" class="filter-select">
+                    <option value="">Todos los roles</option>
+                    <option value="admin">Administradores</option>
+                    <option value="empleado">Empleados</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Tabla de Usuarios -->
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Email</th>
+                        <th>Rol</th>
+                        <th>Fecha Registro</th>
+                        <th>Último Acceso</th>
+                        <th>Estado</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="usuariosTableBody">
+                    <tr>
+                        <td colspan="7" class="text-center">
+                            <div class="loading">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                Cargando usuarios...
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Paginación -->
+        <div class="pagination">
+            <button class="btn-icon" id="btnPrevPage" disabled>
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <span id="paginationInfo">Página 1 de 1</span>
+            <button class="btn-icon" id="btnNextPage" disabled>
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+    </main>
+
+    <!-- Modal Nuevo/Editar Usuario -->
+    <div class="modal" id="usuarioModal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2 id="modalTitleText">
+                    <i class="fas fa-user-plus"></i>
+                    Nuevo Usuario
+                </h2>
+                <button class="btn-close" id="btnCerrarModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <form id="usuarioForm" class="modal-body">
+                <!-- Información Personal -->
+                <div class="form-section">
+                    <h3><i class="fas fa-user"></i> Información Personal</h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="inputNombre">
+                                Nombre Completo <span class="required">*</span>
+                            </label>
+                            <input 
+                                type="text" 
+                                id="inputNombre" 
+                                placeholder="Ej: Juan Pérez"
+                                required
+                            >
+                            <span class="error-message" id="errorNombre"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="inputEmail">
+                                Correo Electrónico <span class="required">*</span>
+                            </label>
+                            <input 
+                                type="email" 
+                                id="inputEmail" 
+                                placeholder="Ej: juan@farmacia.com"
+                                required
+                            >
+                            <span class="error-message" id="errorEmail"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Seguridad -->
+                <div class="form-section" id="seccionPassword">
+                    <h3><i class="fas fa-lock"></i> Seguridad</h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="inputPassword">
+                                Contraseña <span class="required">*</span>
+                            </label>
+                            <div class="input-with-icon">
+                                <input 
+                                    type="password" 
+                                    id="inputPassword" 
+                                    placeholder="Mínimo 6 caracteres"
+                                    minlength="6"
+                                >
+                                <button type="button" class="btn-icon-small" id="btnTogglePassword">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <span class="error-message" id="errorPassword"></span>
+                            <small class="form-help">Mínimo 6 caracteres</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="inputConfirmPassword">
+                                Confirmar Contraseña <span class="required">*</span>
+                            </label>
+                            <input 
+                                type="password" 
+                                id="inputConfirmPassword" 
+                                placeholder="Repite la contraseña"
+                            >
+                            <span class="error-message" id="errorConfirmPassword"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rol y Permisos -->
+                <div class="form-section">
+                    <h3><i class="fas fa-user-shield"></i> Rol y Permisos</h3>
+                    
+                    <div class="form-group">
+                        <label for="inputRol">
+                            Rol <span class="required">*</span>
+                        </label>
+                        <select id="inputRol" required>
+                            <option value="">Selecciona un rol</option>
+                            <option value="admin">Administrador</option>
+                            <option value="empleado">Empleado</option>
+                        </select>
+                        <span class="error-message" id="errorRol"></span>
+                    </div>
+
+                    <div class="info-box" id="infoRol">
+                        <i class="fas fa-info-circle"></i>
+                        <div>
+                            <strong>Selecciona un rol para ver los permisos</strong>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="btnCancelar">
+                    <i class="fas fa-times"></i>
+                    Cancelar
+                </button>
+                <button type="submit" form="usuarioForm" class="btn btn-primary" id="btnGuardar">
+                    <i class="fas fa-save"></i>
+                    <span id="btnGuardarText">Crear Usuario</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Cambiar Contraseña -->
+    <div class="modal" id="passwordModal">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h2>
+                    <i class="fas fa-key"></i>
+                    Cambiar Contraseña
+                </h2>
+                <button class="btn-close" id="btnCerrarPasswordModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <form id="passwordForm" class="modal-body">
+                <div class="form-group">
+                    <label for="inputNewPassword">
+                        Nueva Contraseña <span class="required">*</span>
+                    </label>
+                    <input 
+                        type="password" 
+                        id="inputNewPassword" 
+                        placeholder="Mínimo 6 caracteres"
+                        minlength="6"
+                        required
+                    >
+                    <span class="error-message" id="errorNewPassword"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="inputConfirmNewPassword">
+                        Confirmar Contraseña <span class="required">*</span>
+                    </label>
+                    <input 
+                        type="password" 
+                        id="inputConfirmNewPassword" 
+                        placeholder="Repite la contraseña"
+                        required
+                    >
+                    <span class="error-message" id="errorConfirmNewPassword"></span>
+                </div>
+            </form>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="btnCancelarPassword">
+                    <i class="fas fa-times"></i>
+                    Cancelar
+                </button>
+                <button type="submit" form="passwordForm" class="btn btn-primary" id="btnGuardarPassword">
+                    <i class="fas fa-save"></i>
+                    Cambiar Contraseña
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="js/config/firebase.js"></script>
+    <script src="js/utils/helpers.js"></script>
+    <script src="js/utils/roles.js"></script>
+    <script src="js/usuarios.js"></script>
+</body>
+</html>

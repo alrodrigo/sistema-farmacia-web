@@ -416,6 +416,10 @@ function actualizarMenuPorRol() {
         const categoriasMenu = document.querySelector('#menuCategorias');
         if (categoriasMenu) categoriasMenu.style.display = 'none';
         
+        // Ocultar usuarios
+        const usuariosMenu = document.querySelector('#menuUsuarios');
+        if (usuariosMenu) usuariosMenu.style.display = 'none';
+        
         // Ocultar utilidades
         const utilidadesMenu = document.querySelector('#menuUtilidades');
         if (utilidadesMenu) utilidadesMenu.style.display = 'none';
