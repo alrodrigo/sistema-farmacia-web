@@ -120,6 +120,10 @@
                     <i class="fas fa-tags"></i>
                     <span>Categorías</span>
                 </a>
+                <a href="usuarios.html" id="menuUsuarios">
+                    <i class="fas fa-users"></i>
+                    <span>Usuarios</span>
+                </a>
                 <a href="ventas.html">
                     <i class="fas fa-cash-register"></i>
                     <span>Ventas</span>
@@ -288,6 +292,17 @@
                         document.getElementById('userName').textContent = userName;
                         
                         console.log('👤 Usuario cargado en system-utils:', userName);
+                        
+                        // Ocultar opciones de admin si es empleado
+                        if (currentUser.role === 'empleado') {
+                            const categoriasMenu = document.querySelector('#menuCategorias');
+                            if (categoriasMenu) categoriasMenu.style.display = 'none';
+                            
+                            const usuariosMenu = document.querySelector('#menuUsuarios');
+                            if (usuariosMenu) usuariosMenu.style.display = 'none';
+                            
+                            console.log('👤 Menú de empleado aplicado en system-utils');
+                        }
                     }
                 } else {
                     console.log('❌ No autenticado, redirigiendo...');

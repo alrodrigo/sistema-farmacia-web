@@ -496,21 +496,12 @@ async function guardarUsuario(event) {
             // Crear nuevo usuario
             const password = document.getElementById('inputPassword').value;
             
-            // Crear usuario en Firebase Auth
-            const userCredential = await firebaseAuth.createUserWithEmailAndPassword(email, password);
-            const newUser = userCredential.user;
+            // Nota: No podemos crear usuarios desde el cliente debido a restricciones de Firebase
+            // Necesitamos usar Firebase Admin SDK o Cloud Functions
             
-            // Crear documento en Firestore
-            await firebaseDB.collection('users').doc(newUser.uid).set({
-                email: email,
-                name: nombre,
-                role: rol,
-                created_at: firebase.firestore.FieldValue.serverTimestamp(),
-                updated_at: firebase.firestore.FieldValue.serverTimestamp()
-            });
+            alert(`⚠️ CREAR USUARIO MANUALMENTE\n\nPara crear este usuario:\n\n1. Ve a Firebase Console → Authentication\n2. Click en "Add user"\n3. Email: ${email}\n4. Password: ${password}\n5. Copia el UID generado\n\nLuego ejecuta en la consola del navegador:\n\nawait firebaseDB.collection('users').doc('UID_COPIADO').set({\n  email: '${email}',\n  name: '${nombre}',\n  role: '${rol}',\n  created_at: firebase.firestore.FieldValue.serverTimestamp(),\n  updated_at: firebase.firestore.FieldValue.serverTimestamp()\n});\n\n✅ Para futuras implementaciones, crear una Cloud Function.`);
             
-            console.log('✅ Usuario creado:', newUser.uid);
-            alert('✅ Usuario creado correctamente');
+            console.log('💡 Datos del usuario a crear:', { email, nombre, rol, password });
         }
         
         // Cerrar modal y recargar usuarios

@@ -11,6 +11,44 @@
     --user-inactive-color: #6b7280;
 }
 
+/* ===== STATS CARDS ===== */
+.stat-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-label {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 5px;
+}
+
+.stat-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.stat-icon.blue { 
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+    color: white;
+}
+
+.stat-icon.green { 
+    background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%); 
+    color: white;
+}
+
+.stat-icon.purple { 
+    background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); 
+    color: white;
+}
+
+.stat-icon.orange { 
+    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); 
+    color: white;
+}
+
 /* ===== BADGES DE ROL ===== */
 .badge-rol {
     display: inline-flex;
