@@ -749,26 +749,10 @@
 
 /* =====================================================
    MODAL DE PRODUCTO
+   Los estilos base de modal están en components.css
    ===================================================== */
 
-/* Modal overlay y contenedor */
-.modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 9999;
-    animation: fadeIn 0.3s ease;
-}
-
-.modal.active {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
+/* Modal overlay (compatibilidad) */
 .modal-overlay {
     position: absolute;
     top: 0;
@@ -783,9 +767,10 @@
     position: relative;
     background: white;
     border-radius: 16px;
-    width: 90%;
-    max-width: 800px;
+    width: 100%;
+    max-width: 100%;
     max-height: 90vh;
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);

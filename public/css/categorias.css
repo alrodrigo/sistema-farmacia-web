@@ -1,23 +1,5 @@
 /* ==================== CATEGORIAS.CSS ==================== */
-
-/* Variables de diseño */
-:root {
-    --primary-color: #6a5acd;
-    --primary-hover: #5648b8;
-    --primary-light: #f5f3ff;
-    --success-color: #10b981;
-    --danger-color: #ef4444;
-    --warning-color: #f59e0b;
-    --info-color: #3b82f6;
-    --text-primary: #1f2937;
-    --text-secondary: #6b7280;
-    --border-color: #e5e7eb;
-    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
-    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
-    --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1);
-    --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.15);
-    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
+/* Las variables de diseño se heredan de theme.css */
 
 /* Stats Row */
 .stats-row {
@@ -241,22 +223,7 @@
     color: #991b1b;
 }
 
-/* Modal de Categoría */
-.modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(4px);
-    z-index: 1000;
-    animation: fadeIn 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    overflow-y: auto;
-    padding: 2rem 1rem;
-}
-
+/* Modal de Categoría - Los estilos base están en components.css */
 .modal.active {
     display: flex;
     align-items: center;
@@ -267,9 +234,9 @@
     background: white;
     border-radius: 24px;
     width: 100%;
-    max-width: 560px;
+    max-width: 100%;
     max-height: 90vh;
-    overflow: hidden;
+    overflow-y: auto;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
     animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;

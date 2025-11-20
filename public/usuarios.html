@@ -5,184 +5,201 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión de Usuarios - Sistema de Farmacia</title>
     
-    <!-- CSS -->
-    <link rel="stylesheet" href="css/dashboard.css">
-    <link rel="stylesheet" href="css/usuarios.css">
+    <!-- Favicon -->
+    <link rel="icon" href="img/logo-servisalud.png" type="image/png">
     
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Sistema de Diseño Base -->
+    <link rel="stylesheet" href="css/theme.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/layout.css">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/usuarios.css">
 </head>
 <body>
-    <!-- Sidebar -->
-    <aside class="sidebar">
-        <div class="sidebar-header">
-            <i class="fas fa-pills"></i>
-            <h2>Farmacia</h2>
+    <!-- ==================== NAVBAR SUPERIOR ==================== -->
+    <nav class="navbar">
+        <div class="navbar-left">
+            <button class="menu-toggle" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="logo">
+                <img src="img/logo-servisalud.png" alt="ServiSalud Logo" class="logo-image">
+                <span class="logo-text">ServiSalud</span>
+            </div>
+            <div class="navbar-search">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Buscar producto, cliente...">
+            </div>
         </div>
         
-        <nav class="sidebar-nav">
-            <a href="dashboard.html" class="nav-item">
-                <i class="fas fa-home"></i>
-                <span>Dashboard</span>
-            </a>
-            
-            <a href="productos.html" class="nav-item">
-                <i class="fas fa-boxes"></i>
-                <span>Productos</span>
-            </a>
-            
-            <a href="ventas.html" class="nav-item">
-                <i class="fas fa-cash-register"></i>
-                <span>Ventas</span>
-            </a>
-            
-            <a href="reportes.html" class="nav-item">
-                <i class="fas fa-chart-bar"></i>
-                <span>Reportes</span>
-            </a>
-            
-            <a href="categorias.html" class="nav-item" id="menuCategorias">
-                <i class="fas fa-tags"></i>
-                <span>Categorías</span>
-            </a>
-            
-            <a href="usuarios.html" class="nav-item active" id="menuUsuarios">
-                <i class="fas fa-users"></i>
-                <span>Usuarios</span>
-            </a>
-            
-            <div class="nav-separator"></div>
-            
-            <a href="system-utils.html" class="nav-item" id="menuUtilidades">
-                <i class="fas fa-cog"></i>
-                <span>Utilidades</span>
-            </a>
-            
-            <a href="#" class="nav-item" onclick="logoutUser(); return false;">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>Cerrar Sesión</span>
-            </a>
-        </nav>
-    </aside>
-
-    <!-- Main Content -->
-    <main class="main-content">
-        <!-- Header -->
-        <header class="content-header">
-            <div class="header-left">
-                <h1><i class="fas fa-users"></i> Gestión de Usuarios</h1>
-                <p>Administra las cuentas de usuario del sistema</p>
-            </div>
-            <div class="header-right">
-                <div class="user-info">
+        <div class="navbar-right">
+            <button class="btn-icon" title="Notificaciones">
+                <i class="fas fa-bell"></i>
+            </button>
+            <div class="user-menu">
+                <div class="user-avatar">
                     <i class="fas fa-user-circle"></i>
-                    <span id="userName">Cargando...</span>
                 </div>
-            </div>
-        </header>
-
-        <!-- Tarjetas Informativas -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon blue">
-                    <i class="fas fa-users"></i>
-                </div>
-                <div class="stat-info">
-                    <span class="stat-label">Total Usuarios</span>
-                    <span class="stat-value" id="totalUsuarios">0</span>
-                </div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-icon green">
-                    <i class="fas fa-user-shield"></i>
-                </div>
-                <div class="stat-info">
-                    <span class="stat-label">Administradores</span>
-                    <span class="stat-value" id="totalAdmins">0</span>
-                </div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-icon purple">
-                    <i class="fas fa-user-tag"></i>
-                </div>
-                <div class="stat-info">
-                    <span class="stat-label">Empleados</span>
-                    <span class="stat-value" id="totalEmpleados">0</span>
-                </div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-icon orange">
-                    <i class="fas fa-user-clock"></i>
-                </div>
-                <div class="stat-info">
-                    <span class="stat-label">Activos Hoy</span>
-                    <span class="stat-value" id="activosHoy">0</span>
+                <div class="user-details">
+                    <span class="user-name" id="userName">Cargando...</span>
+                    <span class="user-role">Admin</span>
                 </div>
             </div>
         </div>
+    </nav>
 
-        <!-- Toolbar -->
-        <div class="toolbar">
-            <div class="toolbar-left">
-                <button class="btn btn-primary" id="btnNuevoUsuario">
+    <!-- ==================== CONTENEDOR PRINCIPAL ==================== -->
+    <div class="main-container">
+        
+        <!-- ==================== SIDEBAR (Menú lateral) ==================== -->
+        <aside class="sidebar" id="sidebar">
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="nav-item">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="productos.html" class="nav-item">
+                    <i class="fas fa-pills"></i>
+                    <span>Productos</span>
+                </a>
+                <a href="categorias.html" class="nav-item" id="menuCategorias">
+                    <i class="fas fa-tags"></i>
+                    <span>Categorías</span>
+                </a>
+                <a href="ventas.html" class="nav-item">
+                    <i class="fas fa-cash-register"></i>
+                    <span>Ventas</span>
+                </a>
+                <a href="usuarios.html" class="nav-item active" id="menuUsuarios">
+                    <i class="fas fa-users"></i>
+                    <span>Usuarios</span>
+                </a>
+                <a href="reportes.html" class="nav-item">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Reportes</span>
+                </a>
+                <a href="configuracion.html" class="nav-item">
+                    <i class="fas fa-cog"></i>
+                    <span>Configuración</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- ==================== CONTENIDO PRINCIPAL ==================== -->
+        <main class="content">
+            <!-- Header de la página -->
+            <div class="page-header">
+                <div class="page-title">
+                    <h1><i class="fas fa-users"></i> Gestión de Usuarios</h1>
+                    <p>Administra las cuentas de usuario del sistema</p>
+                </div>
+                <button class="btn-primary" id="btnNuevoUsuario">
                     <i class="fas fa-plus"></i>
                     Nuevo Usuario
                 </button>
             </div>
-            <div class="toolbar-right">
+
+            <!-- Tarjetas Informativas -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon blue">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-label">Total Usuarios</span>
+                        <span class="stat-value" id="totalUsuarios">0</span>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon green">
+                        <i class="fas fa-user-shield"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-label">Administradores</span>
+                        <span class="stat-value" id="totalAdmins">0</span>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon purple">
+                        <i class="fas fa-user-tag"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-label">Empleados</span>
+                        <span class="stat-value" id="totalEmpleados">0</span>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon orange">
+                        <i class="fas fa-user-clock"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-label">Activos Hoy</span>
+                        <span class="stat-value" id="activosHoy">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filtros y Búsqueda -->
+            <div class="filters-section">
                 <div class="search-box">
                     <i class="fas fa-search"></i>
                     <input type="text" id="searchInput" placeholder="Buscar por nombre, email...">
                 </div>
-                <select id="filterRol" class="filter-select">
-                    <option value="">Todos los roles</option>
-                    <option value="admin">Administradores</option>
-                    <option value="empleado">Empleados</option>
-                </select>
+                <div class="filter-box">
+                    <select id="filterRol" class="filter-select">
+                        <option value="">Todos los roles</option>
+                        <option value="admin">Administradores</option>
+                        <option value="empleado">Empleados</option>
+                    </select>
+                </div>
             </div>
-        </div>
 
-        <!-- Tabla de Usuarios -->
-        <div class="table-container">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Nombre</th>
-                        <th>Email</th>
-                        <th>Rol</th>
-                        <th>Fecha Registro</th>
-                        <th>Último Acceso</th>
-                        <th>Estado</th>
-                        <th class="text-center">Acciones</th>
-                    </tr>
-                </thead>
-                <tbody id="usuariosTableBody">
-                    <tr>
-                        <td colspan="7" class="text-center">
-                            <div class="loading">
-                                <i class="fas fa-spinner fa-spin"></i>
-                                Cargando usuarios...
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+            <!-- Tabla de Usuarios -->
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Email</th>
+                            <th>Rol</th>
+                            <th>Fecha Registro</th>
+                            <th>Último Acceso</th>
+                            <th>Estado</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usuariosTableBody">
+                        <tr>
+                            <td colspan="7" class="text-center">
+                                <div class="loading">
+                                    <i class="fas fa-spinner fa-spin"></i>
+                                    Cargando usuarios...
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
 
-        <!-- Paginación -->
-        <div class="pagination">
-            <button class="btn-icon" id="btnPrevPage" disabled>
-                <i class="fas fa-chevron-left"></i>
-            </button>
-            <span id="paginationInfo">Página 1 de 1</span>
-            <button class="btn-icon" id="btnNextPage" disabled>
-                <i class="fas fa-chevron-right"></i>
-            </button>
-        </div>
-    </main>
+            <!-- Paginación -->
+            <div class="pagination">
+                <button class="btn-icon" id="btnPrevPage" disabled>
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <span id="paginationInfo">Página 1 de 1</span>
+                <button class="btn-icon" id="btnNextPage" disabled>
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </main>
+    </div>
 
     <!-- Modal Nuevo/Editar Usuario -->
     <div class="modal" id="usuarioModal">
@@ -192,7 +209,7 @@
                     <i class="fas fa-user-plus"></i>
                     Nuevo Usuario
                 </h2>
-                <button class="btn-close" id="btnCerrarModal">
+                <button class="modal-close" id="btnCerrarModal">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -204,11 +221,12 @@
                     
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="inputNombre">
+                            <label class="form-label" for="inputNombre">
                                 Nombre Completo <span class="required">*</span>
                             </label>
                             <input 
                                 type="text" 
+                                class="form-control"
                                 id="inputNombre" 
                                 placeholder="Ej: Juan Pérez"
                                 required
@@ -217,11 +235,12 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="inputEmail">
+                            <label class="form-label" for="inputEmail">
                                 Correo Electrónico <span class="required">*</span>
                             </label>
                             <input 
                                 type="email" 
+                                class="form-control"
                                 id="inputEmail" 
                                 placeholder="Ej: juan@farmacia.com"
                                 required
@@ -237,12 +256,13 @@
                     
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="inputPassword">
+                            <label class="form-label" for="inputPassword">
                                 Contraseña <span class="required">*</span>
                             </label>
                             <div class="input-with-icon">
                                 <input 
                                     type="password" 
+                                    class="form-control"
                                     id="inputPassword" 
                                     placeholder="Mínimo 6 caracteres"
                                     minlength="6"
@@ -256,11 +276,12 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="inputConfirmPassword">
+                            <label class="form-label" for="inputConfirmPassword">
                                 Confirmar Contraseña <span class="required">*</span>
                             </label>
                             <input 
                                 type="password" 
+                                class="form-control"
                                 id="inputConfirmPassword" 
                                 placeholder="Repite la contraseña"
                             >
@@ -274,10 +295,10 @@
                     <h3><i class="fas fa-user-shield"></i> Rol y Permisos</h3>
                     
                     <div class="form-group">
-                        <label for="inputRol">
+                        <label class="form-label" for="inputRol">
                             Rol <span class="required">*</span>
                         </label>
-                        <select id="inputRol" required>
+                        <select class="form-control" id="inputRol" required>
                             <option value="">Selecciona un rol</option>
                             <option value="admin">Administrador</option>
                             <option value="empleado">Empleado</option>
@@ -295,11 +316,11 @@
             </form>
 
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" id="btnCancelar">
+                <button type="button" class="btn-secondary" id="btnCancelar">
                     <i class="fas fa-times"></i>
                     Cancelar
                 </button>
-                <button type="submit" form="usuarioForm" class="btn btn-primary" id="btnGuardar">
+                <button type="submit" form="usuarioForm" class="btn-primary" id="btnGuardar">
                     <i class="fas fa-save"></i>
                     <span id="btnGuardarText">Crear Usuario</span>
                 </button>
@@ -315,18 +336,19 @@
                     <i class="fas fa-key"></i>
                     Cambiar Contraseña
                 </h2>
-                <button class="btn-close" id="btnCerrarPasswordModal">
+                <button class="modal-close" id="btnCerrarPasswordModal">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
 
             <form id="passwordForm" class="modal-body">
                 <div class="form-group">
-                    <label for="inputNewPassword">
+                    <label class="form-label" for="inputNewPassword">
                         Nueva Contraseña <span class="required">*</span>
                     </label>
                     <input 
                         type="password" 
+                        class="form-control"
                         id="inputNewPassword" 
                         placeholder="Mínimo 6 caracteres"
                         minlength="6"
@@ -336,11 +358,12 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="inputConfirmNewPassword">
+                    <label class="form-label" for="inputConfirmNewPassword">
                         Confirmar Contraseña <span class="required">*</span>
                     </label>
                     <input 
                         type="password" 
+                        class="form-control"
                         id="inputConfirmNewPassword" 
                         placeholder="Repite la contraseña"
                         required
@@ -350,11 +373,11 @@
             </form>
 
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" id="btnCancelarPassword">
+                <button type="button" class="btn-secondary" id="btnCancelarPassword">
                     <i class="fas fa-times"></i>
                     Cancelar
                 </button>
-                <button type="submit" form="passwordForm" class="btn btn-primary" id="btnGuardarPassword">
+                <button type="submit" form="passwordForm" class="btn-primary" id="btnGuardarPassword">
                     <i class="fas fa-save"></i>
                     Cambiar Contraseña
                 </button>

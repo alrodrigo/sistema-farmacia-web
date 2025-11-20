@@ -64,7 +64,20 @@ function initializeEventListeners() {
     });
 
     // Logout
-    document.getElementById('btnLogout').addEventListener('click', logout);
+    const btnLogout = document.getElementById('btnLogout');
+    if (btnLogout) {
+        btnLogout.addEventListener('click', logout);
+    }
+    
+    // Logout desde user menu (nuevo diseño)
+    const userMenu = document.querySelector('.user-menu');
+    if (userMenu) {
+        userMenu.addEventListener('click', () => {
+            if (confirm('¿Deseas cerrar sesión?')) {
+                logout();
+            }
+        });
+    }
 
     // Filtros
     document.getElementById('btnFiltrar').addEventListener('click', applyFilters);

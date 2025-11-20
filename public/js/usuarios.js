@@ -496,12 +496,22 @@ async function guardarUsuario(event) {
             // Crear nuevo usuario
             const password = document.getElementById('inputPassword').value;
             
-            // Nota: No podemos crear usuarios desde el cliente debido a restricciones de Firebase
-            // Necesitamos usar Firebase Admin SDK o Cloud Functions
+            // Nota: La creación de usuarios desde el cliente está deshabilitada por seguridad
+            // Los usuarios deben ser creados por el administrador del sistema
             
-            alert(`⚠️ CREAR USUARIO MANUALMENTE\n\nPara crear este usuario:\n\n1. Ve a Firebase Console → Authentication\n2. Click en "Add user"\n3. Email: ${email}\n4. Password: ${password}\n5. Copia el UID generado\n\nLuego ejecuta en la consola del navegador:\n\nawait firebaseDB.collection('users').doc('UID_COPIADO').set({\n  email: '${email}',\n  name: '${nombre}',\n  role: '${rol}',\n  created_at: firebase.firestore.FieldValue.serverTimestamp(),\n  updated_at: firebase.firestore.FieldValue.serverTimestamp()\n});\n\n✅ Para futuras implementaciones, crear una Cloud Function.`);
+            alert(`📋 SOLICITUD DE NUEVO USUARIO\n\n` +
+                  `Para crear este usuario, contacta al administrador del sistema con los siguientes datos:\n\n` +
+                  `👤 Nombre: ${nombre}\n` +
+                  `📧 Email: ${email}\n` +
+                  `🔑 Contraseña: ${password}\n` +
+                  `👔 Rol: ${rol === 'admin' ? 'Administrador' : 'Empleado'}\n\n` +
+                  `El administrador creará el usuario y te notificará cuando esté listo.`);
             
-            console.log('💡 Datos del usuario a crear:', { email, nombre, rol, password });
+            console.log('💡 Solicitud de creación de usuario:', { email, nombre, rol });
+            
+            // Cerrar modal sin recargar
+            cerrarModal();
+            return;
         }
         
         // Cerrar modal y recargar usuarios
@@ -705,22 +715,118 @@ async function cambiarPassword(event) {
     btnGuardar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cambiando...';
     
     try {
-        // Nota: En Firebase Admin SDK se puede cambiar la contraseña
-        // Desde el cliente necesitamos una Cloud Function
-        // Por ahora solo actualizamos en Firestore como referencia
+        // Obtener el usuario actual de Firebase Authentication
+        const user = firebaseAuth.currentUser;
         
-        await firebaseDB.collection('users').doc(usuarioEditandoId).update({
-            password_updated_at: firebase.firestore.FieldValue.serverTimestamp()
-        });
+        if (!user) {
+            alert('❌ Debes estar autenticado para cambiar la contraseña');
+            return;
+        }
         
-        console.log('✅ Referencia de contraseña actualizada');
-        alert('⚠️ Nota: Para cambiar la contraseña se requiere implementar una Cloud Function.\nPor ahora, pide al usuario que use "Olvidé mi contraseña" en el login.');
-        
-        cerrarPasswordModal();
+        // Verificar si está cambiando su propia contraseña
+        if (user.uid === usuarioEditandoId) {
+            // Cambiar su propia contraseña - requiere re-autenticación reciente
+            try {
+                await user.updatePassword(newPassword);
+                
+                // Actualizar timestamp en Firestore
+                await firebaseDB.collection('users').doc(usuarioEditandoId).update({
+                    password_updated_at: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                console.log('✅ Tu contraseña ha sido actualizada');
+                alert('✅ Tu contraseña ha sido actualizada correctamente');
+                
+                cerrarPasswordModal();
+                
+            } catch (updateError) {
+                // Si requiere re-autenticación
+                if (updateError.code === 'auth/requires-recent-login') {
+                    console.log('⚠️ Se requiere re-autenticación reciente');
+                    
+                    // Solicitar contraseña actual
+                    const passwordActual = prompt('🔐 Por seguridad, ingresa tu contraseña actual:');
+                    
+                    if (!passwordActual) {
+                        alert('❌ Operación cancelada');
+                        return;
+                    }
+                    
+                    try {
+                        // Re-autenticar
+                        const credential = firebase.auth.EmailAuthProvider.credential(
+                            user.email,
+                            passwordActual
+                        );
+                        await user.reauthenticateWithCredential(credential);
+                        
+                        console.log('✅ Re-autenticación exitosa');
+                        
+                        // Intentar cambiar contraseña nuevamente
+                        await user.updatePassword(newPassword);
+                        
+                        // Actualizar timestamp en Firestore
+                        await firebaseDB.collection('users').doc(usuarioEditandoId).update({
+                            password_updated_at: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                        
+                        console.log('✅ Tu contraseña ha sido actualizada');
+                        alert('✅ Tu contraseña ha sido actualizada correctamente');
+                        
+                        cerrarPasswordModal();
+                        
+                    } catch (reauthError) {
+                        console.error('❌ Error en re-autenticación:', reauthError);
+                        
+                        if (reauthError.code === 'auth/wrong-password') {
+                            alert('❌ Contraseña actual incorrecta');
+                        } else {
+                            alert('❌ Error al verificar tu identidad. Intenta cerrar sesión e iniciar sesión nuevamente.');
+                        }
+                    }
+                } else {
+                    throw updateError;
+                }
+            }
+            
+        } else {
+            // Admin cambiando contraseña de otro usuario
+            const usuarioACambiar = todosLosUsuarios.find(u => u.id === usuarioEditandoId);
+            const nombreUsuario = usuarioACambiar ? usuarioACambiar.name || usuarioACambiar.email : 'el usuario';
+            const emailUsuario = usuarioACambiar.email;
+            
+            const confirmar = confirm(`📧 ENVIAR ENLACE DE RECUPERACIÓN\n\n` +
+                  `Para cambiar la contraseña de ${nombreUsuario}, el sistema enviará un correo electrónico de recuperación.\n\n` +
+                  `El usuario recibirá un enlace en su correo para crear una nueva contraseña de forma segura.\n\n` +
+                  `¿Deseas enviar el correo de recuperación?`);
+            
+            if (!confirmar) {
+                cerrarPasswordModal();
+                return;
+            }
+            
+            // Enviar correo de recuperación
+            await firebaseAuth.sendPasswordResetEmail(emailUsuario);
+            
+            console.log('✅ Correo de recuperación enviado a:', emailUsuario);
+            alert(`✅ Correo de recuperación enviado a:\n${emailUsuario}\n\nEl usuario debe revisar su bandeja de entrada.`);
+            
+            cerrarPasswordModal();
+        }
         
     } catch (error) {
         console.error('❌ Error al cambiar contraseña:', error);
-        alert('Error al cambiar la contraseña');
+        
+        let errorMessage = 'Error al cambiar la contraseña';
+        
+        if (error.code === 'auth/weak-password') {
+            errorMessage = 'La contraseña es muy débil';
+        } else if (error.code === 'auth/network-request-failed') {
+            errorMessage = 'Error de conexión. Verifica tu internet.';
+        }
+        
+        alert('❌ ' + errorMessage);
+        
     } finally {
         btnGuardar.disabled = false;
         btnGuardar.innerHTML = textoOriginal;

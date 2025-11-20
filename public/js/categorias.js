@@ -96,15 +96,32 @@ function configurarEventos() {
         document.getElementById('colorHex').textContent = e.target.value;
     });
     
-    // Logout
-    document.getElementById('btnLogout').addEventListener('click', async () => {
-        try {
-            await auth.signOut();
-            window.location.href = 'index.html';
-        } catch (error) {
-            console.error('Error al cerrar sesión:', error);
-        }
-    });
+    // Logout (opcional - el navbar ya no tiene este botón visible)
+    const btnLogout = document.getElementById('btnLogout');
+    if (btnLogout) {
+        btnLogout.addEventListener('click', async () => {
+            try {
+                await auth.signOut();
+                window.location.href = 'index.html';
+            } catch (error) {
+                console.error('Error al cerrar sesión:', error);
+            }
+        });
+    }
+    
+    // Logout desde user menu (nuevo diseño)
+    const userMenu = document.querySelector('.user-menu');
+    if (userMenu) {
+        userMenu.addEventListener('click', () => {
+            // Aquí podrías agregar un dropdown con la opción de logout
+            // Por ahora, hacer click en el usuario cierra sesión
+            if (confirm('¿Deseas cerrar sesión?')) {
+                auth.signOut().then(() => {
+                    window.location.href = 'index.html';
+                });
+            }
+        });
+    }
     
     // Toggle sidebar
     document.getElementById('menuToggle').addEventListener('click', function() {

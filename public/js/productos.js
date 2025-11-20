@@ -104,6 +104,16 @@ function configurarEventos() {
         btnLogout.addEventListener('click', cerrarSesion);
     }
     
+    // Logout desde user menu (nuevo diseño)
+    const userMenu = document.querySelector('.user-menu');
+    if (userMenu) {
+        userMenu.addEventListener('click', () => {
+            if (confirm('¿Deseas cerrar sesión?')) {
+                cerrarSesion();
+            }
+        });
+    }
+    
     // Botón de menú móvil
     const menuToggle = document.getElementById('menuToggle');
     const sidebar = document.getElementById('sidebar');
