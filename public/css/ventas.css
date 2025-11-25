@@ -11,11 +11,11 @@
 }
 
 /* ===== HEADER DE LA PÁGINA ===== */
-.page-header {
+/* Los estilos base de content-header están en layout.css */
+.content-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
   padding-bottom: 15px;
   border-bottom: 2px solid var(--border-color);
 }

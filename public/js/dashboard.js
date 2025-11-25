@@ -434,18 +434,10 @@ function actualizarMenuPorRol() {
         const utilidadesMenu = document.querySelector('#menuUtilidades');
         if (utilidadesMenu) utilidadesMenu.style.display = 'none';
         
-        // Ocultar configuración
-        const configMenu = document.querySelector('a[href="configuracion.html"]');
-        if (configMenu) configMenu.style.display = 'none';
-        
         console.log('👤 Menú de empleado aplicado');
     } else {
         console.log('👑 Menú de admin aplicado (completo)');
     }
-    
-    // Ocultar configuración para TODOS (pendiente de implementar)
-    const configMenu = document.querySelector('a[href="configuracion.html"]');
-    if (configMenu) configMenu.style.display = 'none';
 }
 
 // ===== 12. LOG FINAL =====

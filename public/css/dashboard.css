@@ -6,54 +6,15 @@
 /* =====================================================
    DASHBOARD - Estilos específicos
    Los estilos de layout (navbar, sidebar) están en layout.css
+   Los estilos comunes (stats, cards) están en components.css
    ===================================================== */
 
-/* ===== 7. TARJETAS DE ESTADÍSTICAS (estilo ServiSalud) ===== */
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-}
-
-.stat-card {
-    background: var(--card-bg);
-    padding: 1.75rem;
-    border-radius: var(--card-radius);
-    box-shadow: var(--card-shadow);
-    border: 1px solid var(--border-color);
-    transition: var(--transition-base);
-}
-
-.stat-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--card-hover-shadow);
-}
-
+/* ===== AJUSTE ESPECÍFICO PARA STATS EN DASHBOARD ===== */
 .stat-icon {
-    width: 56px;
-    height: 56px;
-    border-radius: var(--radius-lg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
     margin-bottom: 1rem;
 }
 
-.stat-details h3 {
-    font-size: var(--font-3xl);
-    color: var(--text-primary);
-    margin-bottom: 0.25rem;
-    font-weight: var(--font-semibold);
-}
-
-.stat-details p {
-    font-size: var(--font-sm);
-    color: var(--text-secondary);
-}
-
-/* ===== 8. ACCIONES RÁPIDAS ===== */
+/* ===== ACCIONES RÁPIDAS ===== */
 .quick-actions {
     background: var(--card-bg);
     padding: 1.75rem;

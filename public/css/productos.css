@@ -2,51 +2,20 @@
    ESTILOS ESPECÍFICOS PARA LA PÁGINA DE PRODUCTOS
    ===================================================== */
 
-/* El layout principal (navbar, sidebar, content) ya está en dashboard.css */
-/* Aquí solo agregamos estilos específicos de la página de productos */
+/* Los estilos comunes (layout, stats, filters) están en layout.css y components.css */
 
-/* ===== PAGE HEADER ===== */
-.page-header {
+/* ===== AJUSTE ESPECÍFICO PARA CONTENT-HEADER ===== */
+.content-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 30px;
     padding-bottom: 20px;
     border-bottom: 2px solid var(--border-color);
 }
 
-.page-title h1 {
-    font-size: 28px;
-    color: var(--text-primary);
-    margin-bottom: 5px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.page-title h1 i {
-    color: var(--primary-color);
-}
-
-.page-title p {
-    color: var(--text-secondary);
-    font-size: 14px;
-    margin: 0;
-}
-
-/* .btn-primary base está en components.css */
-/* Variación con gradiente para productos */
-.page-header .btn-primary {
+/* Variación con gradiente para botón de productos */
+.content-header .btn-primary {
     background: linear-gradient(135deg, var(--primary-color) 0%, #764ba2 100%);
-}
-
-/* ===== FILTERS SECTION ===== */
-.filters-section {
-    background: white;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    margin-bottom: 25px;
 }
 
 .search-box {

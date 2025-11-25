@@ -42,7 +42,6 @@ async function verificarAutenticacion() {
                         };
                         
                         mostrarNombreUsuario();
-                        actualizarMenuPorRol();
                         
                         // Solo admin puede gestionar proveedores
                         const role = currentUser.role || 'empleado';
@@ -77,12 +76,6 @@ function mostrarNombreUsuario() {
     }
 }
 
-function actualizarMenuPorRol() {
-    // Ocultar configuración para TODOS (pendiente de implementar)
-    const configMenu = document.querySelector('a[href="configuracion.html"]');
-    if (configMenu) configMenu.style.display = 'none';
-}
-
 function logout() {
     if (confirm('¿Seguro que deseas cerrar sesión?')) {
         firebaseAuth.signOut().then(() => {
@@ -101,6 +94,29 @@ function configurarEventos() {
     // Filtros
     document.getElementById('filtroEstado').addEventListener('change', filtrarProveedores);
     document.getElementById('filtroPais').addEventListener('change', filtrarProveedores);
+    
+    // Toggle menú móvil
+    const menuToggle = document.getElementById('menuToggle');
+    const sidebar = document.querySelector('.sidebar');
+    
+    if (menuToggle && sidebar) {
+        menuToggle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            sidebar.classList.toggle('active');
+        });
+        
+        // Cerrar sidebar al hacer click fuera (solo en móviles)
+        document.addEventListener('click', function(e) {
+            if (window.innerWidth <= 768) {
+                const isClickInsideSidebar = sidebar.contains(e.target);
+                const isClickOnToggle = menuToggle.contains(e.target);
+                
+                if (!isClickInsideSidebar && !isClickOnToggle && sidebar.classList.contains('active')) {
+                    sidebar.classList.remove('active');
+                }
+            }
+        });
+    }
 }
 
 // ==================== CARGAR PROVEEDORES ====================
