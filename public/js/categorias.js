@@ -422,17 +422,34 @@ async function cargarEstadisticas() {
         const productosPorCategoria = {};
         productosSnapshot.docs.forEach(doc => {
             const data = doc.data();
-            const catId = data.categoriaId;
+            // Usar 'category' porque así se guarda en productos.js
+            const catId = data.category || data.categoriaId;
             if (catId) {
                 productosPorCategoria[catId] = (productosPorCategoria[catId] || 0) + 1;
             }
         });
         
-        // Actualizar en Firestore
+        // Actualizar contador en memoria PRIMERO (para mostrar inmediatamente)
+        categorias.forEach(cat => {
+            cat.productosCount = productosPorCategoria[cat.id] || 0;
+        });
+        
+        // Re-renderizar categorías con los conteos actualizados
+        renderizarCategorias();
+        
+        // Actualizar en Firestore en segundo plano
         const batch = db.batch();
         Object.keys(productosPorCategoria).forEach(catId => {
             const ref = db.collection('categorias').doc(catId);
             batch.update(ref, { productosCount: productosPorCategoria[catId] });
+        });
+        
+        // También actualizar las categorías sin productos a 0
+        categorias.forEach(cat => {
+            if (!productosPorCategoria[cat.id]) {
+                const ref = db.collection('categorias').doc(cat.id);
+                batch.update(ref, { productosCount: 0 });
+            }
         });
         
         await batch.commit();
