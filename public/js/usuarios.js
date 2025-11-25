@@ -51,11 +51,9 @@ async function verificarAutenticacion() {
                             ...userDoc.data()
                         };
                         
-                        // Verificar que sea admin
-                        if (currentUser.role !== 'admin') {
-                            alert('⚠️ No tienes permisos para acceder a esta página');
-                            window.location.href = 'dashboard.html';
-                            return;
+                        // Empleados pueden ver la página en modo solo lectura
+                        if (currentUser.role === 'empleado') {
+                            console.log('👁️ Acceso de empleado en modo solo lectura');
                         }
                         
                         // Mostrar nombre del usuario
@@ -96,9 +94,14 @@ function actualizarMenuPorRol() {
     const role = currentUser?.role;
     console.log('🔐 Actualizando menú para rol:', role);
     
-    // Solo admin puede ver usuarios
-    if (role !== 'admin') {
-        window.location.href = 'dashboard.html';
+    // Actualizar mensaje informativo según el rol
+    const infoMessage = document.querySelector('.info-message span');
+    if (infoMessage) {
+        if (role === 'admin') {
+            infoMessage.textContent = 'Los usuarios se crean desde Firebase Console. Aquí puedes editar roles y permisos.';
+        } else {
+            infoMessage.innerHTML = '<strong>Modo solo lectura:</strong> Solo los administradores pueden editar usuarios.';
+        }
     }
 }
 
@@ -280,6 +283,22 @@ function mostrarUsuarios() {
         const isCurrentUser = usuario.id === currentUser.uid;
         const deleteDisabled = isCurrentUser ? 'disabled' : '';
         
+        // Solo admin puede ver botones de acción
+        const isAdmin = currentUser.role === 'admin';
+        const botonesAccion = isAdmin ? `
+            <div class="action-buttons">
+                <button class="btn-action btn-edit" onclick="editarUsuario('${usuario.id}')" title="Editar">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn-action btn-password" onclick="abrirModalPassword('${usuario.id}')" title="Cambiar contraseña">
+                    <i class="fas fa-key"></i>
+                </button>
+                <button class="btn-action btn-delete" onclick="eliminarUsuario('${usuario.id}', '${usuario.name || usuario.email}')" title="Eliminar" ${deleteDisabled}>
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        ` : `<span class="text-muted">Solo lectura</span>`;
+        
         return `
         <tr data-id="${usuario.id}">
             <td>
@@ -307,17 +326,7 @@ function mostrarUsuarios() {
                 </span>
             </td>
             <td class="text-center">
-                <div class="action-buttons">
-                    <button class="btn-action btn-edit" onclick="editarUsuario('${usuario.id}')" title="Editar">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn-action btn-password" onclick="abrirModalPassword('${usuario.id}')" title="Cambiar contraseña">
-                        <i class="fas fa-key"></i>
-                    </button>
-                    <button class="btn-action btn-delete" onclick="eliminarUsuario('${usuario.id}', '${usuario.name || usuario.email}')" title="Eliminar" ${deleteDisabled}>
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
+                ${botonesAccion}
             </td>
         </tr>
         `;
@@ -427,6 +436,12 @@ function abrirModalNuevo() {
 // ===== 14. EDITAR USUARIO =====
 async function editarUsuario(id) {
     console.log('✏️ Editando usuario:', id);
+    
+    // Verificar permisos de admin
+    if (currentUser.role !== 'admin') {
+        alert('⚠️ Solo los administradores pueden editar usuarios');
+        return;
+    }
     
     const usuario = todosLosUsuarios.find(u => u.id === id);
     if (!usuario) {
@@ -685,6 +700,12 @@ function togglePasswordVisibility() {
 function abrirModalPassword(id) {
     console.log('🔑 Abriendo modal de contraseña para usuario:', id);
     
+    // Verificar permisos de admin
+    if (currentUser.role !== 'admin') {
+        alert('⚠️ Solo los administradores pueden cambiar contraseñas');
+        return;
+    }
+    
     usuarioEditandoId = id;
     
     // Limpiar formulario
@@ -857,6 +878,12 @@ function limpiarErroresPassword() {
 // ===== 26. ELIMINAR USUARIO =====
 async function eliminarUsuario(id, nombre) {
     console.log('🗑️ Intentando eliminar usuario:', id, nombre);
+    
+    // Verificar permisos de admin
+    if (currentUser.role !== 'admin') {
+        alert('⚠️ Solo los administradores pueden eliminar usuarios');
+        return;
+    }
     
     // No permitir eliminar al usuario actual
     if (id === currentUser.uid) {

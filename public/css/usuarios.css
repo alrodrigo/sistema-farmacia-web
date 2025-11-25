@@ -61,6 +61,12 @@
     flex-shrink: 0;
 }
 
+.text-muted {
+    color: var(--text-light);
+    font-size: 0.875rem;
+    font-style: italic;
+}
+
 /* ==================== STATS CARDS ==================== */
 .stats-grid {
     display: grid;
