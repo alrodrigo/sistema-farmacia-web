@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Fondo circular -->
+  <circle cx="50" cy="50" r="48" fill="#6a5acd" stroke="#fff" stroke-width="2"/>
+  
+  <!-- Cruz farmacéutica -->
+  <rect x="43" y="25" width="14" height="50" fill="#fff" rx="2"/>
+  <rect x="25" y="43" width="50" height="14" fill="#fff" rx="2"/>
+  
+  <!-- Sombra interna para profundidad -->
+  <circle cx="50" cy="50" r="48" fill="none" stroke="rgba(0,0,0,0.1)" stroke-width="3"/>
+</svg>

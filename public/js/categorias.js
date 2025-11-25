@@ -70,6 +70,13 @@ async function verificarAutenticacion() {
     });
 }
 
+// ==================== ACTUALIZAR MENÚ POR ROL ====================
+function actualizarMenuPorRol() {
+    // Ocultar configuración para TODOS (pendiente de implementar)
+    const configMenu = document.querySelector('a[href="configuracion.html"]');
+    if (configMenu) configMenu.style.display = 'none';
+}
+
 // ==================== CONFIGURAR EVENTOS ====================
 function configurarEventos() {
     console.log('🔘 Configurando eventos...');

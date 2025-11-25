@@ -921,6 +921,10 @@ function actualizarMenuPorRol() {
   } else {
     console.log('👑 Menú de admin aplicado (completo)');
   }
+  
+  // Ocultar configuración para TODOS (pendiente de implementar)
+  const configMenuGlobal = document.querySelector('a[href="configuracion.html"]');
+  if (configMenuGlobal) configMenuGlobal.style.display = 'none';
 }
 
 console.log('✅ Ventas.js completamente cargado');
