@@ -36,7 +36,7 @@
 
 .form-control {
     padding: 0.75rem;
-    border: 2px solid #e0e0e0;
+    border: 2px solid var(--border-color);
     border-radius: 8px;
     font-size: 0.95rem;
     transition: all 0.3s ease;
@@ -83,7 +83,7 @@
 }
 
 .btn-reset:hover {
-    background: #e0e0e0;
+    background: var(--border-color);
 }
 
 /* Filtros rápidos */
@@ -200,7 +200,7 @@
     align-items: center;
     margin-bottom: 1.5rem;
     padding-bottom: 1rem;
-    border-bottom: 2px solid #f0f0f0;
+    border-bottom: 2px solid var(--border-light);
 }
 
 .table-header h2 {
@@ -243,7 +243,7 @@ thead th {
 }
 
 tbody tr {
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid var(--border-light);
     transition: all 0.2s ease;
 }
 
@@ -272,34 +272,61 @@ tbody td {
     transform: scale(1.05);
 }
 
-/* Estados de carga */
-.loading-state,
-.empty-state {
-    text-align: center;
-    padding: 3rem;
-    color: #999;
+/* .loading-state y .empty-state están en components.css */
+
+/* ==================== CHARTS SECTION ==================== */
+.charts-section {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+    gap: 2rem;
+    margin: 2rem 0;
 }
 
-.loading-state i {
-    font-size: 3rem;
-    margin-bottom: 1rem;
+.chart-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: var(--transition-base);
+}
+
+.chart-card:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.chart-header {
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 1rem;
+}
+
+.chart-header h3 {
+    color: var(--text-primary);
+    font-size: var(--font-lg);
+    font-weight: 600;
+    margin: 0 0 0.5rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.chart-header h3 i {
     color: var(--primary-color);
 }
 
-.empty-state i {
-    font-size: 4rem;
-    margin-bottom: 1rem;
-    color: #ddd;
+.chart-header small {
+    color: var(--text-secondary);
+    font-size: var(--font-sm);
 }
 
-.empty-state p {
-    font-size: 1.2rem;
-    color: #666;
-    margin: 0.5rem 0;
+.chart-container {
+    position: relative;
+    height: 300px;
+    width: 100%;
 }
 
-.empty-state small {
-    color: #999;
+.chart-container canvas {
+    max-height: 300px;
 }
 
 /* Productos más vendidos */
@@ -313,7 +340,7 @@ tbody td {
 .section-header {
     margin-bottom: 1.5rem;
     padding-bottom: 1rem;
-    border-bottom: 2px solid #f0f0f0;
+    border-bottom: 2px solid var(--border-light);
 }
 
 .section-header h2 {
@@ -367,70 +394,8 @@ tbody td {
 }
 
 /* Modal de detalle */
-/* Los estilos base de modal están en components.css */
-
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.7);
-    z-index: 10000;
-}
-
-.modal-content {
-    position: relative;
-    background: white;
-    border-radius: 12px;
-    width: 100%;
-    max-width: 100%;
-    max-height: 90vh;
-    overflow-y: auto;
-    z-index: 10001;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-}
-
-.modal-header {
-    padding: 1.5rem;
-    border-bottom: 2px solid #f0f0f0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.modal-header h2 {
-    margin: 0;
-    font-size: 1.5rem;
-    color: #333;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.modal-close {
-    background: none;
-    border: none;
-    font-size: 2rem;
-    color: #999;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    padding: 0;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.modal-close:hover {
-    color: #333;
-    transform: rotate(90deg);
-}
-
-.modal-body {
-    padding: 1.5rem;
-}
+/* Los estilos base están en components.css */
+/* Estilos específicos para reportes */
 
 .modal-large {
     max-width: 700px;

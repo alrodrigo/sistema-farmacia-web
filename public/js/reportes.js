@@ -237,6 +237,7 @@ function resetFilters() {
 function updateUI() {
     if (filteredSales.length === 0) {
         showEmptyState();
+        destroyCharts();
         return;
     }
 
@@ -244,6 +245,7 @@ function updateUI() {
     updateSummaryCards();
     renderSalesTable();
     renderTopProducts();
+    generateCharts();
 }
 
 function updateSummaryCards() {
@@ -996,4 +998,268 @@ function actualizarMenuPorRol(userData) {
     } else {
         console.log('👑 Menú de admin aplicado (completo)');
     }
+}
+
+// ==================== GRÁFICOS CON CHART.JS ====================
+let salesChart = null;
+let productsChart = null;
+
+function generateCharts() {
+    destroyCharts();
+    generateSalesChart();
+    generateProductsChart();
+}
+
+function destroyCharts() {
+    if (salesChart) {
+        salesChart.destroy();
+        salesChart = null;
+    }
+    if (productsChart) {
+        productsChart.destroy();
+        productsChart = null;
+    }
+}
+
+function generateSalesChart() {
+    // Agrupar ventas por día
+    const salesByDate = {};
+    
+    filteredSales.forEach(sale => {
+        const dateKey = sale.fecha.toISOString().split('T')[0]; // YYYY-MM-DD
+        if (!salesByDate[dateKey]) {
+            salesByDate[dateKey] = {
+                fecha: dateKey,
+                total: 0,
+                cantidad: 0
+            };
+        }
+        salesByDate[dateKey].total += sale.total || 0;
+        salesByDate[dateKey].cantidad += 1;
+    });
+    
+    // Convertir a array y ordenar por fecha
+    const sortedData = Object.values(salesByDate).sort((a, b) => 
+        new Date(a.fecha) - new Date(b.fecha)
+    );
+    
+    // Preparar datos para el gráfico
+    const labels = sortedData.map(item => {
+        const date = new Date(item.fecha + 'T00:00:00');
+        return date.toLocaleDateString('es-BO', { day: '2-digit', month: 'short' });
+    });
+    
+    const data = sortedData.map(item => item.total);
+    
+    // Crear gráfico
+    const ctx = document.getElementById('salesChart').getContext('2d');
+    salesChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Ingresos (Bs.)',
+                data: data,
+                borderColor: '#0D3C61',
+                backgroundColor: 'rgba(13, 60, 97, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 5,
+                pointHoverRadius: 7,
+                pointBackgroundColor: '#0D3C61',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        font: {
+                            size: 12,
+                            weight: '500'
+                        },
+                        color: '#333',
+                        padding: 15
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleColor: '#fff',
+                    bodyColor: '#fff',
+                    borderColor: '#0D3C61',
+                    borderWidth: 1,
+                    padding: 12,
+                    displayColors: false,
+                    callbacks: {
+                        label: function(context) {
+                            return 'Ingresos: Bs. ' + context.parsed.y.toFixed(2);
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return 'Bs. ' + value.toFixed(0);
+                        },
+                        color: '#666',
+                        font: {
+                            size: 11
+                        }
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)',
+                        drawBorder: false
+                    }
+                },
+                x: {
+                    ticks: {
+                        color: '#666',
+                        font: {
+                            size: 11
+                        },
+                        maxRotation: 45,
+                        minRotation: 0
+                    },
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+    
+    console.log('📊 Gráfico de ventas generado con', sortedData.length, 'puntos');
+}
+
+function generateProductsChart() {
+    // Obtener productos más vendidos (ya calculados en renderTopProducts)
+    const productCount = {};
+    
+    filteredSales.forEach(sale => {
+        if (sale.items && Array.isArray(sale.items)) {
+            sale.items.forEach(item => {
+                const productName = item.productoNombre || item.producto || 'Producto sin nombre';
+                const cantidad = item.cantidad || 0;
+                
+                if (!productCount[productName]) {
+                    productCount[productName] = 0;
+                }
+                productCount[productName] += cantidad;
+            });
+        }
+    });
+    
+    // Convertir a array y ordenar
+    const sortedProducts = Object.entries(productCount)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10); // Top 10
+    
+    if (sortedProducts.length === 0) {
+        console.warn('⚠️ No hay productos para mostrar en el gráfico');
+        return;
+    }
+    
+    // Preparar datos para el gráfico
+    const labels = sortedProducts.map(([name]) => {
+        // Truncar nombres largos
+        return name.length > 25 ? name.substring(0, 25) + '...' : name;
+    });
+    
+    const data = sortedProducts.map(([_, count]) => count);
+    
+    // Colores para las barras (gradiente azul-verde)
+    const backgroundColors = [
+        '#0D3C61', '#1A5078', '#27648F', '#3478A6', '#418CBD',
+        '#5FA0C4', '#7CB342', '#8BC34A', '#9CCC65', '#AED581'
+    ];
+    
+    // Crear gráfico
+    const ctx = document.getElementById('productsChart').getContext('2d');
+    productsChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Unidades Vendidas',
+                data: data,
+                backgroundColor: backgroundColors,
+                borderColor: backgroundColors.map(color => color),
+                borderWidth: 2,
+                borderRadius: 8,
+                borderSkipped: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        font: {
+                            size: 12,
+                            weight: '500'
+                        },
+                        color: '#333',
+                        padding: 15
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    titleColor: '#fff',
+                    bodyColor: '#fff',
+                    borderColor: '#7CB342',
+                    borderWidth: 1,
+                    padding: 12,
+                    displayColors: false,
+                    callbacks: {
+                        label: function(context) {
+                            return 'Vendidas: ' + context.parsed.y + ' unidades';
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1,
+                        color: '#666',
+                        font: {
+                            size: 11
+                        }
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.05)',
+                        drawBorder: false
+                    }
+                },
+                x: {
+                    ticks: {
+                        color: '#666',
+                        font: {
+                            size: 10
+                        },
+                        maxRotation: 45,
+                        minRotation: 45
+                    },
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+    
+    console.log('📊 Gráfico de productos generado con', sortedProducts.length, 'productos');
 }

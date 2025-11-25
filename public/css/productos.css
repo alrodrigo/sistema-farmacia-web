@@ -12,7 +12,7 @@
     align-items: center;
     margin-bottom: 30px;
     padding-bottom: 20px;
-    border-bottom: 2px solid #e0e0e0;
+    border-bottom: 2px solid var(--border-color);
 }
 
 .page-title h1 {
@@ -34,29 +34,10 @@
     margin: 0;
 }
 
-.btn-primary {
+/* .btn-primary base está en components.css */
+/* Variación con gradiente para productos */
+.page-header .btn-primary {
     background: linear-gradient(135deg, var(--primary-color) 0%, #764ba2 100%);
-    color: white;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 8px;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-}
-
-.btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-}
-
-.btn-primary i {
-    font-size: 16px;
 }
 
 /* ===== FILTERS SECTION ===== */
@@ -85,7 +66,7 @@
 .search-box input {
     width: 100%;
     padding: 14px 45px;
-    border: 2px solid #e0e0e0;
+    border: 2px solid var(--border-color);
     border-radius: 10px;
     font-size: 15px;
     transition: all 0.3s ease;
@@ -106,7 +87,7 @@
 
 .filter-select {
     padding: 12px 15px;
-    border: 2px solid #e0e0e0;
+    border: 2px solid var(--border-color);
     border-radius: 8px;
     font-size: 14px;
     background: white;
@@ -123,7 +104,7 @@
 .btn-secondary {
     background: white;
     color: var(--text-primary);
-    border: 2px solid #e0e0e0;
+    border: 2px solid var(--border-color);
     padding: 12px 20px;
     border-radius: 8px;
     font-size: 14px;
@@ -208,7 +189,7 @@
 
 .table-header {
     padding: 20px 25px;
-    border-bottom: 2px solid #f0f0f0;
+    border-bottom: 2px solid var(--border-light);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -231,7 +212,7 @@
 .btn-icon {
     width: 40px;
     height: 40px;
-    border: 2px solid #e0e0e0;
+    border: 2px solid var(--border-color);
     background: white;
     border-radius: 8px;
     display: flex;
@@ -260,7 +241,7 @@
 }
 
 .productos-table thead {
-    background: #f8f9fa;
+    background: var(--bg-secondary);
 }
 
 .productos-table th {
@@ -268,17 +249,17 @@
     text-align: left;
     font-weight: 600;
     color: var(--text-primary);
-    border-bottom: 2px solid #e0e0e0;
+    border-bottom: 2px solid var(--border-color);
     white-space: nowrap;
 }
 
 .productos-table tbody tr {
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid var(--border-light);
     transition: background 0.2s ease;
 }
 
 .productos-table tbody tr:hover {
-    background: #f8f9fa;
+    background: var(--bg-secondary);
 }
 
 .productos-table td {
@@ -370,12 +351,12 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-top: 2px solid #f0f0f0;
+    border-top: 2px solid var(--border-light);
 }
 
 .pagination-btn {
     padding: 10px 20px;
-    border: 2px solid #e0e0e0;
+    border: 2px solid var(--border-color);
     background: white;
     border-radius: 8px;
     font-size: 14px;
@@ -417,29 +398,7 @@
     color: var(--primary-color);
 }
 
-/* Empty state */
-.empty-state {
-    text-align: center;
-    padding: 60px 20px;
-    color: var(--text-secondary);
-}
-
-.empty-state i {
-    font-size: 64px;
-    color: #e0e0e0;
-    margin-bottom: 20px;
-}
-
-.empty-state h3 {
-    font-size: 20px;
-    color: var(--text-primary);
-    margin-bottom: 10px;
-}
-
-.empty-state p {
-    font-size: 14px;
-    color: var(--text-secondary);
-}
+/* .empty-state está en components.css */
 
 /* ===== RESPONSIVE ===== */
 
@@ -749,101 +708,25 @@
 
 /* =====================================================
    MODAL DE PRODUCTO
-   Los estilos base de modal están en components.css
+   Los estilos base están en components.css
    ===================================================== */
 
-/* Modal overlay (compatibilidad) */
-.modal-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(4px);
-}
-
-.modal-content {
-    position: relative;
-    background: white;
-    border-radius: 16px;
-    width: 100%;
-    max-width: 100%;
-    max-height: 90vh;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    animation: slideUp 0.3s ease;
-    z-index: 10000;
-}
-
-/* Animaciones */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-}
-
-@keyframes slideUp {
-    from {
-        transform: translateY(50px);
-        opacity: 0;
-    }
-    to {
-        transform: translateY(0);
-        opacity: 1;
-    }
-}
-
-/* Header del modal */
+/* Estilos específicos del modal de productos */
 .modal-header {
-    padding: 24px 30px;
-    border-bottom: 2px solid #e0e0e0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 16px 16px 0 0;
 }
 
 .modal-header h2 {
     color: white;
-    font-size: 22px;
-    margin: 0;
-    display: flex;
-    align-items: center;
-    gap: 12px;
 }
 
 .modal-close {
     background: rgba(255, 255, 255, 0.2);
-    border: none;
     color: white;
-    width: 36px;
-    height: 36px;
-    border-radius: 8px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-    font-size: 18px;
 }
 
 .modal-close:hover {
     background: rgba(255, 255, 255, 0.3);
-    transform: rotate(90deg);
-}
-
-/* Body del modal con scroll */
-.modal-body {
-    padding: 30px;
-    overflow-y: auto;
-    max-height: calc(90vh - 180px);
 }
 
 /* Secciones del formulario */
@@ -861,7 +744,7 @@
     color: var(--text-primary);
     margin-bottom: 20px;
     padding-bottom: 10px;
-    border-bottom: 2px solid #f0f0f0;
+    border-bottom: 2px solid var(--border-light);
     display: flex;
     align-items: center;
     gap: 10px;
@@ -912,7 +795,7 @@
 /* Controles del formulario */
 .form-control {
     padding: 12px 16px;
-    border: 2px solid #e0e0e0;
+    border: 2px solid var(--border-color);
     border-radius: 8px;
     font-size: 15px;
     font-family: 'Poppins', sans-serif;
@@ -961,7 +844,7 @@ textarea.form-control {
 /* Footer del modal */
 .modal-footer {
     padding: 20px 30px;
-    border-top: 2px solid #e0e0e0;
+    border-top: 2px solid var(--border-color);
     display: flex;
     justify-content: flex-end;
     gap: 15px;
@@ -984,7 +867,7 @@ textarea.form-control {
 }
 
 .btn-secondary {
-    background: #e0e0e0;
+    background: var(--border-color);
     color: var(--text-primary);
 }
 
@@ -1117,7 +1000,7 @@ textarea.form-control {
     align-items: center;
     justify-content: space-between;
     padding: 1.5rem;
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, #e9ecef 100%);
     border-bottom: 2px solid #dee2e6;
 }
 
@@ -1164,7 +1047,7 @@ textarea.form-control {
     display: flex;
     gap: 0.75rem;
     padding: 1rem 1.5rem;
-    background: #f8f9fa;
+    background: var(--bg-secondary);
     border-top: 1px solid #dee2e6;
     justify-content: flex-end;
 }

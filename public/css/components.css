@@ -442,6 +442,52 @@
     color: var(--info-dark);
 }
 
+/* ===== ESTADOS VACÍOS Y CARGA ===== */
+.empty-state {
+    text-align: center;
+    padding: 3rem 1.5rem;
+    color: var(--text-secondary);
+}
+
+.empty-state i {
+    font-size: 4rem;
+    color: var(--border-color);
+    margin-bottom: 1.5rem;
+    display: block;
+}
+
+.empty-state h3 {
+    font-size: var(--font-xl);
+    color: var(--text-primary);
+    margin: 0 0 0.5rem 0;
+    font-weight: var(--font-semibold);
+}
+
+.empty-state p {
+    font-size: var(--font-base);
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.loading-state {
+    text-align: center;
+    padding: 3rem 1.5rem;
+    color: var(--text-secondary);
+}
+
+.loading-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: var(--primary-color);
+    display: block;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
 /* ===== DROPDOWN ===== */
 .dropdown {
     position: relative;

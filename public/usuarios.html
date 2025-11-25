@@ -97,10 +97,17 @@
                     <h1><i class="fas fa-users"></i> Gestión de Usuarios</h1>
                     <p>Administra las cuentas de usuario del sistema</p>
                 </div>
-                <button class="btn-primary" id="btnNuevoUsuario">
-                    <i class="fas fa-plus"></i>
-                    Nuevo Usuario
-                </button>
+                <div class="page-actions">
+                    <!-- Botón oculto: Los usuarios se crean desde Firebase Console -->
+                    <button class="btn-primary" id="btnNuevoUsuario" style="display: none;">
+                        <i class="fas fa-plus"></i>
+                        Nuevo Usuario
+                    </button>
+                    <div class="info-message">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Los usuarios se crean desde Firebase Console. Aquí puedes editar roles y permisos.</span>
+                    </div>
+                </div>
             </div>
 
             <!-- Tarjetas Informativas -->
@@ -215,6 +222,18 @@
             </div>
 
             <form id="usuarioForm" class="modal-body">
+                <!-- Advertencia: Solo visible en modo "Nuevo Usuario" -->
+                <div class="alert alert-warning" id="alertCreacionUsuario" style="display: none;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div>
+                        <strong>⚠️ Creación de usuarios deshabilitada</strong>
+                        <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem;">
+                            Los nuevos usuarios deben crearse desde Firebase Console. 
+                            Puedes editar roles y permisos de usuarios existentes.
+                        </p>
+                    </div>
+                </div>
+
                 <!-- Información Personal -->
                 <div class="form-section">
                     <h3><i class="fas fa-user"></i> Información Personal</h3>

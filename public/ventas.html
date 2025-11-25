@@ -209,27 +209,25 @@
         </main>
     </div>
 
-    <!-- ==================== MODAL DE CONFIRMACIÓN DE VENTA ==================== -->
-        <!-- ==================== MODAL VENTA EXITOSA ==================== -->
-    <div id="saleSuccessModal" class="modal" style="display: none;">
-        <div class="modal-overlay"></div>
-        <div class="modal-content modal-sale">
+    <!-- ==================== MODAL DE VENTA EXITOSA ==================== -->
+    <div id="saleSuccessModal" class="modal-sale-overlay" style="display: none;">
+        <div class="modal-sale">
             <div class="modal-header success">
                 <div class="success-icon">
                     <i class="fas fa-check-circle"></i>
                 </div>
-                <h2>¡Venta Procesada!</h2>
+                <h2>¡Venta Procesada Exitosamente!</h2>
                 <button class="modal-close" id="closeModalBtn">&times;</button>
             </div>
             <div class="modal-body">
                 <div class="sale-info">
                     <div class="info-row">
-                        <span>Nº de Venta:</span>
-                        <strong id="modalSaleNumber">0001</strong>
+                        <span class="label">Nº de Venta:</span>
+                        <strong class="value" id="modalSaleNumber">0001</strong>
                     </div>
                     <div class="info-row total">
-                        <span>Total:</span>
-                        <strong id="modalTotal">Bs. 0.00</strong>
+                        <span class="label">Total:</span>
+                        <strong class="value" id="modalTotal">Bs. 0.00</strong>
                     </div>
                 </div>
 

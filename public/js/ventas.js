@@ -768,9 +768,11 @@ async function procesarVenta() {
       document.getElementById('saleNumber').textContent = 
         String(numeroVentaActual).padStart(4, '0');
       
-      // Restaurar botón
-      btnProcesar.disabled = false;
-      btnProcesar.innerHTML = textoOriginal;
+      // IMPORTANTE: Restaurar botón después de mostrar modal
+      setTimeout(() => {
+        btnProcesar.disabled = false;
+        btnProcesar.innerHTML = textoOriginal;
+      }, 100);
       
       return;
     }
@@ -829,6 +831,10 @@ async function procesarVenta() {
     // Recargar productos (para actualizar stock disponible)
     await cargarProductos();
     
+    // IMPORTANTE: Restaurar botón después de completar la venta
+    btnProcesar.disabled = false;
+    btnProcesar.innerHTML = textoOriginal;
+    
     console.log('✅ Venta procesada exitosamente');
     
   } catch (error) {
@@ -849,6 +855,12 @@ function mostrarModalExito(numeroVenta, total) {
   
   document.getElementById('modalTotal').textContent = 
     formatCurrency(total);
+  
+  // Limpiar carrito cuando se muestra el modal (si no se limpió antes)
+  if (carrito.length > 0) {
+    carrito = [];
+    actualizarCarrito();
+  }
   
   // Mostrar modal
   const modal = document.getElementById('saleSuccessModal');

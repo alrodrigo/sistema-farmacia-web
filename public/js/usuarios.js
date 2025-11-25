@@ -106,9 +106,12 @@ function actualizarMenuPorRol() {
 function configurarEventos() {
     console.log('🔘 Configurando eventos...');
     
-    // Botón nuevo usuario
+    // Botón nuevo usuario (DESHABILITADO)
+    // Los usuarios se deben crear desde Firebase Console (Authentication)
+    // porque requiere configuración de email/password en el backend
+    // Este botón está oculto en el HTML
     const btnNuevoUsuario = document.getElementById('btnNuevoUsuario');
-    if (btnNuevoUsuario) {
+    if (btnNuevoUsuario && btnNuevoUsuario.style.display !== 'none') {
         btnNuevoUsuario.addEventListener('click', abrirModalNuevo);
     }
     
@@ -397,6 +400,12 @@ function abrirModalNuevo() {
     document.getElementById('usuarioForm').reset();
     limpiarErrores();
     
+    // Mostrar advertencia de creación deshabilitada
+    const alertCreacion = document.getElementById('alertCreacionUsuario');
+    if (alertCreacion) {
+        alertCreacion.style.display = 'flex';
+    }
+    
     // Mostrar sección de password
     document.getElementById('seccionPassword').style.display = 'block';
     document.getElementById('inputPassword').required = true;
@@ -432,6 +441,12 @@ async function editarUsuario(id) {
     document.getElementById('modalTitleText').innerHTML = 
         '<i class="fas fa-user-edit"></i> Editar Usuario';
     document.getElementById('btnGuardarText').textContent = 'Actualizar Usuario';
+    
+    // Ocultar advertencia de creación (solo visible en modo nuevo)
+    const alertCreacion = document.getElementById('alertCreacionUsuario');
+    if (alertCreacion) {
+        alertCreacion.style.display = 'none';
+    }
     
     // Ocultar sección de password
     document.getElementById('seccionPassword').style.display = 'none';
