@@ -70,9 +70,17 @@ async function verificarAutenticacion() {
 
 function mostrarNombreUsuario() {
     const userName = document.getElementById('userName');
+    const userRoleElement = document.getElementById('userRole');
+    
     if (userName && currentUser) {
-        const displayName = currentUser.first_name || currentUser.email.split('@')[0];
+        const displayName = currentUser.name || currentUser.first_name || currentUser.email.split('@')[0];
         userName.textContent = displayName;
+    }
+    
+    if (userRoleElement && currentUser) {
+        const role = currentUser.role || 'empleado';
+        const roleText = role === 'admin' ? 'Administrador' : 'Empleado';
+        userRoleElement.textContent = roleText;
     }
 }
 

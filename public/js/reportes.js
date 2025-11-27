@@ -46,6 +46,14 @@ async function loadUserData(uid) {
             document.getElementById('userName').textContent = userName;
             console.log('👤 Usuario mostrado:', userName);
             
+            // Mostrar rol
+            const userRoleElement = document.getElementById('userRole');
+            if (userRoleElement) {
+                const role = userData.role || 'empleado';
+                const roleText = role === 'admin' ? 'Administrador' : 'Empleado';
+                userRoleElement.textContent = roleText;
+            }
+            
             // Actualizar menú según rol
             actualizarMenuPorRol(userData);
         } else {

@@ -76,9 +76,10 @@ async function verificarAutenticacion() {
     });
 }
 
-// ===== 5. MOSTRAR NOMBRE DEL USUARIO =====
+// ===== 5. MOSTRAR NOMBRE DEL USUARIO Y ROL =====
 function mostrarNombreUsuario() {
     const userNameElement = document.getElementById('userName');
+    const userRoleElement = document.getElementById('userRole');
     
     if (currentUser && userNameElement) {
         // Buscar nombre en diferentes campos posibles
@@ -91,6 +92,12 @@ function mostrarNombreUsuario() {
         
         userNameElement.textContent = displayName;
         console.log('👤 Usuario mostrado:', displayName);
+    }
+    
+    if (currentUser && userRoleElement) {
+        const role = currentUser.role || 'empleado';
+        const roleText = role === 'admin' ? 'Administrador' : 'Empleado';
+        userRoleElement.textContent = roleText;
     }
 }
 

@@ -45,9 +45,16 @@ async function verificarAutenticacion() {
                         ...userDoc.data()
                     };
                     
-                    // Mostrar nombre
+                    // Mostrar nombre y rol
                     const displayName = getUserDisplayName(currentUser);
                     document.getElementById('userName').textContent = displayName;
+                    
+                    const userRoleElement = document.getElementById('userRole');
+                    if (userRoleElement) {
+                        const role = currentUser.role || 'empleado';
+                        const roleText = role === 'admin' ? 'Administrador' : 'Empleado';
+                        userRoleElement.textContent = roleText;
+                    }
                     
                     // Verificar si es admin
                     const role = currentUser.role || 'empleado';
