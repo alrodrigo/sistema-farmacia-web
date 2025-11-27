@@ -18,14 +18,16 @@ const PERMISSIONS = {
         reportes: { view: true, export: true },
         usuarios: { view: true, create: true, edit: true, delete: true },
         categorias: { view: true, create: true, edit: true, delete: true },
+        proveedores: { view: true, create: true, edit: true, delete: true },
         configuracion: { view: true, edit: true }
     },
     empleado: {
-        productos: { view: false, create: false, edit: false, delete: false },
+        productos: { view: true, create: false, edit: false, delete: false },
         ventas: { view: true, create: true, edit: false, delete: false },
         reportes: { view: true, export: false },
         usuarios: { view: false, create: false, edit: false, delete: false },
         categorias: { view: false, create: false, edit: false, delete: false },
+        proveedores: { view: false, create: false, edit: false, delete: false },
         configuracion: { view: false, edit: false }
     }
 };
@@ -150,24 +152,36 @@ function updateSidebarByPermissions() {
     
     if (!role) return;
     
+    console.log('🔧 Actualizando menú para rol:', role);
+    
     // Ocultar opciones según rol
     if (role === ROLES.EMPLEADO) {
-        // Ocultar productos para empleados
-        const productosMenu = document.querySelector('a[href="productos.html"]');
-        if (productosMenu) {
-            productosMenu.parentElement.style.display = 'none';
-        }
-        
         // Ocultar usuarios para empleados
         const usuariosMenu = document.querySelector('a[href="usuarios.html"]');
         if (usuariosMenu) {
-            usuariosMenu.parentElement.style.display = 'none';
+            usuariosMenu.style.display = 'none';
+            console.log('✓ Ocultado: Usuarios');
         }
         
         // Ocultar categorías para empleados
         const categoriasMenu = document.querySelector('a[href="categorias.html"]');
         if (categoriasMenu) {
-            categoriasMenu.parentElement.style.display = 'none';
+            categoriasMenu.style.display = 'none';
+            console.log('✓ Ocultado: Categorías');
+        }
+        
+        // Ocultar proveedores para empleados
+        const proveedoresMenu = document.querySelector('a[href="proveedores.html"]');
+        if (proveedoresMenu) {
+            proveedoresMenu.style.display = 'none';
+            console.log('✓ Ocultado: Proveedores');
+        }
+        
+        // Productos: visible pero marcar como solo lectura
+        const productosMenu = document.querySelector('a[href="productos.html"]');
+        if (productosMenu) {
+            productosMenu.style.display = 'flex'; // Asegurar que esté visible
+            console.log('✓ Visible: Productos (solo lectura)');
         }
     }
     

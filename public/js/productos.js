@@ -62,10 +62,14 @@ async function verificarAutenticacion() {
                         resolve(true);
                     } else {
                         console.error('❌ Documento de usuario no encontrado');
+                        await firebaseAuth.signOut();
+                        alert('⚠️ Tu cuenta no está configurada correctamente.');
                         redirectTo('index.html');
                     }
                 } catch (error) {
                     console.error('❌ Error al obtener datos del usuario:', error);
+                    await firebaseAuth.signOut();
+                    alert('⚠️ Error al cargar tu perfil: ' + error.message);
                     redirectTo('index.html');
                 }
             } else {
@@ -410,6 +414,9 @@ function mostrarProductos() {
     actualizarPaginacion();
     
     console.log(`📋 Mostrando ${productosActuales.length} productos (página ${paginaActual})`);
+    
+    // Aplicar restricciones de rol después de renderizar
+    aplicarRestriccionesPorRol();
 }
 
 // ===== 11. OBTENER BADGE DE ESTADO DE STOCK =====
@@ -952,7 +959,26 @@ function mostrarError(mensaje) {
     }
 }
 
-// ===== ACTUALIZAR MENÚ POR ROL =====
+// ===== APLICAR RESTRICCIONES POR ROL EN LA TABLA =====
+function aplicarRestriccionesPorRol() {
+    if (!currentUser) return;
+    
+    const role = currentUser.role || 'empleado';
+    
+    if (role === 'empleado') {
+        // Ocultar botones de editar y eliminar
+        const botonesEditar = document.querySelectorAll('.btn-edit');
+        const botonesEliminar = document.querySelectorAll('.btn-delete');
+        
+        botonesEditar.forEach(btn => btn.style.display = 'none');
+        botonesEliminar.forEach(btn => btn.style.display = 'none');
+        
+        // Dejar solo el botón de "Ver"
+        console.log('🔒 Restricciones aplicadas: solo lectura para empleado');
+    }
+}
+
+// ===== ACTUALIZAR MENÚ Y PERMISOS POR ROL =====
 function actualizarMenuPorRol() {
     if (!currentUser) return;
     
@@ -969,11 +995,49 @@ function actualizarMenuPorRol() {
         const usuariosMenu = document.querySelector('#menuUsuarios');
         if (usuariosMenu) usuariosMenu.style.display = 'none';
         
+        // Ocultar proveedores
+        const proveedoresMenu = document.querySelector('a[href="proveedores.html"]');
+        if (proveedoresMenu) proveedoresMenu.style.display = 'none';
+        
         // Ocultar utilidades
         const utilidadesMenu = document.querySelector('#menuUtilidades');
         if (utilidadesMenu) utilidadesMenu.style.display = 'none';
         
-        console.log('👤 Menú de empleado aplicado');
+        // MODO SOLO LECTURA EN PRODUCTOS
+        // Ocultar botón "Nuevo Producto"
+        const btnNuevo = document.querySelector('.btn-primary');
+        if (btnNuevo && btnNuevo.textContent.includes('Nuevo Producto')) {
+            btnNuevo.style.display = 'none';
+        }
+        
+        // Deshabilitar botones de acción en la tabla (editar/eliminar)
+        const deshabilitarBotonesAccion = () => {
+            const botonesEditar = document.querySelectorAll('.btn-edit');
+            const botonesEliminar = document.querySelectorAll('.btn-delete');
+            
+            botonesEditar.forEach(btn => {
+                btn.style.display = 'none';
+            });
+            
+            botonesEliminar.forEach(btn => {
+                btn.style.display = 'none';
+            });
+            
+            console.log('🔒 Botones de edición/eliminación ocultados para empleado');
+        };
+        
+        // Aplicar después de cargar productos
+        setTimeout(deshabilitarBotonesAccion, 500);
+        
+        // Aplicar después de búsquedas/filtros
+        const searchInput = document.getElementById('searchProducto');
+        if (searchInput) {
+            searchInput.addEventListener('input', () => {
+                setTimeout(deshabilitarBotonesAccion, 100);
+            });
+        }
+        
+        console.log('👤 Menú de empleado aplicado - MODO SOLO LECTURA');
     } else {
         console.log('👑 Menú de admin aplicado (completo)');
     }

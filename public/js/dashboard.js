@@ -61,11 +61,15 @@ async function verificarAutenticacion() {
                         
                         resolve(true);
                     } else {
-                        console.error('❌ Documento de usuario no encontrado');
+                        console.error('❌ Documento de usuario no encontrado en Firestore');
+                        alert('⚠️ Tu cuenta no está configurada correctamente. Cerrando sesión...');
+                        await firebaseAuth.signOut();
                         redirectTo('index.html');
                     }
                 } catch (error) {
                     console.error('❌ Error al obtener datos del usuario:', error);
+                    alert('⚠️ Error al cargar tu perfil: ' + error.message);
+                    await firebaseAuth.signOut();
                     redirectTo('index.html');
                 }
                 

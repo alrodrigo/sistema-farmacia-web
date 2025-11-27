@@ -87,10 +87,25 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Verificar si ya está logueado
-    checkAuth().then(user => {
+    // Verificar si ya está logueado (solo si estamos en la página de login)
+    checkAuth().then(async user => {
         if (user) {
-            redirectTo('dashboard.html');
+            // Verificar que el usuario tenga documento en Firestore antes de redirigir
+            try {
+                const userDoc = await firebaseDB.collection('users').doc(user.uid).get();
+                if (userDoc.exists) {
+                    console.log('✅ Usuario ya logueado, redirigiendo a dashboard');
+                    redirectTo('dashboard.html');
+                } else {
+                    console.error('❌ Usuario sin documento en Firestore, cerrando sesión');
+                    await firebaseAuth.signOut();
+                    showAlert('Error: Tu cuenta no está configurada correctamente. Por favor contacta al administrador.', 'error');
+                }
+            } catch (error) {
+                console.error('❌ Error verificando usuario:', error);
+                await firebaseAuth.signOut();
+                showAlert('Error al verificar tu cuenta. Intenta iniciar sesión nuevamente.', 'error');
+            }
         }
     });
 
