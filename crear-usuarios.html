@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Usuarios - Sistema Farmacia</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .quick-users {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #e0e0e0;
+        }
+
+        .quick-users h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .quick-btn {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 10px;
+            background: white;
+            border: 2px solid #667eea;
+            color: #667eea;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .quick-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .link-login {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .link-login:hover {
+            text-decoration: underline;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #666;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Crear Usuarios</h1>
+        <p class="subtitle">Herramienta administrativa para crear cuentas nuevas</p>
+
+        <div id="alertSuccess" class="alert alert-success"></div>
+        <div id="alertError" class="alert alert-error"></div>
+        <div id="alertInfo" class="alert alert-info"></div>
+
+        <form id="createUserForm">
+            <div class="form-group">
+                <label>Nombre Completo</label>
+                <input type="text" id="name" placeholder="Ej: Juan Pérez" required>
+            </div>
+
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="email" placeholder="usuario@servisalud.com" required>
+            </div>
+
+            <div class="form-group">
+                <label>Contraseña</label>
+                <input type="password" id="password" placeholder="Mínimo 6 caracteres" required minlength="6">
+            </div>
+
+            <div class="form-group">
+                <label>Rol</label>
+                <select id="role" required>
+                    <option value="">Seleccionar rol...</option>
+                    <option value="admin">Administrador</option>
+                    <option value="empleado">Empleado</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn">Crear Usuario</button>
+        </form>
+
+        <div class="quick-users">
+            <h3>⚡ Crear Usuarios Rápidos</h3>
+            <button class="quick-btn" onclick="createQuickUser('admin')">
+                👨‍💼 Crear Admin (admin@servisalud.com / admin123)
+            </button>
+            <button class="quick-btn" onclick="createQuickUser('empleado')">
+                👤 Crear Empleado (empleado@servisalud.com / empleado123)
+            </button>
+        </div>
+
+        <div class="loading" id="loading">⏳ Creando usuario...</div>
+
+        <a href="index.html" class="link-login">← Ir al Login</a>
+    </div>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="public/js/config/firebase.js"></script>
+
+    <script>
+        const form = document.getElementById('createUserForm');
+        const loading = document.getElementById('loading');
+
+        // Función para mostrar alertas
+        function showAlert(type, message) {
+            const alertId = type === 'success' ? 'alertSuccess' : 
+                           type === 'error' ? 'alertError' : 'alertInfo';
+            
+            const alertEl = document.getElementById(alertId);
+            alertEl.textContent = message;
+            alertEl.style.display = 'block';
+
+            // Ocultar otras alertas
+            ['alertSuccess', 'alertError', 'alertInfo'].forEach(id => {
+                if (id !== alertId) {
+                    document.getElementById(id).style.display = 'none';
+                }
+            });
+
+            // Auto ocultar después de 5 segundos si es success
+            if (type === 'success') {
+                setTimeout(() => {
+                    alertEl.style.display = 'none';
+                }, 5000);
+            }
+        }
+
+        // Crear usuario
+        async function createUser(name, email, password, role) {
+            try {
+                loading.style.display = 'block';
+                
+                // 1. Crear usuario en Firebase Auth
+                const userCredential = await firebaseAuth.createUserWithEmailAndPassword(email, password);
+                const user = userCredential.user;
+
+                console.log('✅ Usuario creado en Auth:', user.uid);
+
+                // 2. Guardar datos adicionales en Firestore
+                await firebaseDB.collection('users').doc(user.uid).set({
+                    name: name,
+                    email: email,
+                    role: role,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    active: true
+                });
+
+                console.log('✅ Datos guardados en Firestore');
+
+                // 3. Cerrar sesión automáticamente (para que no quede logueado)
+                await firebaseAuth.signOut();
+
+                loading.style.display = 'none';
+                
+                showAlert('success', `✅ Usuario creado exitosamente!\n📧 Email: ${email}\n🔑 Contraseña: ${password}\n👔 Rol: ${role === 'admin' ? 'Administrador' : 'Empleado'}`);
+                
+                // Limpiar formulario
+                form.reset();
+
+                return true;
+
+            } catch (error) {
+                loading.style.display = 'none';
+                console.error('❌ Error:', error);
+
+                let errorMessage = 'Error al crear usuario: ';
+                
+                switch(error.code) {
+                    case 'auth/email-already-in-use':
+                        errorMessage += 'Este email ya está registrado';
+                        break;
+                    case 'auth/invalid-email':
+                        errorMessage += 'Email inválido';
+                        break;
+                    case 'auth/weak-password':
+                        errorMessage += 'Contraseña muy débil (mínimo 6 caracteres)';
+                        break;
+                    default:
+                        errorMessage += error.message;
+                }
+
+                showAlert('error', errorMessage);
+                return false;
+            }
+        }
+
+        // Manejar envío del formulario
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const role = document.getElementById('role').value;
+
+            if (!name || !email || !password || !role) {
+                showAlert('error', 'Por favor completa todos los campos');
+                return;
+            }
+
+            await createUser(name, email, password, role);
+        });
+
+        // Crear usuarios rápidos
+        async function createQuickUser(type) {
+            if (type === 'admin') {
+                await createUser('Administrador', 'admin@servisalud.com', 'admin123', 'admin');
+            } else if (type === 'empleado') {
+                await createUser('Empleado Test', 'empleado@servisalud.com', 'empleado123', 'empleado');
+            }
+        }
+
+        // Hacer función global
+        window.createQuickUser = createQuickUser;
+
+        // Mensaje inicial
+        showAlert('info', '💡 Usa esta herramienta para crear usuarios nuevos. Los usuarios creados aquí podrán iniciar sesión en el sistema.');
+    </script>
+</body>
+</html>
