@@ -1044,34 +1044,10 @@ function actualizarMenuPorRol(userData) {
     if (!userData) return;
     
     const role = userData.role || 'empleado';
-    console.log('🔐 Actualizando menú para rol:', role);
+    console.log('🔐 Menú actualizado para rol:', role);
     
-    // Si es empleado, ocultar opciones de admin
-    if (role === 'empleado') {
-        // Ocultar productos
-        const productosMenu = document.querySelector('a[href="productos.html"]');
-        if (productosMenu) productosMenu.style.display = 'none';
-        
-        // Ocultar categorías
-        const categoriasMenu = document.querySelector('#menuCategorias');
-        if (categoriasMenu) categoriasMenu.style.display = 'none';
-        
-        // Ocultar usuarios
-        const usuariosMenu = document.querySelector('#menuUsuarios');
-        if (usuariosMenu) usuariosMenu.style.display = 'none';
-        
-        // Ocultar utilidades
-        const utilidadesMenu = document.querySelector('#menuUtilidades');
-        if (utilidadesMenu) utilidadesMenu.style.display = 'none';
-        
-        // Ocultar configuración
-        const configMenu = document.querySelector('a[href="configuracion.html"]');
-        if (configMenu) configMenu.style.display = 'none';
-        
-        console.log('👤 Menú de empleado aplicado');
-    } else {
-        console.log('👑 Menú de admin aplicado (completo)');
-    }
+    // El menú se maneja completamente desde helpers.js con aplicarRestriccionesMenu()
+    // y CSS con la clase 'admin-only'. No se necesita lógica adicional aquí.
 }
 
 // ==================== GRÁFICOS CON CHART.JS ====================

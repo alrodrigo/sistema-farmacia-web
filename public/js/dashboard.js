@@ -432,40 +432,9 @@ function actualizarMenuPorRol() {
     const role = currentUser.role || 'empleado';
     console.log('🔐 Actualizando menú para rol:', role);
     
-    // Si es empleado, ocultar opciones de admin
-    if (role === 'empleado') {
-        // Productos: VISIBLE (solo lectura)
-        const productosMenu = document.querySelector('a[href="productos.html"]');
-        if (productosMenu) {
-            productosMenu.style.display = 'flex';
-            console.log('✓ Productos: visible (solo lectura)');
-        }
-        
-        // Ocultar categorías
-        const categoriasMenu = document.querySelector('a[href="categorias.html"]');
-        if (categoriasMenu) {
-            categoriasMenu.style.display = 'none';
-            console.log('✓ Categorías: oculto');
-        }
-        
-        // Ocultar proveedores
-        const proveedoresMenu = document.querySelector('a[href="proveedores.html"]');
-        if (proveedoresMenu) {
-            proveedoresMenu.style.display = 'none';
-            console.log('✓ Proveedores: oculto');
-        }
-        
-        // Ocultar usuarios
-        const usuariosMenu = document.querySelector('a[href="usuarios.html"]');
-        if (usuariosMenu) {
-            usuariosMenu.style.display = 'none';
-            console.log('✓ Usuarios: oculto');
-        }
-        
-        console.log('👤 Menú de empleado aplicado');
-    } else {
-        console.log('👑 Menú de admin aplicado (completo)');
-    }
+    // El menú se maneja completamente desde helpers.js con aplicarRestriccionesMenu()
+    // y CSS con la clase 'admin-only'. No se necesita lógica adicional aquí.
+    console.log('✓ Restricciones de menú manejadas por helpers.js');
 }
 
 // ===== 12. LOG FINAL =====

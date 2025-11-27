@@ -102,17 +102,7 @@ function actualizarMenuPorRol() {
     const role = currentUser?.role;
     console.log('🔐 Actualizando menú para rol:', role);
     
-    // Ocultar opciones para empleados
-    if (role === 'empleado') {
-        const categoriasMenu = document.querySelector('a[href="categorias.html"]');
-        if (categoriasMenu) categoriasMenu.style.display = 'none';
-        
-        const proveedoresMenu = document.querySelector('a[href="proveedores.html"]');
-        if (proveedoresMenu) proveedoresMenu.style.display = 'none';
-        
-        const usuariosMenu = document.querySelector('a[href="usuarios.html"]');
-        if (usuariosMenu) usuariosMenu.style.display = 'none';
-    }
+    // El menú se maneja desde helpers.js y CSS (clase admin-only)
     
     // Actualizar mensaje informativo según el rol
     const infoMessage = document.querySelector('.info-message span');

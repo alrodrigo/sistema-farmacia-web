@@ -987,21 +987,7 @@ function actualizarMenuPorRol() {
     
     // Si es empleado, ocultar opciones de admin
     if (role === 'empleado') {
-        // Ocultar categorías
-        const categoriasMenu = document.querySelector('#menuCategorias');
-        if (categoriasMenu) categoriasMenu.style.display = 'none';
-        
-        // Ocultar usuarios
-        const usuariosMenu = document.querySelector('#menuUsuarios');
-        if (usuariosMenu) usuariosMenu.style.display = 'none';
-        
-        // Ocultar proveedores
-        const proveedoresMenu = document.querySelector('a[href="proveedores.html"]');
-        if (proveedoresMenu) proveedoresMenu.style.display = 'none';
-        
-        // Ocultar utilidades
-        const utilidadesMenu = document.querySelector('#menuUtilidades');
-        if (utilidadesMenu) utilidadesMenu.style.display = 'none';
+        // El menú se maneja desde helpers.js y CSS (clase admin-only)
         
         // MODO SOLO LECTURA EN PRODUCTOS
         // Ocultar botón "Nuevo Producto"
