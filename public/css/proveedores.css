@@ -2,13 +2,6 @@
 /* Estilos específicos del módulo de Proveedores */
 /* Los estilos comunes (stats, filters, search-box) están en components.css */
 
-/* ===== AJUSTE ESPECÍFICO PARA CONTENT-HEADER CON BOTÓN ===== */
-.content-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
 /* ===== LAYOUT ESPECÍFICO PARA FILTROS DE PROVEEDORES ===== */
 .filters-section {
     display: flex;
