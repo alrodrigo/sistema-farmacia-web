@@ -100,6 +100,13 @@ function initializeEventListeners() {
 
     // Modal detalle
     document.getElementById('closeDetailModal').addEventListener('click', closeDetailModal);
+    
+    // Cerrar modal al hacer clic en el overlay
+    document.getElementById('saleDetailModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeDetailModal();
+        }
+    });
 }
 
 // ==================== FECHAS POR DEFECTO ====================
