@@ -175,8 +175,8 @@
                     <!-- Resumen de la venta -->
                     <div class="summary-section">
                         <h3><i class="fas fa-calculator"></i> Resumen de Venta</h3>
-                        
-                        <div class="summary-details">
+                        <!-- Resumen del carrito -->
+                        <div class="cart-summary">
                             <div class="summary-row">
                                 <span>Productos:</span>
                                 <strong id="totalItems">0</strong>
@@ -185,9 +185,55 @@
                                 <span>Subtotal:</span>
                                 <strong id="subtotal">Bs. 0.00</strong>
                             </div>
+                            
+                            <!-- Descuento -->
+                            <div class="discount-section">
+                                <label>
+                                    <i class="fas fa-percent"></i> Descuento:
+                                </label>
+                                <div class="discount-inputs">
+                                    <input type="number" id="discountValue" placeholder="0" min="0" step="0.01">
+                                    <select id="discountType">
+                                        <option value="percent">%</option>
+                                        <option value="fixed">Bs.</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="summary-row" id="discountRow" style="display: none;">
+                                <span>Descuento:</span>
+                                <strong id="discountAmount" class="text-success">- Bs. 0.00</strong>
+                            </div>
+                            
                             <div class="summary-row total-row">
                                 <span>TOTAL A PAGAR:</span>
                                 <strong id="total">Bs. 0.00</strong>
+                            </div>
+                            
+                            <!-- Método de pago -->
+                            <div class="payment-section">
+                                <label for="paymentMethod">
+                                    <i class="fas fa-credit-card"></i> Método de pago:
+                                </label>
+                                <select id="paymentMethod" class="payment-select">
+                                    <option value="cash">Efectivo</option>
+                                    <option value="card">Tarjeta</option>
+                                    <option value="transfer">Transferencia</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Monto recibido (solo para efectivo) -->
+                            <div class="amount-section" id="amountSection">
+                                <label for="amountReceived">
+                                    <i class="fas fa-money-bill-wave"></i> Monto recibido:
+                                </label>
+                                <input type="number" id="amountReceived" placeholder="0.00" min="0" step="0.01">
+                            </div>
+                            
+                            <!-- Cambio -->
+                            <div class="summary-row change-row" id="changeRow" style="display: none;">
+                                <span>Cambio:</span>
+                                <strong id="changeAmount" class="text-primary">Bs. 0.00</strong>
                             </div>
                         </div>
 
@@ -225,9 +271,29 @@
                         <span class="label">Nº de Venta:</span>
                         <strong class="value" id="modalSaleNumber">0001</strong>
                     </div>
+                    <div class="info-row">
+                        <span class="label">Productos:</span>
+                        <strong class="value" id="modalItems">0</strong>
+                    </div>
+                    <div class="info-row" id="modalDiscountRow" style="display: none;">
+                        <span class="label">Descuento:</span>
+                        <strong class="value text-success" id="modalDiscount">Bs. 0.00</strong>
+                    </div>
                     <div class="info-row total">
                         <span class="label">Total:</span>
                         <strong class="value" id="modalTotal">Bs. 0.00</strong>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Método de Pago:</span>
+                        <strong class="value" id="modalPaymentMethod">Efectivo</strong>
+                    </div>
+                    <div class="info-row" id="modalAmountRow" style="display: none;">
+                        <span class="label">Monto Recibido:</span>
+                        <strong class="value" id="modalAmountReceived">Bs. 0.00</strong>
+                    </div>
+                    <div class="info-row" id="modalChangeRow" style="display: none;">
+                        <span class="label">Cambio:</span>
+                        <strong class="value text-primary" id="modalChange">Bs. 0.00</strong>
                     </div>
                 </div>
 

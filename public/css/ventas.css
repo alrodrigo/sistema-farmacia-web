@@ -68,13 +68,19 @@
   color: var(--primary-color, #667eea);
 }
 
-.search-box {
+/* Sobrescribir estilos de components.css para search-box */
+.search-section .search-box {
+  position: static;
   display: flex;
+  align-items: center;
   gap: 10px;
+  min-width: auto;
+  flex: none;
 }
 
-.search-box input {
+.search-section .search-box input {
   flex: 1;
+  width: auto;
   padding: 14px 18px;
   border: 2px solid var(--border-color);
   border-radius: 10px;
@@ -98,6 +104,7 @@
   font-size: 16px;
   cursor: pointer;
   transition: all 0.3s ease;
+  flex-shrink: 0;
 }
 
 .btn-search:hover {
@@ -510,6 +517,157 @@
 .summary-row.total-row strong {
   color: var(--primary-color, #667eea);
   font-size: 24px;
+}
+
+.summary-row.change-row {
+  border-top: 1px solid var(--border-light);
+  margin-top: 10px;
+  padding-top: 10px;
+  border-bottom: none;
+}
+
+/* Sección de descuento */
+.discount-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 15px 0;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.discount-section label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.discount-section label i {
+  color: var(--success-color, #10b981);
+}
+
+.discount-inputs {
+  display: flex;
+  gap: 10px;
+}
+
+.discount-inputs input {
+  flex: 1;
+  padding: 10px 12px;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: var(--font-family);
+}
+
+.discount-inputs input:focus {
+  outline: none;
+  border-color: var(--success-color, #10b981);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.discount-inputs select {
+  width: 80px;
+  padding: 10px;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: var(--font-family);
+  cursor: pointer;
+}
+
+.discount-inputs select:focus {
+  outline: none;
+  border-color: var(--success-color, #10b981);
+}
+
+/* Sección de método de pago */
+.payment-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 15px 0;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.payment-section label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.payment-section label i {
+  color: var(--primary-color, #667eea);
+}
+
+.payment-select {
+  padding: 10px 12px;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: var(--font-family);
+  cursor: pointer;
+  background: white;
+}
+
+.payment-select:focus {
+  outline: none;
+  border-color: var(--primary-color, #667eea);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* Sección de monto recibido */
+.amount-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 15px 0;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.amount-section label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.amount-section label i {
+  color: var(--success-color, #10b981);
+}
+
+.amount-section input {
+  padding: 10px 12px;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: var(--font-family);
+}
+
+.amount-section input:focus {
+  outline: none;
+  border-color: var(--success-color, #10b981);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+/* Clases de utilidad para texto */
+.text-success {
+  color: var(--success-color, #10b981) !important;
+}
+
+.text-primary {
+  color: var(--primary-color, #667eea) !important;
+}
+
+.text-error {
+  color: var(--error-color, #ef4444) !important;
 }
 
 /* Botones de acción */

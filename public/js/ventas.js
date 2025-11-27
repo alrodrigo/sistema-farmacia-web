@@ -233,6 +233,32 @@ function configurarEventos() {
       // Aquí implementaremos la impresión después
     });
   }
+  
+  // ===== NUEVOS EVENTOS PARA PAGO Y DESCUENTOS =====
+  
+  // Método de pago
+  const paymentMethod = document.getElementById('paymentMethod');
+  if (paymentMethod) {
+    paymentMethod.addEventListener('change', cambiarMetodoPago);
+  }
+  
+  // Descuento
+  const discountValue = document.getElementById('discountValue');
+  const discountType = document.getElementById('discountType');
+  
+  if (discountValue) {
+    discountValue.addEventListener('input', aplicarDescuento);
+  }
+  
+  if (discountType) {
+    discountType.addEventListener('change', aplicarDescuento);
+  }
+  
+  // Monto recibido
+  const amountReceived = document.getElementById('amountReceived');
+  if (amountReceived) {
+    amountReceived.addEventListener('input', calcularCambio);
+  }
 }
 
 // ===== 7. CERRAR SESIÓN =====
@@ -694,14 +720,118 @@ function actualizarTotales() {
     return sum + (item.price * item.cantidad);
   }, 0);
   
-  // Por ahora, el total es igual al subtotal
-  // Aquí podrías agregar descuentos, IVA, etc.
-  const total = subtotal;
+  // Calcular descuento
+  const discountValue = parseFloat(document.getElementById('discountValue').value) || 0;
+  const discountType = document.getElementById('discountType').value;
+  
+  let discountAmount = 0;
+  
+  if (discountValue > 0) {
+    if (discountType === 'percent') {
+      // Descuento porcentual
+      discountAmount = subtotal * (discountValue / 100);
+    } else {
+      // Descuento fijo
+      discountAmount = discountValue;
+    }
+    
+    // Validar que el descuento no sea mayor al subtotal
+    if (discountAmount > subtotal) {
+      discountAmount = subtotal;
+    }
+  }
+  
+  // Calcular total con descuento
+  const total = subtotal - discountAmount;
   
   // Actualizar en el HTML
   document.getElementById('totalItems').textContent = totalItems;
   document.getElementById('subtotal').textContent = formatCurrency(subtotal);
   document.getElementById('total').textContent = formatCurrency(total);
+  
+  // Mostrar/ocultar fila de descuento
+  const discountRow = document.getElementById('discountRow');
+  if (discountAmount > 0) {
+    discountRow.style.display = 'flex';
+    document.getElementById('discountAmount').textContent = '- ' + formatCurrency(discountAmount);
+  } else {
+    discountRow.style.display = 'none';
+  }
+  
+  // Recalcular cambio si corresponde
+  calcularCambio();
+}
+
+// ===== NUEVAS FUNCIONES PARA PAGO =====
+
+// Aplicar descuento
+function aplicarDescuento() {
+  actualizarTotales();
+}
+
+// Cambiar método de pago
+function cambiarMetodoPago() {
+  const paymentMethod = document.getElementById('paymentMethod').value;
+  const amountSection = document.getElementById('amountSection');
+  const amountReceived = document.getElementById('amountReceived');
+  const changeRow = document.getElementById('changeRow');
+  
+  if (paymentMethod === 'cash') {
+    // Mostrar campos de monto recibido y cambio
+    amountSection.style.display = 'block';
+    calcularCambio();
+  } else {
+    // Ocultar campos para tarjeta/transferencia
+    amountSection.style.display = 'none';
+    changeRow.style.display = 'none';
+    amountReceived.value = '';
+  }
+}
+
+// Calcular cambio
+function calcularCambio() {
+  const paymentMethod = document.getElementById('paymentMethod').value;
+  
+  // Solo calcular cambio si es efectivo
+  if (paymentMethod !== 'cash') {
+    return;
+  }
+  
+  const totalElement = document.getElementById('total');
+  const amountReceivedInput = document.getElementById('amountReceived');
+  const changeRow = document.getElementById('changeRow');
+  const changeAmount = document.getElementById('changeAmount');
+  
+  if (!totalElement || !amountReceivedInput || !changeRow || !changeAmount) {
+    return;
+  }
+  
+  const totalText = totalElement.textContent;
+  
+  // Limpiar el texto del total para extraer solo el número
+  let totalClean = totalText.replace('Bs', '').replace('Bs.', '').replace(/\s/g, '').replace(',', '.');
+  
+  const total = parseFloat(totalClean) || 0;
+  const amountReceived = parseFloat(amountReceivedInput.value) || 0;
+  
+  if (amountReceived > 0) {
+    const change = amountReceived - total;
+    
+    if (change >= 0) {
+      changeRow.style.display = 'flex';
+      changeAmount.textContent = formatCurrency(change);
+      changeAmount.classList.remove('text-error');
+      changeAmount.classList.add('text-primary');
+    } else {
+      // Monto insuficiente
+      changeRow.style.display = 'flex';
+      changeAmount.textContent = formatCurrency(Math.abs(change)) + ' faltante';
+      changeAmount.classList.remove('text-primary');
+      changeAmount.classList.add('text-error');
+    }
+  } else {
+    changeRow.style.display = 'none';
+  }
 }
 
 // ===== 21. CANCELAR VENTA =====
@@ -740,9 +870,41 @@ async function procesarVenta() {
   btnProcesar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
   
   try {
+    // Obtener información de pago
+    const paymentMethod = document.getElementById('paymentMethod').value;
+    const discountValue = parseFloat(document.getElementById('discountValue').value) || 0;
+    const discountType = document.getElementById('discountType').value;
+    
     // Calcular totales
     const totalItems = carrito.reduce((sum, item) => sum + item.cantidad, 0);
-    const total = carrito.reduce((sum, item) => sum + (item.price * item.cantidad), 0);
+    const subtotal = carrito.reduce((sum, item) => sum + (item.price * item.cantidad), 0);
+    
+    // Calcular descuento
+    let discountAmount = 0;
+    if (discountValue > 0) {
+      if (discountType === 'percent') {
+        discountAmount = subtotal * (discountValue / 100);
+      } else {
+        discountAmount = discountValue;
+      }
+      if (discountAmount > subtotal) {
+        discountAmount = subtotal;
+      }
+    }
+    
+    const total = subtotal - discountAmount;
+    
+    // Validar pago en efectivo
+    if (paymentMethod === 'cash') {
+      const amountReceived = parseFloat(document.getElementById('amountReceived').value) || 0;
+      
+      if (amountReceived < total) {
+        alert('⚠️ El monto recibido es insuficiente');
+        btnProcesar.disabled = false;
+        btnProcesar.innerHTML = textoOriginal;
+        return;
+      }
+    }
     
     // MODO DE DESARROLLO: simular venta exitosa
     if (MODO_DESARROLLO) {
@@ -778,6 +940,27 @@ async function procesarVenta() {
     }
     
     // MODO PRODUCCIÓN: guardar en Firebase
+    // Preparar datos de pago
+    const paymentData = {
+      payment_method: paymentMethod,
+      payment_method_label: paymentMethod === 'cash' ? 'Efectivo' : 
+                           paymentMethod === 'card' ? 'Tarjeta' : 'Transferencia'
+    };
+    
+    // Agregar campos específicos de efectivo
+    if (paymentMethod === 'cash') {
+      const amountReceived = parseFloat(document.getElementById('amountReceived').value) || 0;
+      paymentData.amount_received = amountReceived;
+      paymentData.change = amountReceived - total;
+    }
+    
+    // Agregar información de descuento
+    if (discountAmount > 0) {
+      paymentData.discount_value = discountValue;
+      paymentData.discount_type = discountType;
+      paymentData.discount_amount = discountAmount;
+    }
+    
     // Preparar datos de la venta
     const ventaData = {
       sale_number: numeroVentaActual,
@@ -789,8 +972,10 @@ async function procesarVenta() {
         subtotal: item.price * item.cantidad
       })),
       total_items: totalItems,
-      subtotal: total,
+      subtotal: subtotal,
+      discount_amount: discountAmount,
       total: total,
+      ...paymentData,
       seller_id: currentUser.uid,
       seller_name: currentUser.first_name || currentUser.email,
       fecha: firebase.firestore.FieldValue.serverTimestamp(), // Nombre en español
@@ -856,11 +1041,52 @@ function mostrarModalExito(numeroVenta, total) {
   document.getElementById('modalTotal').textContent = 
     formatCurrency(total);
   
-  // Limpiar carrito cuando se muestra el modal (si no se limpió antes)
-  if (carrito.length > 0) {
-    carrito = [];
-    actualizarCarrito();
+  // Mostrar número de productos
+  const totalItems = carrito.reduce((sum, item) => sum + item.cantidad, 0);
+  document.getElementById('modalItems').textContent = totalItems;
+  
+  // Mostrar descuento si existe
+  const discountValue = parseFloat(document.getElementById('discountValue').value) || 0;
+  if (discountValue > 0) {
+    const discountRow = document.getElementById('modalDiscountRow');
+    const discountAmount = parseFloat(document.getElementById('discountAmount').textContent.replace('- Bs. ', '').replace(',', ''));
+    discountRow.style.display = 'flex';
+    document.getElementById('modalDiscount').textContent = '- ' + formatCurrency(discountAmount);
+  } else {
+    document.getElementById('modalDiscountRow').style.display = 'none';
   }
+  
+  // Mostrar método de pago
+  const paymentMethod = document.getElementById('paymentMethod').value;
+  const paymentMethodText = paymentMethod === 'cash' ? 'Efectivo' : 
+                           paymentMethod === 'card' ? 'Tarjeta' : 'Transferencia';
+  document.getElementById('modalPaymentMethod').textContent = paymentMethodText;
+  
+  // Mostrar monto recibido y cambio (solo para efectivo)
+  if (paymentMethod === 'cash') {
+    const amountReceived = parseFloat(document.getElementById('amountReceived').value) || 0;
+    const change = amountReceived - total;
+    
+    document.getElementById('modalAmountRow').style.display = 'flex';
+    document.getElementById('modalAmountReceived').textContent = formatCurrency(amountReceived);
+    
+    document.getElementById('modalChangeRow').style.display = 'flex';
+    document.getElementById('modalChange').textContent = formatCurrency(change);
+  } else {
+    document.getElementById('modalAmountRow').style.display = 'none';
+    document.getElementById('modalChangeRow').style.display = 'none';
+  }
+  
+  // Limpiar carrito y resetear campos de pago
+  carrito = [];
+  actualizarCarrito();
+  
+  // Resetear campos de pago
+  document.getElementById('discountValue').value = '';
+  document.getElementById('amountReceived').value = '';
+  document.getElementById('paymentMethod').value = 'cash';
+  document.getElementById('changeRow').style.display = 'none';
+  document.getElementById('discountRow').style.display = 'none';
   
   // Mostrar modal
   const modal = document.getElementById('saleSuccessModal');
