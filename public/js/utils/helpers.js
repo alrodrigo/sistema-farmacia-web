@@ -189,4 +189,44 @@ function getFirebaseErrorMessage(error) {
     return errorMessages[error.code] || 'Error desconocido. Intenta nuevamente';
 }
 
+/**
+ * Aplica restricciones de menú según el rol del usuario
+ * Esta función se debe llamar después de verificar autenticación
+ */
+function aplicarRestriccionesMenu() {
+    const currentUser = getCurrentUser();
+    if (!currentUser) return;
+    
+    const role = currentUser.role || 'empleado';
+    console.log('🔒 Aplicando restricciones de menú para rol:', role);
+    
+    if (role === 'empleado') {
+        // Productos: VISIBLE (solo lectura)
+        const productosMenu = document.querySelector('a[href="productos.html"]');
+        if (productosMenu) {
+            productosMenu.style.display = 'flex';
+        }
+        
+        // Ocultar categorías
+        const categoriasMenu = document.querySelector('a[href="categorias.html"]');
+        if (categoriasMenu) {
+            categoriasMenu.style.display = 'none';
+        }
+        
+        // Ocultar proveedores
+        const proveedoresMenu = document.querySelector('a[href="proveedores.html"]');
+        if (proveedoresMenu) {
+            proveedoresMenu.style.display = 'none';
+        }
+        
+        // Ocultar usuarios
+        const usuariosMenu = document.querySelector('a[href="usuarios.html"]');
+        if (usuariosMenu) {
+            usuariosMenu.style.display = 'none';
+        }
+        
+        console.log('✓ Restricciones de empleado aplicadas');
+    }
+}
+
 console.log('✅ Utilidades cargadas correctamente');

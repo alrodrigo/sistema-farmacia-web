@@ -59,6 +59,9 @@ async function verificarAutenticacion() {
                         // Actualizar menú según rol
                         actualizarMenuPorRol();
                         
+                        // Aplicar restricciones de menú (función global de helpers.js)
+                        aplicarRestriccionesMenu();
+                        
                         resolve(true);
                     } else {
                         console.error('❌ Documento de usuario no encontrado en Firestore');
@@ -431,21 +434,33 @@ function actualizarMenuPorRol() {
     
     // Si es empleado, ocultar opciones de admin
     if (role === 'empleado') {
-        // Ocultar productos
+        // Productos: VISIBLE (solo lectura)
         const productosMenu = document.querySelector('a[href="productos.html"]');
-        if (productosMenu) productosMenu.style.display = 'none';
+        if (productosMenu) {
+            productosMenu.style.display = 'flex';
+            console.log('✓ Productos: visible (solo lectura)');
+        }
         
         // Ocultar categorías
-        const categoriasMenu = document.querySelector('#menuCategorias');
-        if (categoriasMenu) categoriasMenu.style.display = 'none';
+        const categoriasMenu = document.querySelector('a[href="categorias.html"]');
+        if (categoriasMenu) {
+            categoriasMenu.style.display = 'none';
+            console.log('✓ Categorías: oculto');
+        }
+        
+        // Ocultar proveedores
+        const proveedoresMenu = document.querySelector('a[href="proveedores.html"]');
+        if (proveedoresMenu) {
+            proveedoresMenu.style.display = 'none';
+            console.log('✓ Proveedores: oculto');
+        }
         
         // Ocultar usuarios
-        const usuariosMenu = document.querySelector('#menuUsuarios');
-        if (usuariosMenu) usuariosMenu.style.display = 'none';
-        
-        // Ocultar utilidades
-        const utilidadesMenu = document.querySelector('#menuUtilidades');
-        if (utilidadesMenu) utilidadesMenu.style.display = 'none';
+        const usuariosMenu = document.querySelector('a[href="usuarios.html"]');
+        if (usuariosMenu) {
+            usuariosMenu.style.display = 'none';
+            console.log('✓ Usuarios: oculto');
+        }
         
         console.log('👤 Menú de empleado aplicado');
     } else {
