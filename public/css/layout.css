@@ -226,6 +226,17 @@
     font-weight: var(--font-semibold);
 }
 
+/* ===== RESTRICCIONES POR ROL ===== */
+/* Ocultar opciones de admin por defecto para evitar parpadeo */
+.nav-item.admin-only {
+    display: none !important;
+}
+
+/* JavaScript agregará clase 'show-admin-options' al body cuando sea admin */
+body.show-admin-options .nav-item.admin-only {
+    display: flex !important;
+}
+
 /* ===== CONTENIDO PRINCIPAL ===== */
 .content {
     flex: 1;

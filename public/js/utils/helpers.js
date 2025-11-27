@@ -192,6 +192,7 @@ function getFirebaseErrorMessage(error) {
 /**
  * Aplica restricciones de menú según el rol del usuario
  * Esta función se debe llamar después de verificar autenticación
+ * Usa clases CSS para evitar parpadeo visual
  */
 function aplicarRestriccionesMenu() {
     const currentUser = getCurrentUser();
@@ -200,32 +201,14 @@ function aplicarRestriccionesMenu() {
     const role = currentUser.role || 'empleado';
     console.log('🔒 Aplicando restricciones de menú para rol:', role);
     
-    if (role === 'empleado') {
-        // Productos: VISIBLE (solo lectura)
-        const productosMenu = document.querySelector('a[href="productos.html"]');
-        if (productosMenu) {
-            productosMenu.style.display = 'flex';
-        }
-        
-        // Ocultar categorías
-        const categoriasMenu = document.querySelector('a[href="categorias.html"]');
-        if (categoriasMenu) {
-            categoriasMenu.style.display = 'none';
-        }
-        
-        // Ocultar proveedores
-        const proveedoresMenu = document.querySelector('a[href="proveedores.html"]');
-        if (proveedoresMenu) {
-            proveedoresMenu.style.display = 'none';
-        }
-        
-        // Ocultar usuarios
-        const usuariosMenu = document.querySelector('a[href="usuarios.html"]');
-        if (usuariosMenu) {
-            usuariosMenu.style.display = 'none';
-        }
-        
-        console.log('✓ Restricciones de empleado aplicadas');
+    // Si es ADMIN, mostrar todas las opciones agregando clase al body
+    if (role === 'admin') {
+        document.body.classList.add('show-admin-options');
+        console.log('✓ Opciones de admin mostradas');
+    } else {
+        // Si es EMPLEADO, asegurar que las opciones están ocultas
+        document.body.classList.remove('show-admin-options');
+        console.log('✓ Restricciones de empleado aplicadas (opciones admin ocultas)');
     }
 }
 
