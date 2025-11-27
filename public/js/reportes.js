@@ -176,6 +176,7 @@ function applyFilters() {
     // Obtener valores de los inputs (formato: YYYY-MM-DD)
     const fechaInicioStr = document.getElementById('fechaInicio').value;
     const fechaFinStr = document.getElementById('fechaFin').value;
+    const paymentMethod = document.getElementById('paymentMethod').value;
     
     // Parsear fechas en hora local (sin conversión UTC)
     const [yInicio, mInicio, dInicio] = fechaInicioStr.split('-').map(Number);
@@ -187,17 +188,24 @@ function applyFilters() {
     console.log('📅 Filtrando ventas:');
     console.log('  Input inicio:', fechaInicioStr, '→', fechaInicio.toLocaleString('es-BO'));
     console.log('  Input fin:', fechaFinStr, '→', fechaFin.toLocaleString('es-BO'));
+    console.log('  💳 Método de pago:', paymentMethod);
     console.log('  Total ventas sin filtrar:', allSales.length);
 
     filteredSales = allSales.filter(sale => {
         const saleDate = sale.fecha;
         const enRango = saleDate >= fechaInicio && saleDate <= fechaFin;
         
-        if (!enRango) {
-            console.log(`  ❌ Venta excluida: ${saleDate.toLocaleString('es-BO')} fuera del rango`);
+        // Filtro por método de pago
+        let coincideMetodo = true;
+        if (paymentMethod !== 'all') {
+            coincideMetodo = sale.payment_method === paymentMethod;
         }
         
-        return enRango;
+        if (!enRango || !coincideMetodo) {
+            console.log(`  ❌ Venta excluida: ${saleDate.toLocaleString('es-BO')} - Método: ${sale.payment_method}`);
+        }
+        
+        return enRango && coincideMetodo;
     });
 
     console.log('  ✅ Ventas filtradas:', filteredSales.length);
@@ -294,17 +302,31 @@ function renderSalesTable() {
 
         // Contar items y productos (compatibilidad con diferentes nombres de campo)
         const totalItems = sale.items.reduce((sum, item) => sum + (item.quantity || item.cantidad || 0), 0);
-        const productNames = sale.items.map(item => item.product_name || item.nombre || item.name).join(', ');
         
-        // Nombre del vendedor (compatibilidad con diferentes nombres de campo)
-        const vendedor = sale.vendedor || sale.seller_name || 'N/A';
+        // Método de pago
+        const paymentMethodLabels = {
+            'cash': 'Efectivo',
+            'card': 'Tarjeta',
+            'transfer': 'Transferencia'
+        };
+        const paymentLabel = paymentMethodLabels[sale.payment_method] || 'Efectivo';
+        
+        // Calcular subtotal y descuento
+        const subtotal = sale.subtotal || sale.total;
+        const discountAmount = sale.discount_amount || 0;
+        const discountText = discountAmount > 0 ? `Bs. ${discountAmount.toFixed(2)}` : '-';
 
         row.innerHTML = `
             <td><strong>#${saleNumber}</strong></td>
             <td>${fecha}</td>
-            <td>${vendedor}</td>
-            <td title="${productNames}">${sale.items.length} producto(s)</td>
-            <td>${totalItems} unidad(es)</td>
+            <td>
+                <span class="badge badge-${sale.payment_method || 'cash'}">
+                    ${paymentLabel}
+                </span>
+            </td>
+            <td>${totalItems}</td>
+            <td>Bs. ${subtotal.toFixed(2)}</td>
+            <td class="text-success">${discountText}</td>
             <td><strong>Bs. ${sale.total.toFixed(2)}</strong></td>
             <td>
                 <button class="btn-view-detail" onclick="viewSaleDetail('${sale.id}')">

@@ -132,6 +132,19 @@
                         <input type="date" id="fechaFin" class="form-control">
                     </div>
                     
+                    <div class="filter-group">
+                        <label for="paymentMethod">
+                            <i class="fas fa-credit-card"></i>
+                            Método de Pago:
+                        </label>
+                        <select id="paymentMethod" class="form-control">
+                            <option value="all">Todos</option>
+                            <option value="cash">Efectivo</option>
+                            <option value="card">Tarjeta</option>
+                            <option value="transfer">Transferencia</option>
+                        </select>
+                    </div>
+                    
                     <div class="filter-actions">
                         <button class="btn-filter" id="btnFiltrar">
                             <i class="fas fa-search"></i>
@@ -226,9 +239,10 @@
                             <tr>
                                 <th>N° Venta</th>
                                 <th>Fecha</th>
-                                <th>Vendedor</th>
-                                <th>Productos</th>
+                                <th>Método Pago</th>
                                 <th>Items</th>
+                                <th>Subtotal</th>
+                                <th>Descuento</th>
                                 <th>Total</th>
                                 <th>Acciones</th>
                             </tr>

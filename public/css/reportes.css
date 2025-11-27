@@ -393,6 +393,31 @@ tbody td {
     font-weight: 700;
 }
 
+/* Badges de método de pago */
+.badge {
+    display: inline-block;
+    padding: 0.35rem 0.75rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-align: center;
+}
+
+.badge-cash {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.badge-card {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.badge-transfer {
+    background: #fef3c7;
+    color: #92400e;
+}
+
 /* Modal de detalle */
 /* Los estilos base están en components.css */
 /* Estilos específicos para reportes */
