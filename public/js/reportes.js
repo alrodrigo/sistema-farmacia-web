@@ -448,6 +448,27 @@ function viewSaleDetail(saleId) {
     const vendedor = sale.vendedor || sale.seller_name || 'N/A';
     document.getElementById('detailSeller').textContent = vendedor;
 
+    // Método de pago
+    const paymentMethodLabels = {
+        'cash': 'Efectivo',
+        'card': 'Tarjeta',
+        'transfer': 'Transferencia'
+    };
+    const paymentLabel = paymentMethodLabels[sale.payment_method] || 'Efectivo';
+    document.getElementById('detailPaymentMethod').textContent = paymentLabel;
+
+    // Subtotal y descuento
+    const subtotal = sale.subtotal || sale.total;
+    const discountAmount = sale.discount_amount || 0;
+    document.getElementById('detailSubtotal').textContent = `Bs. ${subtotal.toFixed(2)}`;
+    
+    if (discountAmount > 0) {
+        document.getElementById('detailDiscountRow').style.display = 'flex';
+        document.getElementById('detailDiscount').textContent = `- Bs. ${discountAmount.toFixed(2)}`;
+    } else {
+        document.getElementById('detailDiscountRow').style.display = 'none';
+    }
+
     // Items
     const itemsBody = document.getElementById('detailItemsBody');
     itemsBody.innerHTML = '';
@@ -631,6 +652,13 @@ function printReceipt(saleId) {
                         <span><strong>Vendedor:</strong></span>
                         <span>${sale.vendedor || sale.seller_name || 'N/A'}</span>
                     </div>
+                    <div class="info-row">
+                        <span><strong>Método de Pago:</strong></span>
+                        <span>${(() => {
+                            const labels = {'cash': 'Efectivo', 'card': 'Tarjeta', 'transfer': 'Transferencia'};
+                            return labels[sale.payment_method] || 'Efectivo';
+                        })()}</span>
+                    </div>
                 </div>
 
                 <div class="items">
@@ -659,6 +687,15 @@ function printReceipt(saleId) {
                 </div>
 
                 <div class="total-section">
+                    <div class="info-row">
+                        <span>Subtotal:</span>
+                        <span>Bs. ${(sale.subtotal || sale.total).toFixed(2)}</span>
+                    </div>
+                    ${sale.discount_amount > 0 ? `
+                    <div class="info-row" style="color: #15803d;">
+                        <span>Descuento:</span>
+                        <span>- Bs. ${sale.discount_amount.toFixed(2)}</span>
+                    </div>` : ''}
                     <div class="total-row">
                         <span>TOTAL:</span>
                         <span>Bs. ${sale.total.toFixed(2)}</span>

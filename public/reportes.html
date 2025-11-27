@@ -325,6 +325,10 @@
                         <label>Vendedor:</label>
                         <span id="detailSeller">-</span>
                     </div>
+                    <div class="info-group">
+                        <label>Método de Pago:</label>
+                        <span id="detailPaymentMethod">-</span>
+                    </div>
                 </div>
 
                 <div class="sale-items-table">
@@ -344,9 +348,19 @@
                     </table>
                 </div>
 
-                <div class="sale-total">
-                    <span>TOTAL:</span>
-                    <strong id="detailTotal">Bs. 0.00</strong>
+                <div class="sale-summary">
+                    <div class="summary-row">
+                        <span>Subtotal:</span>
+                        <span id="detailSubtotal">Bs. 0.00</span>
+                    </div>
+                    <div class="summary-row" id="detailDiscountRow" style="display: none;">
+                        <span>Descuento:</span>
+                        <span id="detailDiscount" class="text-success">Bs. 0.00</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span>TOTAL:</span>
+                        <strong id="detailTotal">Bs. 0.00</strong>
+                    </div>
                 </div>
 
                 <div class="modal-actions">

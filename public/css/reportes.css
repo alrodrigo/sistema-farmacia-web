@@ -423,7 +423,7 @@ tbody td {
 /* Estilos específicos para reportes */
 
 .modal-large {
-    max-width: 700px;
+    max-width: 600px;
 }
 
 .sale-detail-info {
@@ -466,6 +466,32 @@ tbody td {
 
 .sale-items-table table {
     font-size: 0.95rem;
+}
+
+.sale-summary {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.sale-summary .summary-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    font-size: 1rem;
+}
+
+.sale-summary .summary-row.total {
+    border-top: 2px solid var(--border-color);
+    margin-top: 0.5rem;
+    padding-top: 1rem;
+    font-size: 1.2rem;
+}
+
+.sale-summary .summary-row.total strong {
+    font-size: 1.5rem;
+    color: var(--primary-color);
 }
 
 .sale-total {
