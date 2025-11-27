@@ -576,8 +576,7 @@ function verProducto(id) {
     const producto = todosLosProductos.find(p => p.id === id);
     if (producto) {
         console.log('👁️ Ver producto:', producto);
-        // Por ahora, abrimos el modal en modo edición para ver los detalles
-        abrirModalEditar(producto);
+        abrirModalVer(producto);
     }
 }
 
@@ -642,6 +641,52 @@ async function abrirModalNuevo() {
     document.body.style.overflow = 'hidden';
 }
 
+function abrirModalVer(producto) {
+    console.log('👁️ Abriendo modal para ver producto:', producto.name);
+    
+    modoEdicion = false;
+    productoEditandoId = null;
+    
+    // Cambiar título del modal
+    document.getElementById('modalTitleText').textContent = 'Ver Producto';
+    
+    // Cargar categorías y proveedores primero
+    Promise.all([
+        cargarCategoriasSelect(),
+        cargarProveedoresSelect()
+    ]).then(() => {
+        // Llenar formulario con datos del producto
+        document.getElementById('inputNombre').value = producto.name || '';
+        document.getElementById('inputSKU').value = producto.sku || '';
+        document.getElementById('inputBarcode').value = producto.barcode || '';
+        document.getElementById('inputCategoria').value = producto.category || '';
+        document.getElementById('inputProveedor').value = producto.supplier || '';
+        document.getElementById('inputCosto').value = producto.cost || '';
+        document.getElementById('inputPrecio').value = producto.price || '';
+        document.getElementById('inputStockActual').value = producto.current_stock || 0;
+        document.getElementById('inputStockMinimo').value = producto.min_stock || 0;
+        document.getElementById('inputDescripcion').value = producto.description || '';
+        
+        // Calcular margen
+        calcularMargen();
+        
+        // Deshabilitar TODOS los campos (modo solo lectura)
+        const inputs = document.querySelectorAll('#productoForm input, #productoForm select, #productoForm textarea');
+        inputs.forEach(input => {
+            input.disabled = true;
+        });
+        
+        // Ocultar botón de guardar
+        document.getElementById('btnGuardar').style.display = 'none';
+    });
+    
+    limpiarErrores();
+    
+    // Mostrar modal
+    document.getElementById('productoModal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
 function abrirModalEditar(producto) {
     console.log('✏️ Abriendo modal para editar producto:', producto.name);
     
@@ -685,6 +730,15 @@ function cerrarModal() {
     
     document.getElementById('productoModal').classList.remove('active');
     document.body.style.overflow = 'auto';
+    
+    // Rehabilitar todos los campos
+    const inputs = document.querySelectorAll('#productoForm input, #productoForm select, #productoForm textarea');
+    inputs.forEach(input => {
+        input.disabled = false;
+    });
+    
+    // Mostrar botón de guardar
+    document.getElementById('btnGuardar').style.display = 'block';
     
     // Limpiar después de la animación
     setTimeout(() => {
