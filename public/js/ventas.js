@@ -675,9 +675,15 @@ function cambiarCantidad(productoId, cambio) {
     return;
   }
   
+  // Obtener stock actualizado del producto
+  const producto = todosLosProductos.find(p => p.id === productoId);
+  if (producto) {
+    item.stock_disponible = producto.current_stock;
+  }
+  
   // Validar que no exceda el stock
   if (nuevaCantidad > item.stock_disponible) {
-    alert(`⚠️ Stock insuficiente (disponible: ${item.stock_disponible})`);
+    alert(`⚠️ Stock insuficiente (disponible: ${item.stock_disponible} unidades)`);
     return;
   }
   
@@ -860,12 +866,26 @@ function cancelarVenta() {
  * Procesa la venta: guarda en Firebase y actualiza inventario
  */
 async function procesarVenta() {
+  // ===== VALIDACIONES INICIALES =====
   if (carrito.length === 0) {
-    alert('⚠️ El carrito está vacío');
+    alert('⚠️ El carrito está vacío. Agrega productos antes de procesar la venta.');
     return;
   }
   
   console.log('💰 Procesando venta...');
+  
+  // Validar stock disponible antes de procesar
+  for (const item of carrito) {
+    const producto = todosLosProductos.find(p => p.id === item.id);
+    if (!producto) {
+      alert(`❌ El producto "${item.name}" ya no existe en el sistema`);
+      return;
+    }
+    if (producto.current_stock < item.cantidad) {
+      alert(`❌ Stock insuficiente para "${item.name}"\nDisponible: ${producto.current_stock}, Solicitado: ${item.cantidad}`);
+      return;
+    }
+  }
   
   // Guardar items para el recibo (antes de limpiar el carrito)
   guardarItemsParaRecibo();
@@ -877,12 +897,34 @@ async function procesarVenta() {
   btnProcesar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
   
   try {
-    // Obtener información de pago
+    // ===== VALIDACIÓN DE MÉTODO DE PAGO =====
     const paymentMethod = document.getElementById('paymentMethod').value;
+    if (!paymentMethod) {
+      alert('⚠️ Debes seleccionar un método de pago');
+      btnProcesar.disabled = false;
+      btnProcesar.innerHTML = textoOriginal;
+      return;
+    }
+    
+    // ===== VALIDACIÓN DE DESCUENTO =====
     const discountValue = parseFloat(document.getElementById('discountValue').value) || 0;
     const discountType = document.getElementById('discountType').value;
     
-    // Calcular totales
+    if (discountValue < 0) {
+      alert('⚠️ El descuento no puede ser negativo');
+      btnProcesar.disabled = false;
+      btnProcesar.innerHTML = textoOriginal;
+      return;
+    }
+    
+    if (discountType === 'percent' && discountValue > 100) {
+      alert('⚠️ El descuento porcentual no puede ser mayor a 100%');
+      btnProcesar.disabled = false;
+      btnProcesar.innerHTML = textoOriginal;
+      return;
+    }
+    
+    // ===== CALCULAR TOTALES =====
     const totalItems = carrito.reduce((sum, item) => sum + item.cantidad, 0);
     const subtotal = carrito.reduce((sum, item) => sum + (item.price * item.cantidad), 0);
     
@@ -901,14 +943,33 @@ async function procesarVenta() {
     
     const total = subtotal - discountAmount;
     
-    // Validar pago en efectivo
+    // Validar que el total no sea negativo
+    if (total < 0) {
+      alert('⚠️ El total de la venta no puede ser negativo');
+      btnProcesar.disabled = false;
+      btnProcesar.innerHTML = textoOriginal;
+      return;
+    }
+    
+    // ===== VALIDACIÓN DE PAGO EN EFECTIVO =====
     if (paymentMethod === 'cash') {
-      const amountReceived = parseFloat(document.getElementById('amountReceived').value) || 0;
+      const amountReceivedInput = document.getElementById('amountReceived').value;
+      const amountReceived = parseFloat(amountReceivedInput) || 0;
       
-      if (amountReceived < total) {
-        alert('⚠️ El monto recibido es insuficiente');
+      if (!amountReceivedInput || amountReceivedInput.trim() === '') {
+        alert('⚠️ Debes ingresar el monto recibido en efectivo');
         btnProcesar.disabled = false;
         btnProcesar.innerHTML = textoOriginal;
+        document.getElementById('amountReceived').focus();
+        return;
+      }
+      
+      if (amountReceived < total) {
+        const faltante = total - amountReceived;
+        alert(`⚠️ El monto recibido es insuficiente\n\nTotal: ${formatCurrency(total)}\nRecibido: ${formatCurrency(amountReceived)}\nFaltante: ${formatCurrency(faltante)}`);
+        btnProcesar.disabled = false;
+        btnProcesar.innerHTML = textoOriginal;
+        document.getElementById('amountReceived').focus();
         return;
       }
     }

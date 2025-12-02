@@ -776,13 +776,45 @@ function validarFormulario() {
     } else if (nombre.length < 3) {
         mostrarError('inputNombre', 'El nombre debe tener al menos 3 caracteres');
         esValido = false;
+    } else if (nombre.length > 100) {
+        mostrarError('inputNombre', 'El nombre no debe exceder 100 caracteres');
+        esValido = false;
     }
     
     // SKU
-    const sku = document.getElementById('inputSKU').value.trim();
+    const sku = document.getElementById('inputSKU').value.trim().toUpperCase();
     if (!sku) {
         mostrarError('inputSKU', 'El SKU es obligatorio');
         esValido = false;
+    } else if (sku.length < 2) {
+        mostrarError('inputSKU', 'El SKU debe tener al menos 2 caracteres');
+        esValido = false;
+    } else {
+        // Validar SKU duplicado
+        const skuDuplicado = todosLosProductos.find(p => 
+            p.sku === sku && p.id !== productoEditandoId
+        );
+        if (skuDuplicado) {
+            mostrarError('inputSKU', 'Este SKU ya existe en otro producto');
+            esValido = false;
+        }
+    }
+    
+    // Código de barras (opcional pero si existe debe ser válido)
+    const barcode = document.getElementById('inputBarcode').value.trim();
+    if (barcode) {
+        if (barcode.length < 8) {
+            mostrarError('inputBarcode', 'El código de barras debe tener al menos 8 dígitos');
+            esValido = false;
+        }
+        // Validar código de barras duplicado
+        const barcodeDuplicado = todosLosProductos.find(p => 
+            p.barcode === barcode && p.id !== productoEditandoId
+        );
+        if (barcodeDuplicado) {
+            mostrarError('inputBarcode', 'Este código de barras ya existe en otro producto');
+            esValido = false;
+        }
     }
     
     // Categoría
@@ -800,34 +832,80 @@ function validarFormulario() {
     }
     
     // Costo
-    const costo = parseFloat(document.getElementById('inputCosto').value);
-    if (isNaN(costo) || costo < 0) {
+    const costoInput = document.getElementById('inputCosto').value;
+    const costo = parseFloat(costoInput);
+    if (!costoInput || costoInput.trim() === '') {
+        mostrarError('inputCosto', 'El costo es obligatorio');
+        esValido = false;
+    } else if (isNaN(costo)) {
         mostrarError('inputCosto', 'El costo debe ser un número válido');
+        esValido = false;
+    } else if (costo < 0) {
+        mostrarError('inputCosto', 'El costo no puede ser negativo');
+        esValido = false;
+    } else if (costo === 0) {
+        mostrarError('inputCosto', 'El costo debe ser mayor a cero');
+        esValido = false;
+    } else if (costo > 999999) {
+        mostrarError('inputCosto', 'El costo es demasiado alto');
         esValido = false;
     }
     
     // Precio
-    const precio = parseFloat(document.getElementById('inputPrecio').value);
-    if (isNaN(precio) || precio < 0) {
+    const precioInput = document.getElementById('inputPrecio').value;
+    const precio = parseFloat(precioInput);
+    if (!precioInput || precioInput.trim() === '') {
+        mostrarError('inputPrecio', 'El precio es obligatorio');
+        esValido = false;
+    } else if (isNaN(precio)) {
         mostrarError('inputPrecio', 'El precio debe ser un número válido');
         esValido = false;
+    } else if (precio < 0) {
+        mostrarError('inputPrecio', 'El precio no puede ser negativo');
+        esValido = false;
+    } else if (precio === 0) {
+        mostrarError('inputPrecio', 'El precio debe ser mayor a cero');
+        esValido = false;
     } else if (precio <= costo) {
-        mostrarError('inputPrecio', 'El precio debe ser mayor al costo');
+        mostrarError('inputPrecio', 'El precio debe ser mayor al costo para obtener ganancia');
+        esValido = false;
+    } else if (precio > 999999) {
+        mostrarError('inputPrecio', 'El precio es demasiado alto');
         esValido = false;
     }
     
     // Stock actual
-    const stockActual = parseInt(document.getElementById('inputStockActual').value);
-    if (isNaN(stockActual) || stockActual < 0) {
-        mostrarError('inputStockActual', 'El stock debe ser un número válido');
+    const stockActualInput = document.getElementById('inputStockActual').value;
+    const stockActual = parseInt(stockActualInput);
+    if (!stockActualInput || stockActualInput.trim() === '') {
+        mostrarError('inputStockActual', 'El stock actual es obligatorio');
+        esValido = false;
+    } else if (isNaN(stockActual)) {
+        mostrarError('inputStockActual', 'El stock debe ser un número entero');
+        esValido = false;
+    } else if (stockActual < 0) {
+        mostrarError('inputStockActual', 'El stock no puede ser negativo');
+        esValido = false;
+    } else if (stockActual > 999999) {
+        mostrarError('inputStockActual', 'El stock es demasiado alto');
         esValido = false;
     }
     
     // Stock mínimo
-    const stockMinimo = parseInt(document.getElementById('inputStockMinimo').value);
-    if (isNaN(stockMinimo) || stockMinimo < 0) {
-        mostrarError('inputStockMinimo', 'El stock mínimo debe ser un número válido');
+    const stockMinimoInput = document.getElementById('inputStockMinimo').value;
+    const stockMinimo = parseInt(stockMinimoInput);
+    if (!stockMinimoInput || stockMinimoInput.trim() === '') {
+        mostrarError('inputStockMinimo', 'El stock mínimo es obligatorio');
         esValido = false;
+    } else if (isNaN(stockMinimo)) {
+        mostrarError('inputStockMinimo', 'El stock mínimo debe ser un número entero');
+        esValido = false;
+    } else if (stockMinimo < 0) {
+        mostrarError('inputStockMinimo', 'El stock mínimo no puede ser negativo');
+        esValido = false;
+    } else if (stockMinimo > stockActual && !modoEdicion) {
+        // Advertencia (no bloquea) si el stock mínimo es mayor al actual en nuevo producto
+        console.warn('⚠️ Stock mínimo mayor al stock actual');
     }
     
     return esValido;

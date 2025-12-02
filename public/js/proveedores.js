@@ -363,6 +363,72 @@ function cerrarModal() {
 async function guardarProveedor(event) {
     event.preventDefault();
     
+    // ===== VALIDACIONES =====
+    const nombre = document.getElementById('inputNombre').value.trim();
+    const email = document.getElementById('inputEmail').value.trim();
+    const telefono = document.getElementById('inputTelefono').value.trim();
+    const sitioWeb = document.getElementById('inputSitioWeb').value.trim();
+    
+    // Validar nombre (obligatorio)
+    if (!nombre) {
+        alert('⚠️ El nombre del proveedor es obligatorio');
+        document.getElementById('inputNombre').focus();
+        return;
+    }
+    
+    if (nombre.length < 2) {
+        alert('⚠️ El nombre debe tener al menos 2 caracteres');
+        document.getElementById('inputNombre').focus();
+        return;
+    }
+    
+    if (nombre.length > 100) {
+        alert('⚠️ El nombre no debe exceder 100 caracteres');
+        document.getElementById('inputNombre').focus();
+        return;
+    }
+    
+    // Validar nombre duplicado
+    const nombreDuplicado = proveedores.find(p => 
+        p.nombre.toLowerCase() === nombre.toLowerCase() && p.id !== proveedorEditandoId
+    );
+    if (nombreDuplicado) {
+        alert('⚠️ Ya existe un proveedor con este nombre');
+        document.getElementById('inputNombre').focus();
+        return;
+    }
+    
+    // Validar email (opcional pero si existe debe ser válido)
+    if (email) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            alert('⚠️ El email no tiene un formato válido');
+            document.getElementById('inputEmail').focus();
+            return;
+        }
+    }
+    
+    // Validar teléfono (opcional pero si existe debe tener formato)
+    if (telefono) {
+        const telefonoLimpio = telefono.replace(/[\s\-\(\)]/g, '');
+        if (telefonoLimpio.length < 7 || telefonoLimpio.length > 15) {
+            alert('⚠️ El teléfono debe tener entre 7 y 15 dígitos');
+            document.getElementById('inputTelefono').focus();
+            return;
+        }
+    }
+    
+    // Validar sitio web (opcional pero si existe debe tener formato)
+    if (sitioWeb) {
+        try {
+            new URL(sitioWeb);
+        } catch (e) {
+            alert('⚠️ La URL del sitio web no es válida\nEjemplo: https://www.ejemplo.com');
+            document.getElementById('inputSitioWeb').focus();
+            return;
+        }
+    }
+    
     const btnGuardar = document.getElementById('btnGuardar');
     const textoOriginal = btnGuardar.innerHTML;
     btnGuardar.disabled = true;
@@ -370,12 +436,12 @@ async function guardarProveedor(event) {
     
     try {
         const proveedorData = {
-            nombre: document.getElementById('inputNombre').value.trim(),
+            nombre: nombre,
             pais: document.getElementById('inputPais').value.trim() || null,
-            telefono: document.getElementById('inputTelefono').value.trim() || null,
-            email: document.getElementById('inputEmail').value.trim() || null,
+            telefono: telefono || null,
+            email: email || null,
             direccion: document.getElementById('inputDireccion').value.trim() || null,
-            sitioWeb: document.getElementById('inputSitioWeb').value.trim() || null,
+            sitioWeb: sitioWeb || null,
             notas: document.getElementById('inputNotas').value.trim() || null,
             activo: document.getElementById('inputActivo').checked,
             updated_at: firebase.firestore.FieldValue.serverTimestamp(),
@@ -404,7 +470,7 @@ async function guardarProveedor(event) {
         
     } catch (error) {
         console.error('Error al guardar proveedor:', error);
-        alert('Error al guardar el proveedor');
+        alert('❌ Error al guardar el proveedor. Verifica tu conexión.');
     } finally {
         btnGuardar.disabled = false;
         btnGuardar.innerHTML = textoOriginal;

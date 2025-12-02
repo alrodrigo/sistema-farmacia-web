@@ -591,6 +591,16 @@ function validarFormulario() {
     const nombre = document.getElementById('inputNombre').value.trim();
     if (!nombre) {
         document.getElementById('errorNombre').textContent = 'El nombre es requerido';
+        document.getElementById('inputNombre').focus();
+        esValido = false;
+    } else if (nombre.length < 3) {
+        document.getElementById('errorNombre').textContent = 'El nombre debe tener al menos 3 caracteres';
+        esValido = false;
+    } else if (nombre.length > 100) {
+        document.getElementById('errorNombre').textContent = 'El nombre no debe exceder 100 caracteres';
+        esValido = false;
+    } else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(nombre)) {
+        document.getElementById('errorNombre').textContent = 'El nombre solo debe contener letras';
         esValido = false;
     }
     
@@ -598,9 +608,10 @@ function validarFormulario() {
     const email = document.getElementById('inputEmail').value.trim();
     if (!email) {
         document.getElementById('errorEmail').textContent = 'El email es requerido';
+        if (esValido) document.getElementById('inputEmail').focus();
         esValido = false;
     } else if (!validarEmail(email)) {
-        document.getElementById('errorEmail').textContent = 'Email inválido';
+        document.getElementById('errorEmail').textContent = 'Email inválido (ejemplo: usuario@dominio.com)';
         esValido = false;
     }
     
@@ -611,13 +622,26 @@ function validarFormulario() {
         
         if (!password) {
             document.getElementById('errorPassword').textContent = 'La contraseña es requerida';
+            if (esValido) document.getElementById('inputPassword').focus();
             esValido = false;
         } else if (password.length < 6) {
-            document.getElementById('errorPassword').textContent = 'Mínimo 6 caracteres';
+            document.getElementById('errorPassword').textContent = 'La contraseña debe tener mínimo 6 caracteres';
+            esValido = false;
+        } else if (password.length > 50) {
+            document.getElementById('errorPassword').textContent = 'La contraseña no debe exceder 50 caracteres';
+            esValido = false;
+        } else if (!/[a-zA-Z]/.test(password)) {
+            document.getElementById('errorPassword').textContent = 'La contraseña debe contener al menos una letra';
+            esValido = false;
+        } else if (!/[0-9]/.test(password)) {
+            document.getElementById('errorPassword').textContent = 'La contraseña debe contener al menos un número';
             esValido = false;
         }
         
-        if (password !== confirmPassword) {
+        if (!confirmPassword) {
+            document.getElementById('errorConfirmPassword').textContent = 'Confirma la contraseña';
+            esValido = false;
+        } else if (password !== confirmPassword) {
             document.getElementById('errorConfirmPassword').textContent = 'Las contraseñas no coinciden';
             esValido = false;
         }
@@ -627,6 +651,10 @@ function validarFormulario() {
     const rol = document.getElementById('inputRol').value;
     if (!rol) {
         document.getElementById('errorRol').textContent = 'Debes seleccionar un rol';
+        if (esValido) document.getElementById('inputRol').focus();
+        esValido = false;
+    } else if (rol !== 'admin' && rol !== 'empleado') {
+        document.getElementById('errorRol').textContent = 'Rol inválido';
         esValido = false;
     }
     
