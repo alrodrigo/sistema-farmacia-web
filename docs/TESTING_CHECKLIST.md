@@ -23,19 +23,19 @@ Para cada sección:
 ## 1️⃣ AUTENTICACIÓN Y SEGURIDAD
 
 ### Login
-- [ ] Login con credenciales correctas de admin
-- [ ] Login con credenciales correctas de empleado
-- [ ] Login con credenciales incorrectas (debe rechazar)
-- [ ] Login con email inválido (debe mostrar error)
-- [ ] Login con campos vacíos (debe mostrar error)
-- [ ] Redirección a dashboard después de login exitoso
-- [ ] Sesión persiste al recargar página
-- [ ] Logout funciona correctamente
+- [ ✅] Login con credenciales correctas de admin
+- [ ✅] Login con credenciales correctas de empleado
+- [ ✅] Login con credenciales incorrectas (debe rechazar)
+- [✅ ] Login con email inválido (debe mostrar error)
+- [ ✅] Login con campos vacíos (debe mostrar error)
+- [✅ ] Redirección a dashboard después de login exitoso
+- [✅ ] Sesión persiste al recargar página
+- [ ✅] Logout funciona correctamente
 
 ### Seguridad
-- [ ] Usuario no autenticado es redirigido a login
-- [ ] Todas las páginas protegidas requieren autenticación
-- [ ] No hay errores en consola relacionados con Firebase
+- [✅ ] Usuario no autenticado es redirigido a login
+- [✅ ] Todas las páginas protegidas requieren autenticación
+- [✅ ] No hay errores en consola relacionados con Firebase
 
 **Problemas encontrados:**
 ```
@@ -47,76 +47,76 @@ Para cada sección:
 ## 2️⃣ DASHBOARD
 
 ### Visualización
-- [ ] Todas las tarjetas de estadísticas muestran datos
-- [ ] Total de productos se calcula correctamente
-- [ ] Valor del inventario se calcula correctamente
-- [ ] Productos con stock bajo se cuenta correctamente
-- [ ] Ventas del día se muestran
-- [ ] Gráfico de ventas se carga
-- [ ] Actividad reciente se muestra
+- [ ✅] Todas las tarjetas de estadísticas muestran datos
+- [ ✅] Total de productos se calcula correctamente
+- [✅ ] Valor del inventario se calcula correctamente
+- [✅ ] Productos con stock bajo se cuenta correctamente
+- [✅ ] Ventas del día se muestran
+- [no hay graficos ] Gráfico de ventas se carga
+- [no hay actividad reciente ] Actividad reciente se muestra
 
 ### Funcionalidad
-- [ ] Menú lateral se muestra correctamente
-- [ ] Links de navegación funcionan
-- [ ] Nombre de usuario se muestra en navbar
-- [ ] Rol de usuario se muestra correctamente
-- [ ] Notificaciones se muestran (si hay)
+- [ ✅] Menú lateral se muestra correctamente
+- [x] Links de navegación funcionan
+- [✅ ] Nombre de usuario se muestra en navbar
+- [ ✅] Rol de usuario se muestra correctamente
+- [ no hay ] Notificaciones se muestran (si hay)
 
 **Problemas encontrados:**
 ```
 [Anotar aquí cualquier error]
 ```
-
+el problema esta que en el modo admin se oculta los links de navegacion: usuarios, proveedores y categorias al cambiar del dashboard como si fueramos empleado
 ---
 
 ## 3️⃣ MÓDULO DE PRODUCTOS
 
 ### Visualización
-- [ ] Lista de productos se carga correctamente
-- [ ] Paginación funciona (anterior/siguiente)
-- [ ] Tarjetas de información muestran datos correctos
-- [ ] Filtros por categoría funcionan
-- [ ] Filtros por proveedor funcionan
-- [ ] Búsqueda por nombre funciona
-- [ ] Productos con stock bajo se marcan en rojo
+- [ ✅] Lista de productos se carga correctamente
+- [ no hay muchos productos] Paginación funciona (anterior/siguiente)
+- [ ✅] Tarjetas de información muestran datos correctos
+- [ ✅] Filtros por categoría funcionan
+- [ ✅] Filtros por proveedor funcionan
+- [ ✅] Búsqueda por nombre funciona
+- [ ✅] Productos con stock bajo se marcan en rojo
 
 ### Crear Producto
-- [ ] Modal se abre correctamente
-- [ ] Validación: Nombre vacío (debe rechazar)
-- [ ] Validación: Nombre menor a 3 caracteres (debe rechazar)
-- [ ] Validación: SKU vacío (debe rechazar)
-- [ ] Validación: SKU duplicado (debe rechazar)
-- [ ] Validación: Código de barras menor a 8 dígitos (debe rechazar)
-- [ ] Validación: Código de barras duplicado (debe rechazar)
-- [ ] Validación: Costo vacío (debe rechazar)
-- [ ] Validación: Costo negativo (debe rechazar)
-- [ ] Validación: Costo = 0 (debe rechazar)
-- [ ] Validación: Precio vacío (debe rechazar)
-- [ ] Validación: Precio negativo (debe rechazar)
-- [ ] Validación: Precio menor o igual a costo (debe rechazar)
-- [ ] Validación: Stock negativo (debe rechazar)
-- [ ] Cálculo de margen de ganancia funciona
-- [ ] Producto se crea correctamente con datos válidos
-- [ ] Mensaje de éxito se muestra
-- [ ] Lista se actualiza automáticamente
+- [ ✅] Modal se abre correctamente
+- [✅ ] Validación: Nombre vacío (debe rechazar)
+- [ ✅] Validación: Nombre menor a 3 caracteres (debe rechazar)
+- [ ✅] Validación: SKU vacío (debe rechazar)
+- [ lo hace pero el error no especifica que error es] Validación: SKU duplicado (debe rechazar)
+- [lo mismo no dice que error es ] Validación: Código de barras menor a 8 dígitos (debe rechazar)
+- [ ✅] Validación: Código de barras duplicado (debe rechazar)
+- [ ✅] Validación: Costo vacío (debe rechazar)
+- [✅ ] Validación: Costo negativo (debe rechazar)
+- [✅ ] Validación: Costo = 0 (debe rechazar)
+- [ ✅] Validación: Precio vacío (debe rechazar)
+- [✅ ] Validación: Precio negativo (debe rechazar)
+- [ no dice el error exacto] Validación: Precio menor o igual a costo (debe rechazar)
+- [ ✅] Validación: Stock negativo (debe rechazar)
+- [✅ ] Cálculo de margen de ganancia funciona
+- [ ✅] Producto se crea correctamente con datos válidos
+- [ ✅] Mensaje de éxito se muestra
+- [ ✅] Lista se actualiza automáticamente
 
 ### Editar Producto
-- [ ] Modal de edición se abre con datos correctos
-- [ ] Campos se prellenan correctamente
-- [ ] Validaciones funcionan igual que en crear
-- [ ] Cambios se guardan correctamente
-- [ ] Lista se actualiza después de editar
+- [ ✅] Modal de edición se abre con datos correctos
+- [ ✅] Campos se prellenan correctamente
+- [ ✅] Validaciones funcionan igual que en crear
+- [ ✅] Cambios se guardan correctamente
+- [ ✅] Lista se actualiza después de editar
 
 ### Eliminar Producto
-- [ ] Modal de confirmación se muestra
-- [ ] Producto se elimina correctamente
-- [ ] Lista se actualiza después de eliminar
-- [ ] No se puede eliminar si hay un error
+- [✅ ] Modal de confirmación se muestra
+- [ ✅] Producto se elimina correctamente
+- [ ✅] Lista se actualiza después de eliminar
+- [✅ ] No se puede eliminar si hay un error
 
 ### Ver Detalles
-- [ ] Modal de ver detalles muestra toda la información
-- [ ] Fechas se muestran correctamente
-- [ ] Información del proveedor se muestra
+- [ ✅] Modal de ver detalles muestra toda la información
+- [ no hay fechas es lo mismo que crear un producto solo que sin poder editar] Fechas se muestran correctamente
+- [✅ ] Información del proveedor se muestra
 
 **Problemas encontrados:**
 ```
@@ -128,26 +128,26 @@ Para cada sección:
 ## 4️⃣ MÓDULO DE CATEGORÍAS
 
 ### Visualización
-- [ ] Lista de categorías se carga
-- [ ] Contador de productos por categoría es correcto
-- [ ] Iconos se muestran correctamente
-- [ ] Colores se aplican correctamente
+- [ ✅] Lista de categorías se carga
+- [ ✅] Contador de productos por categoría es correcto
+- [✅ ] Iconos se muestran correctamente
+- [✅ ] Colores se aplican correctamente
 
 ### Crear Categoría
-- [ ] Modal se abre
-- [ ] Validación: Nombre vacío (debe rechazar)
-- [ ] Selector de iconos funciona
-- [ ] Selector de colores funciona
-- [ ] Categoría se crea correctamente
-- [ ] Lista se actualiza
+- [✅ ] Modal se abre
+- [✅ ] Validación: Nombre vacío (debe rechazar)
+- [ ✅] Selector de iconos funciona
+- [ ✅] Selector de colores funciona
+- [ hay un error en el boton no se muestra la palabra "aceptar" al momento de crear una categoria ] Categoría se crea correctamente
+- [✅ ] Lista se actualiza
 
 ### Editar Categoría
-- [ ] Modal se abre con datos correctos
-- [ ] Cambios se guardan correctamente
+- [✅ ] Modal se abre con datos correctos
+- [✅ ] Cambios se guardan correctamente
 
 ### Eliminar Categoría
-- [ ] Advertencia si tiene productos asociados
-- [ ] Categoría se elimina correctamente
+- [ ✅] Advertencia si tiene productos asociados
+- [ ✅] Categoría se elimina correctamente
 
 **Problemas encontrados:**
 ```
@@ -159,103 +159,103 @@ Para cada sección:
 ## 5️⃣ MÓDULO DE PROVEEDORES
 
 ### Visualización
-- [ ] Lista de proveedores se carga
-- [ ] Contador de productos por proveedor es correcto
-- [ ] Estado activo/inactivo se muestra
-- [ ] Filtros funcionan
+- [✅ ] Lista de proveedores se carga
+- [✅ ] Contador de productos por proveedor es correcto
+- [✅ ] Estado activo/inactivo se muestra
+- [ ✅] Filtros funcionan
 
 ### Crear Proveedor
-- [ ] Modal se abre correctamente
-- [ ] Validación: Nombre vacío (debe rechazar)
-- [ ] Validación: Nombre menor a 2 caracteres (debe rechazar)
-- [ ] Validación: Nombre duplicado (debe rechazar)
-- [ ] Validación: Email inválido (debe rechazar)
-- [ ] Validación: Teléfono corto (debe rechazar)
-- [ ] Validación: URL inválida (debe rechazar)
-- [ ] Proveedor se crea correctamente
-- [ ] Campos opcionales aceptan valores vacíos
+- [x ] Modal se abre correctamente
+- [ x] Validación: Nombre vacío (debe rechazar)
+- [x ] Validación: Nombre menor a 2 caracteres (debe rechazar)
+- [x ] Validación: Nombre duplicado (debe rechazar)
+- [x ] Validación: Email inválido (debe rechazar)
+- [x ] Validación: Teléfono corto (debe rechazar)
+- [x ] Validación: URL inválida (debe rechazar)
+- [x ] Proveedor se crea correctamente
+- [x ] Campos opcionales aceptan valores vacíos
 
 ### Editar Proveedor
-- [ ] Modal se abre con datos correctos
-- [ ] Validaciones funcionan
-- [ ] Cambios se guardan
+- [ x] Modal se abre con datos correctos
+- [ x] Validaciones funcionan
+- [ x] Cambios se guardan
 
 ### Eliminar Proveedor
-- [ ] Advertencia si tiene productos asociados
-- [ ] Proveedor se elimina correctamente
-- [ ] Productos asociados quedan sin proveedor
+- [ ✅] Advertencia si tiene productos asociados
+- [ ✅] Proveedor se elimina correctamente
+- [✅ ] Productos asociados quedan sin proveedor
 
 **Problemas encontrados:**
 ```
 [Anotar aquí cualquier error]
 ```
-
+no abre el modal de editar ni para crear 
 ---
 
 ## 6️⃣ MÓDULO DE VENTAS (POS)
 
 ### Visualización
-- [ ] Número de venta se muestra
-- [ ] Fecha y hora se muestran y actualizan
-- [ ] Buscador de productos funciona
-- [ ] Resultados de búsqueda se muestran
-- [ ] Productos sin stock se marcan como "Sin Stock"
-- [ ] Botón "Agregar" deshabilitado si no hay stock
+- [✅ ] Número de venta se muestra
+- [✅ ] Fecha y hora se muestran y actualizan
+- [✅ ] Buscador de productos funciona
+- [ ✅] Resultados de búsqueda se muestran
+- [ ✅] Productos sin stock se marcan como "Sin Stock"
+- [✅ ] Botón "Agregar" deshabilitado si no hay stock
 
 ### Agregar al Carrito
-- [ ] Producto se agrega correctamente
-- [ ] Validación: No se puede agregar sin stock
-- [ ] Validación: No excede stock disponible
-- [ ] Cantidad se puede aumentar con botón +
-- [ ] Cantidad se puede disminuir con botón -
-- [ ] Validación: No permite cantidad mayor a stock
-- [ ] Producto se puede quitar del carrito
-- [ ] Carrito se puede limpiar completamente
+- [✅ ] Producto se agrega correctamente
+- [✅ ] Validación: No se puede agregar sin stock
+- [ ✅] Validación: No excede stock disponible
+- [✅ ] Cantidad se puede aumentar con botón +
+- [ ✅] Cantidad se puede disminuir con botón -
+- [✅ ] Validación: No permite cantidad mayor a stock
+- [✅ ] Producto se puede quitar del carrito
+- [ ✅] Carrito se puede limpiar completamente
 
 ### Cálculo de Totales
-- [ ] Subtotal se calcula correctamente
-- [ ] Descuento porcentual funciona
-- [ ] Descuento fijo funciona
-- [ ] Validación: Descuento no puede ser negativo
-- [ ] Validación: Descuento % no puede ser mayor a 100
-- [ ] Total se calcula correctamente
-- [ ] Total de items es correcto
+- [ ✅] Subtotal se calcula correctamente
+- [ ✅] Descuento porcentual funciona
+- [ ✅] Descuento fijo funciona
+- [ ✅] Validación: Descuento no puede ser negativo
+- [ ✅] Validación: Descuento % no puede ser mayor a 100
+- [ ✅] Total se calcula correctamente
+- [ ✅] Total de items es correcto
 
 ### Métodos de Pago
-- [ ] Selector de método de pago funciona
-- [ ] Pago en efectivo muestra campo "Monto recibido"
-- [ ] Cálculo de cambio funciona correctamente
-- [ ] Validación: Monto recibido vacío (debe rechazar)
-- [ ] Validación: Monto recibido insuficiente (debe rechazar)
-- [ ] Tarjeta/Transferencia no requieren monto recibido
+- [✅ ] Selector de método de pago funciona
+- [✅ ] Pago en efectivo muestra campo "Monto recibido"
+- [ ]✅ Cálculo de cambio funciona correctamente
+- [ ✅] Validación: Monto recibido vacío (debe rechazar)
+- [ ✅] Validación: Monto recibido insuficiente (debe rechazar)
+- [✅ ] Tarjeta/Transferencia no requieren monto recibido
 
 ### Procesar Venta
-- [ ] Validación: Carrito vacío (debe rechazar)
-- [ ] Validación: Stock insuficiente (debe rechazar)
-- [ ] Validación: Método de pago obligatorio (debe rechazar)
-- [ ] Venta se procesa correctamente
-- [ ] Stock se descuenta automáticamente
-- [ ] Venta se guarda en Firestore
-- [ ] Modal de éxito se muestra
-- [ ] Carrito se limpia después de venta
-- [ ] Número de venta se incrementa
+- [✅ ] Validación: Carrito vacío (debe rechazar)
+- [✅ ] Validación: Stock insuficiente (debe rechazar)
+- [✅ ] Validación: Método de pago obligatorio (debe rechazar)
+- [✅ ] Venta se procesa correctamente
+- [✅ ] Stock se descuenta automáticamente
+- [✅ ] Venta se guarda en Firestore
+- [ ✅] Modal de éxito se muestra
+- [✅ ] Carrito se limpia después de venta
+- [ ✅] Número de venta se incrementa
 
 ### Imprimir Ticket
-- [ ] Botón de imprimir funciona
-- [ ] Vista previa se muestra correctamente
-- [ ] Ticket tiene toda la información:
-  - [ ] Logo de la farmacia
-  - [ ] Información de la farmacia
-  - [ ] Número de venta
-  - [ ] Fecha y hora
-  - [ ] Vendedor
-  - [ ] Lista de productos
-  - [ ] Subtotal, descuento, total
-  - [ ] Método de pago
-  - [ ] Monto recibido y cambio (si es efectivo)
-  - [ ] Mensaje de agradecimiento
-- [ ] Impresión sale en **1 sola página**
-- [ ] Formato es legible
+- [ ✅] Botón de imprimir funciona
+- [ ✅] Vista previa se muestra correctamente
+- [ ✅] Ticket tiene toda la información:
+  - [✅ ] Logo de la farmacia
+  - [✅ ] Información de la farmacia
+  - [ ✅] Número de venta
+  - [ ✅] Fecha y hora
+  - [ ✅] Vendedor
+  - [ ✅] Lista de productos
+  - [ ✅] Subtotal, descuento, total
+  - [ ]✅ Método de pago
+  - [ ✅] Monto recibido y cambio (si es efectivo)
+  - [ ]✅ Mensaje de agradecimiento
+- [ ✅] Impresión sale en **1 sola página**
+- [esta medio feo el disenio, lo cambiaria para que fuera un disenio para papel de impresion de factura que es mas pequenio y se ve grande a la hora de imprimir ] Formato es legible
 
 **Problemas encontrados:**
 ```
@@ -267,22 +267,22 @@ Para cada sección:
 ## 7️⃣ MÓDULO DE REPORTES
 
 ### Visualización
-- [ ] Página de reportes se carga
-- [ ] Selector de rango de fechas funciona
-- [ ] Reporte de ventas se genera
-- [ ] Reporte de productos se genera
-- [ ] Reporte de inventario se genera
-- [ ] Gráficos se muestran correctamente
-- [ ] Datos son precisos
+- [ ✅] Página de reportes se carga
+- [ ✅] Selector de rango de fechas funciona
+- [ en detalle de venta sale como vendedora el correo no el nombre de usuario] Reporte de ventas se genera
+- [✅ ] Reporte de productos se genera
+- [✅ ] Reporte de inventario se genera
+- [ ✅] Gráficos se muestran correctamente
+- [ ✅] Datos son precisos
 
 ### Exportación
-- [ ] Botón de exportar funciona (si está implementado)
-- [ ] PDF se genera correctamente (si está implementado)
+- [✅ ] Botón de exportar funciona (si está implementado)
+- [ ✅] PDF se genera correctamente (si está implementado)
 
 **Problemas encontrados:**
 ```
 [Anotar aquí cualquier error]
-```
+```sugerencia el formato para imprimir recibo esta muy bien editado y puede ser copiado para el recibo de venta que se tiene
 
 ---
 

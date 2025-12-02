@@ -79,6 +79,12 @@ async function verificarAutenticacion() {
             
             mostrarNombreUsuario();
             actualizarMenuPorRol();
+            
+            // Aplicar restricciones de menú (helpers.js)
+            if (typeof aplicarRestriccionesMenu === 'function') {
+                aplicarRestriccionesMenu(currentUser);
+            }
+            
             resolve(true);
           } else {
             console.error('❌ Documento de usuario no encontrado');
@@ -1045,7 +1051,7 @@ async function procesarVenta() {
       total: total,
       ...paymentData,
       seller_id: currentUser.uid,
-      seller_name: currentUser.first_name || currentUser.email,
+      seller_name: currentUser.name || currentUser.nombre || currentUser.email?.split('@')[0] || 'Vendedor',
       fecha: firebase.firestore.FieldValue.serverTimestamp(), // Nombre en español
       created_at: firebase.firestore.FieldValue.serverTimestamp(), // Mantener por compatibilidad
       status: 'completed'

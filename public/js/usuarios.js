@@ -62,6 +62,11 @@ async function verificarAutenticacion() {
                         // Actualizar menú según rol
                         actualizarMenuPorRol();
                         
+                        // Aplicar restricciones de menú (helpers.js)
+                        if (typeof aplicarRestriccionesMenu === 'function') {
+                            aplicarRestriccionesMenu(currentUser);
+                        }
+                        
                         resolve();
                     } else {
                         console.error('❌ Usuario no encontrado en Firestore');

@@ -194,9 +194,13 @@ function getFirebaseErrorMessage(error) {
  * Esta función se debe llamar después de verificar autenticación
  * Usa clases CSS para evitar parpadeo visual
  */
-function aplicarRestriccionesMenu() {
-    const currentUser = getCurrentUser();
-    if (!currentUser) return;
+function aplicarRestriccionesMenu(user) {
+    // Si se pasa un usuario, usarlo; si no, intentar obtenerlo
+    const currentUser = user || getCurrentUser();
+    if (!currentUser) {
+        console.warn('⚠️ No se puede aplicar restricciones: usuario no disponible');
+        return;
+    }
     
     const role = currentUser.role || 'empleado';
     console.log('🔒 Aplicando restricciones de menú para rol:', role);

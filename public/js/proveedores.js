@@ -359,6 +359,12 @@ function cerrarModal() {
     proveedorEditandoId = null;
 }
 
+// Exponer funciones al scope global para onclick
+window.abrirModalNuevo = abrirModalNuevo;
+window.editarProveedor = editarProveedor;
+window.cerrarModal = cerrarModal;
+window.confirmarEliminar = confirmarEliminar;
+
 // ==================== GUARDAR PROVEEDOR ====================
 async function guardarProveedor(event) {
     event.preventDefault();

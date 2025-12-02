@@ -59,6 +59,11 @@ async function verificarAutenticacion() {
                         // Actualizar menú según rol
                         actualizarMenuPorRol();
                         
+                        // Aplicar restricciones de menú (helpers.js)
+                        if (typeof aplicarRestriccionesMenu === 'function') {
+                            aplicarRestriccionesMenu(currentUser);
+                        }
+                        
                         resolve(true);
                     } else {
                         console.error('❌ Documento de usuario no encontrado');
@@ -941,7 +946,13 @@ async function guardarProducto(event) {
     // Validar formulario
     if (!validarFormulario()) {
         console.log('❌ Formulario inválido');
-        alert('⚠️ Por favor corrige los errores en el formulario');
+        // Encontrar el primer error y mostrarlo en el alert
+        const primerError = document.querySelector('.error-message:not(:empty)');
+        if (primerError) {
+            alert('⚠️ ' + primerError.textContent);
+        } else {
+            alert('⚠️ Por favor corrige los errores en el formulario');
+        }
         return;
     }
     
