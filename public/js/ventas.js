@@ -1232,10 +1232,9 @@ function imprimirRecibo() {
       </div>
       <div class="receipt-title">FARMACIA SERVISALUD</div>
       <div class="receipt-subtitle">NIT: 123456789</div>
-      <div class="receipt-subtitle">Dirección de la farmacia</div>
-      <div class="receipt-subtitle">Tel: (123) 456-7890</div>
+      <div class="receipt-subtitle">Av. Principal #123, La Paz - Bolivia</div>
+      <div class="receipt-subtitle">Tel: (591) 2-2345678</div>
     </div>
-
     <div class="receipt-info">
       <div class="receipt-info-row">
         <span class="receipt-info-label">Nº Venta:</span>
@@ -1243,32 +1242,24 @@ function imprimirRecibo() {
       </div>
       <div class="receipt-info-row">
         <span class="receipt-info-label">Fecha:</span>
-        <span>${fecha}</span>
-      </div>
-      <div class="receipt-info-row">
-        <span class="receipt-info-label">Hora:</span>
-        <span>${hora}</span>
+        <span>${fecha} - ${hora}</span>
       </div>
       <div class="receipt-info-row">
         <span class="receipt-info-label">Vendedor:</span>
         <span>${vendedor}</span>
       </div>
     </div>
-
     <div class="receipt-divider"></div>
-
     <div class="receipt-items">
       ${itemsHTML}
     </div>
-
     <div class="receipt-totals">
       ${descuentoHTML}
       <div class="receipt-total-row main">
-        <span>TOTAL:</span>
+        <span>TOTAL A PAGAR:</span>
         <strong>${total}</strong>
       </div>
     </div>
-
     <div class="receipt-payment">
       <div class="receipt-total-row">
         <span>Método de Pago:</span>
@@ -1276,14 +1267,11 @@ function imprimirRecibo() {
       </div>
       ${pagoHTML}
     </div>
-
     <div class="receipt-divider"></div>
-
     <div class="receipt-footer">
       <div class="receipt-thank-you">¡GRACIAS POR SU COMPRA!</div>
       <div class="receipt-footer-line">Este documento es un comprobante de venta</div>
-      <div class="receipt-footer-line">Sistema ServiSalud © 2025</div>
-      <div class="receipt-footer-line">www.servisalud.com</div>
+      <div class="receipt-footer-line">www.servisalud.com.bo</div>
     </div>
   `;
   
