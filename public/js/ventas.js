@@ -13,6 +13,7 @@ const firebaseDB = window.firebaseDB;
 let currentUser = null;
 let todosLosProductos = []; // Todos los productos disponibles
 let carrito = []; // Array que guarda los productos en el carrito
+let ultimoCarrito = []; // Guardar último carrito para impresión
 let numeroVentaActual = 1; // Número de venta (se incrementará)
 
 // MODO DE DESARROLLO (cambiar a false en producción)
@@ -36,6 +37,11 @@ document.addEventListener('DOMContentLoaded', async function() {
   
   // Actualizar fecha/hora cada minuto
   setInterval(actualizarFechaHora, 60000);
+  
+  // Verificar stock bajo y mostrar notificaciones
+  if (typeof verificarStockBajo === 'function' && firebaseDB) {
+    await verificarStockBajo(firebaseDB);
+  }
 });
 
 // ===== 4. VERIFICAR AUTENTICACIÓN =====
@@ -235,10 +241,7 @@ function configurarEventos() {
   // Botón imprimir recibo
   const btnPrintReceipt = document.getElementById('btnPrintReceipt');
   if (btnPrintReceipt) {
-    btnPrintReceipt.addEventListener('click', function() {
-      alert('🚧 Función de impresión próximamente');
-      // Aquí implementaremos la impresión después
-    });
+    btnPrintReceipt.addEventListener('click', imprimirTicket);
   }
   
   // ===== NUEVOS EVENTOS PARA PAGO Y DESCUENTOS =====
@@ -293,6 +296,11 @@ async function cargarDatosIniciales() {
     
     // Obtener el número de venta
     await obtenerNumeroVenta();
+    
+    // Verificar stock bajo y mostrar notificaciones
+    if (typeof verificarStockBajo === 'function' && firebaseDB) {
+      await verificarStockBajo(firebaseDB);
+    }
     
     console.log('✅ Datos iniciales cargados');
   } catch (error) {
@@ -1084,6 +1092,9 @@ function mostrarModalExito(numeroVenta, total) {
     document.getElementById('modalChangeRow').style.display = 'none';
   }
   
+  // GUARDAR carrito antes de limpiar (para poder imprimir después)
+  ultimoCarrito = [...carrito];
+  
   // Limpiar carrito y resetear campos de pago
   carrito = [];
   actualizarCarrito();
@@ -1108,6 +1119,284 @@ function cerrarModal() {
   modal.classList.remove('active');
   modal.style.display = 'none';
   document.body.style.overflow = 'auto';
+}
+
+// ===== 24.5 IMPRIMIR TICKET =====
+function imprimirTicket() {
+  console.log('🖨️ Generando ticket de venta...');
+  
+  // Obtener datos del modal
+  const numeroVenta = document.getElementById('modalSaleNumber').textContent;
+  const totalItems = document.getElementById('modalItems').textContent;
+  const total = document.getElementById('modalTotal').textContent;
+  const metodoPago = document.getElementById('modalPaymentMethod').textContent;
+  
+  // Obtener descuento si existe
+  const discountRow = document.getElementById('modalDiscountRow');
+  const descuento = discountRow.style.display !== 'none' 
+    ? document.getElementById('modalDiscount').textContent 
+    : null;
+  
+  // Obtener monto recibido y cambio si es efectivo
+  const amountRow = document.getElementById('modalAmountRow');
+  const montoRecibido = amountRow.style.display !== 'none'
+    ? document.getElementById('modalAmountReceived').textContent
+    : null;
+  const cambio = amountRow.style.display !== 'none'
+    ? document.getElementById('modalChange').textContent
+    : null;
+  
+  // Obtener fecha y hora actual
+  const now = new Date();
+  const fecha = now.toLocaleDateString('es-BO', { 
+    year: 'numeric', 
+    month: '2-digit', 
+    day: '2-digit' 
+  });
+  const hora = now.toLocaleTimeString('es-BO', { 
+    hour: '2-digit', 
+    minute: '2-digit' 
+  });
+  
+  // Construir HTML del ticket
+  const ticketHTML = `
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+      <meta charset="UTF-8">
+      <title>Ticket de Venta ${numeroVenta}</title>
+      <style>
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+        
+        body {
+          font-family: 'Courier New', monospace;
+          width: 80mm;
+          margin: 0 auto;
+          padding: 10mm;
+          background: white;
+        }
+        
+        .ticket {
+          width: 100%;
+        }
+        
+        .header {
+          text-align: center;
+          margin-bottom: 10px;
+          border-bottom: 2px dashed #000;
+          padding-bottom: 10px;
+        }
+        
+        .logo-text {
+          font-size: 24px;
+          font-weight: bold;
+          color: #0D3C61;
+          margin-bottom: 5px;
+        }
+        
+        .empresa {
+          font-size: 12px;
+          margin: 3px 0;
+        }
+        
+        .info-venta {
+          margin: 10px 0;
+          font-size: 11px;
+        }
+        
+        .info-row {
+          display: flex;
+          justify-content: space-between;
+          margin: 3px 0;
+        }
+        
+        .items {
+          margin: 10px 0;
+          border-top: 1px dashed #000;
+          border-bottom: 1px dashed #000;
+          padding: 10px 0;
+        }
+        
+        .item {
+          margin: 5px 0;
+          font-size: 11px;
+        }
+        
+        .item-name {
+          font-weight: bold;
+        }
+        
+        .item-details {
+          display: flex;
+          justify-content: space-between;
+          padding-left: 10px;
+        }
+        
+        .totals {
+          margin: 10px 0;
+          font-size: 12px;
+        }
+        
+        .total-row {
+          display: flex;
+          justify-content: space-between;
+          margin: 5px 0;
+        }
+        
+        .total-row.final {
+          font-size: 16px;
+          font-weight: bold;
+          border-top: 2px solid #000;
+          padding-top: 5px;
+          margin-top: 10px;
+        }
+        
+        .payment-info {
+          margin: 10px 0;
+          padding: 10px 0;
+          border-top: 1px dashed #000;
+          font-size: 11px;
+        }
+        
+        .footer {
+          text-align: center;
+          margin-top: 15px;
+          font-size: 10px;
+          border-top: 2px dashed #000;
+          padding-top: 10px;
+        }
+        
+        .footer p {
+          margin: 3px 0;
+        }
+        
+        @media print {
+          body {
+            width: 80mm;
+            margin: 0;
+            padding: 0;
+          }
+          
+          .no-print {
+            display: none;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="ticket">
+        <div class="header">
+          <div class="logo-text">SERVISALUD</div>
+          <div class="empresa">Farmacia y Droguería</div>
+          <div class="empresa">NIT: 123456789</div>
+          <div class="empresa">Telf: (591) 2-1234567</div>
+        </div>
+        
+        <div class="info-venta">
+          <div class="info-row">
+            <span><strong>Ticket:</strong></span>
+            <span>${numeroVenta}</span>
+          </div>
+          <div class="info-row">
+            <span><strong>Fecha:</strong></span>
+            <span>${fecha}</span>
+          </div>
+          <div class="info-row">
+            <span><strong>Hora:</strong></span>
+            <span>${hora}</span>
+          </div>
+          <div class="info-row">
+            <span><strong>Vendedor:</strong></span>
+            <span>${currentUser?.nombre || currentUser?.email?.split('@')[0] || 'N/A'}</span>
+          </div>
+        </div>
+        
+        <div class="items">
+          <div style="font-weight: bold; margin-bottom: 8px;">PRODUCTOS</div>
+          ${ultimoCarrito.map(item => `
+            <div class="item">
+              <div class="item-name">${item.name}</div>
+              <div class="item-details">
+                <span>${item.cantidad} x ${formatCurrency(item.price)}</span>
+                <span>${formatCurrency(item.price * item.cantidad)}</span>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+        
+        <div class="totals">
+          <div class="total-row">
+            <span>Total Items:</span>
+            <span>${totalItems}</span>
+          </div>
+          ${descuento ? `
+          <div class="total-row">
+            <span>Descuento:</span>
+            <span>${descuento}</span>
+          </div>
+          ` : ''}
+          <div class="total-row final">
+            <span>TOTAL:</span>
+            <span>${total}</span>
+          </div>
+        </div>
+        
+        <div class="payment-info">
+          <div class="total-row">
+            <span><strong>Forma de Pago:</strong></span>
+            <span>${metodoPago}</span>
+          </div>
+          ${montoRecibido ? `
+          <div class="total-row">
+            <span>Recibido:</span>
+            <span>${montoRecibido}</span>
+          </div>
+          <div class="total-row">
+            <span>Cambio:</span>
+            <span>${cambio}</span>
+          </div>
+          ` : ''}
+        </div>
+        
+        <div class="footer">
+          <p>¡Gracias por su compra!</p>
+          <p>Este documento no es válido como factura</p>
+          <p>Conserve este ticket para cualquier reclamo</p>
+          <p style="margin-top: 10px;">www.servisalud.com</p>
+        </div>
+      </div>
+      
+      <script>
+        window.onload = function() {
+          window.print();
+          setTimeout(function() {
+            window.close();
+          }, 500);
+        }
+      </script>
+    </body>
+    </html>
+  `;
+  
+  // Guardar carrito actual para el ticket
+  const carritoParaTicket = [...carrito];
+  
+  // Abrir ventana de impresión
+  const ventanaImpresion = window.open('', '_blank', 'width=302,height=500');
+  
+  if (ventanaImpresion) {
+    ventanaImpresion.document.write(ticketHTML);
+    ventanaImpresion.document.close();
+    
+    console.log('✅ Ventana de impresión abierta');
+  } else {
+    alert('⚠️ Por favor, permite las ventanas emergentes para imprimir el ticket');
+    console.error('❌ No se pudo abrir la ventana de impresión');
+  }
 }
 
 // ===== 25. MOSTRAR NOTIFICACIÓN =====

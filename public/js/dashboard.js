@@ -25,6 +25,11 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     // Cargar estadísticas
     await cargarEstadisticas();
+    
+    // Verificar stock bajo y mostrar notificaciones
+    if (typeof verificarStockBajo === 'function' && firebaseDB) {
+        await verificarStockBajo(firebaseDB);
+    }
 });
 
 // ===== 4. VERIFICAR AUTENTICACIÓN =====

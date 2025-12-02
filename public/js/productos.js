@@ -262,6 +262,11 @@ async function cargarDatosIniciales() {
         // Actualizar tarjetas informativas
         actualizarTarjetasInfo();
         
+        // Verificar stock bajo y mostrar notificaciones
+        if (typeof verificarStockBajo === 'function' && firebaseDB) {
+            await verificarStockBajo(firebaseDB);
+        }
+        
     } catch (error) {
         console.error('❌ Error al cargar datos:', error);
         mostrarError('Error al cargar los datos. Por favor, recarga la página.');

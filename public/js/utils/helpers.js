@@ -212,4 +212,175 @@ function aplicarRestriccionesMenu() {
     }
 }
 
+/**
+ * Muestra una notificación toast
+ * @param {string} mensaje - Mensaje a mostrar
+ * @param {string} tipo - 'success' | 'error' | 'warning' | 'info'
+ * @param {number} duracion - Duración en ms (default 5000)
+ */
+function mostrarNotificacion(mensaje, tipo = 'info', duracion = 5000) {
+    // Crear contenedor de notificaciones si no existe
+    let container = document.getElementById('notification-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'notification-container';
+        container.style.cssText = `
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 400px;
+        `;
+        document.body.appendChild(container);
+    }
+    
+    // Crear notificación
+    const notificacion = document.createElement('div');
+    notificacion.className = `notification notification-${tipo}`;
+    
+    const iconos = {
+        success: 'fa-check-circle',
+        error: 'fa-times-circle',
+        warning: 'fa-exclamation-triangle',
+        info: 'fa-info-circle'
+    };
+    
+    const colores = {
+        success: '#7CB342',
+        error: '#E53935',
+        warning: '#FFA726',
+        info: '#0D3C61'
+    };
+    
+    notificacion.style.cssText = `
+        background: white;
+        border-left: 4px solid ${colores[tipo]};
+        padding: 15px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        animation: slideInRight 0.3s ease;
+        min-width: 300px;
+    `;
+    
+    notificacion.innerHTML = `
+        <i class="fas ${iconos[tipo]}" style="color: ${colores[tipo]}; font-size: 20px;"></i>
+        <span style="flex: 1; font-size: 14px; color: #333;">${mensaje}</span>
+        <button onclick="this.parentElement.remove()" style="
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #999;
+            font-size: 20px;
+            padding: 0;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        ">×</button>
+    `;
+    
+    // Agregar animación de entrada
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideInRight {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+    `;
+    if (!document.getElementById('notification-styles')) {
+        style.id = 'notification-styles';
+        document.head.appendChild(style);
+    }
+    
+    container.appendChild(notificacion);
+    
+    // Auto-eliminar después de la duración especificada
+    if (duracion > 0) {
+        setTimeout(() => {
+            notificacion.style.animation = 'slideOutRight 0.3s ease';
+            setTimeout(() => {
+                notificacion.remove();
+                // Eliminar contenedor si no hay más notificaciones
+                if (container.children.length === 0) {
+                    container.remove();
+                }
+            }, 300);
+        }, duracion);
+    }
+    
+    return notificacion;
+}
+
+/**
+ * Verifica productos con stock bajo y muestra notificaciones
+ * @param {object} db - Referencia a Firestore
+ */
+async function verificarStockBajo(db) {
+    if (!db) {
+        console.warn('⚠️ Firestore no está disponible para verificar stock');
+        return;
+    }
+    
+    try {
+        const snapshot = await db.collection('products')
+            .where('activo', '==', true)
+            .get();
+        
+        const productosStockBajo = [];
+        
+        snapshot.forEach(doc => {
+            const producto = doc.data();
+            const stockActual = producto.current_stock || producto.stock || 0;
+            const stockMinimo = producto.minimum_stock || producto.stockMinimo || 5;
+            
+            if (stockActual <= stockMinimo) {
+                productosStockBajo.push({
+                    id: doc.id,
+                    nombre: producto.name || producto.nombre,
+                    stock: stockActual,
+                    stockMinimo: stockMinimo
+                });
+            }
+        });
+        
+        // Mostrar notificación si hay productos con stock bajo
+        if (productosStockBajo.length > 0) {
+            const mensaje = productosStockBajo.length === 1
+                ? `⚠️ Producto con stock bajo: ${productosStockBajo[0].nombre} (${productosStockBajo[0].stock} unidades)`
+                : `⚠️ ${productosStockBajo.length} productos con stock bajo`;
+            
+            mostrarNotificacion(mensaje, 'warning', 8000);
+            console.log('📊 Productos con stock bajo:', productosStockBajo);
+        }
+        
+        return productosStockBajo;
+    } catch (error) {
+        console.error('❌ Error al verificar stock bajo:', error);
+        return [];
+    }
+}
+
 console.log('✅ Utilidades cargadas correctamente');
