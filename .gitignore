@@ -10,6 +10,11 @@ yarn-error.log*
 firebase-debug.log
 firestore-debug.log
 ui-debug.log
+firebase-service-account.json
+
+# Backups y exports
+temp_users.json
+usuarios_backup.json
 
 # Environment variables
 .env
