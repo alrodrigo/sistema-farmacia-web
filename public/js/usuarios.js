@@ -424,6 +424,13 @@ function abrirModalNuevo() {
     document.getElementById('usuarioForm').reset();
     limpiarErrores();
     
+    // Habilitar campo de email (solo se bloquea en modo edición)
+    const inputEmail = document.getElementById('inputEmail');
+    inputEmail.disabled = false;
+    inputEmail.style.backgroundColor = '';
+    inputEmail.style.cursor = '';
+    inputEmail.title = '';
+    
     // Mostrar advertencia de creación deshabilitada
     const alertCreacion = document.getElementById('alertCreacionUsuario');
     if (alertCreacion) {
@@ -485,7 +492,14 @@ async function editarUsuario(id) {
     
     // Llenar formulario
     document.getElementById('inputNombre').value = usuario.name || '';
-    document.getElementById('inputEmail').value = usuario.email || '';
+    const inputEmail = document.getElementById('inputEmail');
+    inputEmail.value = usuario.email || '';
+    // Bloquear email en edición (no se puede cambiar en Firebase Authentication sin backend)
+    inputEmail.disabled = true;
+    inputEmail.style.backgroundColor = '#f5f5f5';
+    inputEmail.style.cursor = 'not-allowed';
+    inputEmail.title = 'El email no se puede modificar por seguridad';
+    
     document.getElementById('inputRol').value = usuario.role || '';
     
     // Mostrar permisos del rol
@@ -528,32 +542,15 @@ async function guardarUsuario(event) {
         
         if (modoEdicion) {
             // Actualizar usuario existente en Firestore
-            const updateData = {
+            // Nota: El email NO se puede cambiar por seguridad de Firebase Authentication
+            await firebaseDB.collection('users').doc(usuarioEditandoId).update({
                 name: nombre,
                 role: rol,
                 updated_at: firebase.firestore.FieldValue.serverTimestamp()
-            };
+            });
             
-            // Verificar si el email cambió
-            const usuarioActual = usuarios.find(u => u.id === usuarioEditandoId);
-            if (usuarioActual && usuarioActual.email !== email) {
-                // Actualizar email en Firestore
-                updateData.email = email;
-                
-                console.log('⚠️ Email cambiado de', usuarioActual.email, 'a', email);
-                alert('✅ Usuario actualizado correctamente.\n\n' +
-                      '⚠️ IMPORTANTE: El email ha sido cambiado.\n' +
-                      'El usuario deberá usar el NUEVO email para iniciar sesión.\n\n' +
-                      'Nota: Si el usuario ya tenía una sesión activa, deberá cerrarla y volver a iniciar sesión con el nuevo email.');
-            }
-            
-            await firebaseDB.collection('users').doc(usuarioEditandoId).update(updateData);
-            
-            console.log('✅ Usuario actualizado:', usuarioEditandoId, updateData);
-            
-            if (!updateData.email) {
-                alert('✅ Usuario actualizado correctamente');
-            }
+            console.log('✅ Usuario actualizado:', usuarioEditandoId);
+            alert('✅ Usuario actualizado correctamente');
             
         } else {
             // Crear nuevo usuario
