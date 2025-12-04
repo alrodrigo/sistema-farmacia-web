@@ -331,7 +331,7 @@ function abrirModalNuevo() {
     document.getElementById('formProveedor').reset();
     document.getElementById('proveedorId').value = '';
     document.getElementById('inputActivo').checked = true;
-    document.getElementById('modalProveedor').classList.add('show');
+    document.getElementById('modalProveedor').classList.add('active');
 }
 
 function editarProveedor(id) {
@@ -350,11 +350,11 @@ function editarProveedor(id) {
     document.getElementById('inputNotas').value = proveedor.notas || '';
     document.getElementById('inputActivo').checked = proveedor.activo !== false;
     
-    document.getElementById('modalProveedor').classList.add('show');
+    document.getElementById('modalProveedor').classList.add('active');
 }
 
 function cerrarModal() {
-    document.getElementById('modalProveedor').classList.remove('show');
+    document.getElementById('modalProveedor').classList.remove('active');
     document.getElementById('formProveedor').reset();
     proveedorEditandoId = null;
 }

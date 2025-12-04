@@ -197,13 +197,28 @@ function getFirebaseErrorMessage(error) {
 function aplicarRestriccionesMenu(user) {
     // Si se pasa un usuario, usarlo; si no, intentar obtenerlo
     const currentUser = user || getCurrentUser();
+    
+    // Si no hay usuario disponible, intentar obtener del localStorage como respaldo
     if (!currentUser) {
+        const cachedRole = localStorage.getItem('userRole');
+        if (cachedRole) {
+            console.log('🔒 Aplicando restricciones desde caché:', cachedRole);
+            if (cachedRole === 'admin') {
+                document.body.classList.add('show-admin-options');
+            } else {
+                document.body.classList.remove('show-admin-options');
+            }
+            return;
+        }
         console.warn('⚠️ No se puede aplicar restricciones: usuario no disponible');
         return;
     }
     
     const role = currentUser.role || 'empleado';
     console.log('🔒 Aplicando restricciones de menú para rol:', role);
+    
+    // Guardar rol en localStorage para futuras cargas
+    localStorage.setItem('userRole', role);
     
     // Si es ADMIN, mostrar todas las opciones agregando clase al body
     if (role === 'admin') {
@@ -217,3 +232,6 @@ function aplicarRestriccionesMenu(user) {
 }
 
 console.log('✅ Utilidades cargadas correctamente');
+
+// Aplicar restricciones inmediatamente al cargar (usa caché si está disponible)
+aplicarRestriccionesMenu();
