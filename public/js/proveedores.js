@@ -73,7 +73,13 @@ function mostrarNombreUsuario() {
     const userRoleElement = document.getElementById('userRole');
     
     if (userName && currentUser) {
-        const displayName = currentUser.name || currentUser.first_name || currentUser.email.split('@')[0];
+        // Intentar múltiples campos en orden de preferencia
+        const displayName = currentUser.nombre || 
+                          currentUser.name || 
+                          currentUser.first_name || 
+                          currentUser.displayName ||
+                          currentUser.email?.split('@')[0] || 
+                          'Usuario';
         userName.textContent = displayName;
     }
     

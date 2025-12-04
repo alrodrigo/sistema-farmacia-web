@@ -525,7 +525,7 @@
 }
 
 .modal-actions .btn-primary {
-    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
     color: white !important;
     box-shadow: 0 4px 12px rgba(106, 90, 205, 0.3);
     font-size: 1rem !important;

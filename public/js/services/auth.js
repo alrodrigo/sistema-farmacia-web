@@ -135,7 +135,15 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 const userData = await loginUser(email, password);
                 
-                showAlert(`¡Bienvenido ${userData.first_name}!`, 'success', 2000);
+                // Obtener nombre con fallbacks
+                const displayName = userData.nombre || 
+                                  userData.name || 
+                                  userData.first_name || 
+                                  userData.displayName ||
+                                  userData.email?.split('@')[0] || 
+                                  'Usuario';
+                
+                showAlert(`¡Bienvenido ${displayName}!`, 'success', 2000);
                 
                 setTimeout(() => {
                     redirectTo('dashboard.html');
