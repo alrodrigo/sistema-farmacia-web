@@ -265,6 +265,7 @@
                                 class="form-control"
                                 id="inputEmail" 
                                 placeholder="Ej: juan@farmacia.com"
+                                autocomplete="username"
                                 required
                             >
                             <span class="error-message" id="errorEmail"></span>
@@ -366,6 +367,9 @@
             </div>
 
             <form id="passwordForm" class="modal-body">
+                <!-- Campo oculto para username (requerido por Chrome para accessibility) -->
+                <input type="email" autocomplete="username" style="display:none" readonly value="">
+                
                 <div class="form-group">
                     <label class="form-label" for="inputNewPassword">
                         Nueva Contraseña <span class="required">*</span>
