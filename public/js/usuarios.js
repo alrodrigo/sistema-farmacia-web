@@ -626,15 +626,17 @@ function validarFormulario() {
         esValido = false;
     }
     
-    // Validar email
-    const email = document.getElementById('inputEmail').value.trim();
-    if (!email) {
-        document.getElementById('errorEmail').textContent = 'El email es requerido';
-        if (esValido) document.getElementById('inputEmail').focus();
-        esValido = false;
-    } else if (!validarEmail(email)) {
-        document.getElementById('errorEmail').textContent = 'Email inválido (ejemplo: usuario@dominio.com)';
-        esValido = false;
+    // Validar email (solo en modo nuevo, en edición no se puede cambiar)
+    if (!modoEdicion) {
+        const email = document.getElementById('inputEmail').value.trim();
+        if (!email) {
+            document.getElementById('errorEmail').textContent = 'El email es requerido';
+            if (esValido) document.getElementById('inputEmail').focus();
+            esValido = false;
+        } else if (!validarEmail(email)) {
+            document.getElementById('errorEmail').textContent = 'Email inválido (ejemplo: usuario@dominio.com)';
+            esValido = false;
+        }
     }
     
     // Validar password (solo si es nuevo usuario)
