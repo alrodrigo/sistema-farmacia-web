@@ -90,7 +90,7 @@ async function protectPageByRole(allowedRoles = [], redirectUrl = 'dashboard.htm
     const userDoc = await firebaseDB.collection('users').doc(user.uid).get();
     
     if (!userDoc.exists) {
-        console.error('Usuario no encontrado en Firestore');
+        // console.error('Usuario no encontrado en Firestore');
         redirectTo('index.html');
         return;
     }
@@ -100,7 +100,7 @@ async function protectPageByRole(allowedRoles = [], redirectUrl = 'dashboard.htm
     
     // Si se especificaron roles permitidos, verificar
     if (allowedRoles.length > 0 && !allowedRoles.includes(userRole)) {
-        console.warn(`Acceso denegado. Rol requerido: ${allowedRoles.join(' o ')}, Rol actual: ${userRole}`);
+        // console.warn(`Acceso denegado. Rol requerido: ${allowedRoles.join(' o ')}, Rol actual: ${userRole}`);
         showAlert('No tienes permisos para acceder a esta página', 'error');
         setTimeout(() => {
             redirectTo(redirectUrl);
@@ -152,7 +152,7 @@ function updateSidebarByPermissions() {
     
     if (!role) return;
     
-    console.log('🔧 Actualizando menú para rol:', role);
+    // console.log('🔧 Actualizando menú para rol:', role);
     
     // Ocultar opciones según rol
     if (role === ROLES.EMPLEADO) {
@@ -160,28 +160,28 @@ function updateSidebarByPermissions() {
         const usuariosMenu = document.querySelector('a[href="usuarios.html"]');
         if (usuariosMenu) {
             usuariosMenu.style.display = 'none';
-            console.log('✓ Ocultado: Usuarios');
+            // console.log('✓ Ocultado: Usuarios');
         }
         
         // Ocultar categorías para empleados
         const categoriasMenu = document.querySelector('a[href="categorias.html"]');
         if (categoriasMenu) {
             categoriasMenu.style.display = 'none';
-            console.log('✓ Ocultado: Categorías');
+            // console.log('✓ Ocultado: Categorías');
         }
         
         // Ocultar proveedores para empleados
         const proveedoresMenu = document.querySelector('a[href="proveedores.html"]');
         if (proveedoresMenu) {
             proveedoresMenu.style.display = 'none';
-            console.log('✓ Ocultado: Proveedores');
+            // console.log('✓ Ocultado: Proveedores');
         }
         
         // Productos: visible pero marcar como solo lectura
         const productosMenu = document.querySelector('a[href="productos.html"]');
         if (productosMenu) {
             productosMenu.style.display = 'flex'; // Asegurar que esté visible
-            console.log('✓ Visible: Productos (solo lectura)');
+            // console.log('✓ Visible: Productos (solo lectura)');
         }
     }
     
@@ -216,7 +216,7 @@ async function updateAdminRole(userEmail = 'admin@farmacia.com') {
             .get();
         
         if (usersSnapshot.empty) {
-            console.error('Usuario no encontrado');
+            // console.error('Usuario no encontrado');
             return false;
         }
         
@@ -226,10 +226,10 @@ async function updateAdminRole(userEmail = 'admin@farmacia.com') {
             updated_at: firebase.firestore.FieldValue.serverTimestamp()
         });
         
-        console.log('✅ Rol de admin actualizado correctamente');
+        // console.log('✅ Rol de admin actualizado correctamente');
         return true;
     } catch (error) {
-        console.error('Error al actualizar rol:', error);
+        // console.error('Error al actualizar rol:', error);
         return false;
     }
 }
@@ -239,10 +239,10 @@ async function updateAdminRole(userEmail = 'admin@farmacia.com') {
  */
 function debugPermissions() {
     const role = getCurrentUserRole();
-    console.log('=== DEBUG DE PERMISOS ===');
-    console.log('Rol actual:', role);
-    console.log('Es admin:', isAdmin());
-    console.log('Es empleado:', isEmpleado());
-    console.log('Permisos:', PERMISSIONS[role]);
-    console.log('========================');
+    // console.log('=== DEBUG DE PERMISOS ===');
+    // console.log('Rol actual:', role);
+    // console.log('Es admin:', isAdmin());
+    // console.log('Es empleado:', isEmpleado());
+    // console.log('Permisos:', PERMISSIONS[role]);
+    // console.log('========================');
 }

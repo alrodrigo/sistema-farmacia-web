@@ -3,7 +3,7 @@
 // PROPÓSITO: Lógica del sistema de ventas (POS)
 // =====================================================
 
-console.log('🛒 Ventas.js cargado');
+// console.log('🛒 Ventas.js cargado');
 
 // ===== 1. REFERENCIAS A FIREBASE =====
 const firebaseAuth = window.firebaseAuth;
@@ -20,7 +20,7 @@ const MODO_DESARROLLO = false;
 
 // ===== 3. CUANDO LA PÁGINA CARGA =====
 document.addEventListener('DOMContentLoaded', async function() {
-  console.log('📄 DOM cargado, iniciando POS...');
+  // console.log('📄 DOM cargado, iniciando POS...');
   
   // Verificar autenticación
   await verificarAutenticacion();
@@ -40,11 +40,11 @@ document.addEventListener('DOMContentLoaded', async function() {
 
 // ===== 4. VERIFICAR AUTENTICACIÓN =====
 async function verificarAutenticacion() {
-  console.log('🔐 Verificando autenticación...');
+  // console.log('🔐 Verificando autenticación...');
   
   // MODO DE DESARROLLO: simular usuario
   if (MODO_DESARROLLO) {
-    console.log('⚠️ MODO DE DESARROLLO ACTIVADO');
+    // console.log('⚠️ MODO DE DESARROLLO ACTIVADO');
     currentUser = {
       uid: 'dev-user-123',
       email: 'admin@farmacia.com',
@@ -57,7 +57,7 @@ async function verificarAutenticacion() {
   
   // MODO PRODUCCIÓN: verificar con Firebase
   if (!firebaseAuth) {
-    console.error('❌ Firebase Auth no está inicializado');
+    // console.error('❌ Firebase Auth no está inicializado');
     redirectTo('index.html');
     return Promise.resolve(false);
   }
@@ -65,7 +65,7 @@ async function verificarAutenticacion() {
   return new Promise((resolve) => {
     firebaseAuth.onAuthStateChanged(async (user) => {
       if (user) {
-        console.log('✅ Usuario autenticado:', user.email);
+        // console.log('✅ Usuario autenticado:', user.email);
         
         try {
           const userDoc = await firebaseDB.collection('users').doc(user.uid).get();
@@ -87,15 +87,15 @@ async function verificarAutenticacion() {
             
             resolve(true);
           } else {
-            console.error('❌ Documento de usuario no encontrado');
+            // console.error('❌ Documento de usuario no encontrado');
             redirectTo('index.html');
           }
         } catch (error) {
-          console.error('❌ Error al obtener datos del usuario:', error);
+          // console.error('❌ Error al obtener datos del usuario:', error);
           redirectTo('index.html');
         }
       } else {
-        console.log('❌ No hay usuario autenticado');
+        // console.log('❌ No hay usuario autenticado');
         redirectTo('index.html');
       }
     });
@@ -117,7 +117,7 @@ function mostrarNombreUsuario() {
                        'Usuario';
     
     userNameElement.textContent = displayName;
-    console.log('👤 Usuario mostrado:', displayName);
+    // console.log('👤 Usuario mostrado:', displayName);
   }
   
   if (currentUser && userRoleElement) {
@@ -129,7 +129,7 @@ function mostrarNombreUsuario() {
 
 // ===== 6. CONFIGURAR EVENTOS =====
 function configurarEventos() {
-  console.log('🔘 Configurando eventos...');
+  // console.log('🔘 Configurando eventos...');
   
   // Botón de logout
   const btnLogout = document.getElementById('btnLogout');
@@ -273,22 +273,22 @@ function configurarEventos() {
 
 // ===== 7. CERRAR SESIÓN =====
 async function cerrarSesion() {
-  console.log('🚪 Cerrando sesión...');
+  // console.log('🚪 Cerrando sesión...');
   
   try {
     await firebaseAuth.signOut();
     clearCurrentUser();
-    console.log('✅ Sesión cerrada exitosamente');
+    // console.log('✅ Sesión cerrada exitosamente');
     redirectTo('index.html');
   } catch (error) {
-    console.error('❌ Error al cerrar sesión:', error);
+    // console.error('❌ Error al cerrar sesión:', error);
     alert('Error al cerrar sesión. Intenta nuevamente.');
   }
 }
 
 // ===== 8. CARGAR DATOS INICIALES =====
 async function cargarDatosIniciales() {
-  console.log('📊 Cargando datos iniciales...');
+  // console.log('📊 Cargando datos iniciales...');
   
   try {
     // Cargar todos los productos
@@ -297,19 +297,19 @@ async function cargarDatosIniciales() {
     // Obtener el número de venta
     await obtenerNumeroVenta();
     
-    console.log('✅ Datos iniciales cargados');
+    // console.log('✅ Datos iniciales cargados');
   } catch (error) {
-    console.error('❌ Error al cargar datos:', error);
+    // console.error('❌ Error al cargar datos:', error);
   }
 }
 
 // ===== 9. CARGAR PRODUCTOS =====
 async function cargarProductos() {
-  console.log('📦 Cargando productos desde Firestore...');
+  // console.log('📦 Cargando productos desde Firestore...');
   
   // MODO DE DESARROLLO: usar productos de prueba
   if (MODO_DESARROLLO) {
-    console.log('⚠️ Usando productos de prueba');
+    // console.log('⚠️ Usando productos de prueba');
     todosLosProductos = [
       {
         id: 'prod-1',
@@ -366,7 +366,7 @@ async function cargarProductos() {
         min_stock: 15
       }
     ];
-    console.log(`✅ ${todosLosProductos.length} productos de prueba cargados`);
+    // console.log(`✅ ${todosLosProductos.length} productos de prueba cargados`);
     return;
   }
   
@@ -381,10 +381,10 @@ async function cargarProductos() {
       });
     });
     
-    console.log(`✅ ${todosLosProductos.length} productos cargados`);
+    // console.log(`✅ ${todosLosProductos.length} productos cargados`);
     
   } catch (error) {
-    console.error('❌ Error al cargar productos:', error);
+    // console.error('❌ Error al cargar productos:', error);
     throw error;
   }
 }
@@ -396,7 +396,7 @@ async function obtenerNumeroVenta() {
     numeroVentaActual = 1;
     document.getElementById('saleNumber').textContent = 
       String(numeroVentaActual).padStart(4, '0');
-    console.log(`📝 Número de venta (DEV): ${numeroVentaActual}`);
+    // console.log(`📝 Número de venta (DEV): ${numeroVentaActual}`);
     return;
   }
   
@@ -416,10 +416,10 @@ async function obtenerNumeroVenta() {
     document.getElementById('saleNumber').textContent = 
       String(numeroVentaActual).padStart(4, '0');
     
-    console.log(`📝 Número de venta actual: ${numeroVentaActual}`);
+    // console.log(`📝 Número de venta actual: ${numeroVentaActual}`);
     
   } catch (error) {
-    console.error('❌ Error al obtener número de venta:', error);
+    // console.error('❌ Error al obtener número de venta:', error);
     // Si hay error, usar número por defecto
     numeroVentaActual = 1;
   }
@@ -449,7 +449,7 @@ function actualizarFechaHora() {
  * @param {string} termino - Término de búsqueda
  */
 function buscarProductos(termino) {
-  console.log('🔍 Buscando productos:', termino);
+  // console.log('🔍 Buscando productos:', termino);
   
   const terminoLower = termino.toLowerCase().trim();
   
@@ -466,7 +466,7 @@ function buscarProductos(termino) {
            (producto.barcode && producto.barcode.includes(terminoLower));
   });
   
-  console.log(`✅ ${resultados.length} productos encontrados`);
+  // console.log(`✅ ${resultados.length} productos encontrados`);
   mostrarResultados(resultados);
 }
 
@@ -540,7 +540,7 @@ function mostrarResultados(productos) {
 }
 
 // Continuará en el siguiente mensaje...
-console.log('✅ Ventas.js parte 1 cargada');
+// console.log('✅ Ventas.js parte 1 cargada');
 
 // ===== 15. AGREGAR PRODUCTO AL CARRITO =====
 /**
@@ -549,7 +549,7 @@ console.log('✅ Ventas.js parte 1 cargada');
  * @param {string} productoId - ID del producto
  */
 function agregarAlCarrito(productoId) {
-  console.log('➕ Agregar al carrito:', productoId);
+  // console.log('➕ Agregar al carrito:', productoId);
   
   // Buscar el producto en el array de productos
   const producto = todosLosProductos.find(p => p.id === productoId);
@@ -577,7 +577,7 @@ function agregarAlCarrito(productoId) {
     
     // Aumentar cantidad
     itemExistente.cantidad++;
-    console.log(`📈 Cantidad aumentada: ${itemExistente.cantidad}`);
+    // console.log(`📈 Cantidad aumentada: ${itemExistente.cantidad}`);
   } else {
     // Agregar nuevo item al carrito
     carrito.push({
@@ -587,7 +587,7 @@ function agregarAlCarrito(productoId) {
       cantidad: 1,
       stock_disponible: producto.current_stock
     });
-    console.log('✅ Producto agregado al carrito');
+    // console.log('✅ Producto agregado al carrito');
   }
   
   // Actualizar la vista del carrito
@@ -602,7 +602,7 @@ function agregarAlCarrito(productoId) {
  * Actualiza la vista del carrito y los totales
  */
 function actualizarCarrito() {
-  console.log('🔄 Actualizando carrito...');
+  // console.log('🔄 Actualizando carrito...');
   
   const container = document.getElementById('cartContainer');
   
@@ -667,7 +667,7 @@ function actualizarCarrito() {
  * @param {number} cambio - +1 o -1
  */
 function cambiarCantidad(productoId, cambio) {
-  console.log(`🔢 Cambiar cantidad: ${productoId}, cambio: ${cambio}`);
+  // console.log(`🔢 Cambiar cantidad: ${productoId}, cambio: ${cambio}`);
   
   const item = carrito.find(i => i.id === productoId);
   
@@ -703,7 +703,7 @@ function cambiarCantidad(productoId, cambio) {
  * @param {string} productoId - ID del producto
  */
 function quitarDelCarrito(productoId) {
-  console.log('🗑️ Quitar del carrito:', productoId);
+  // console.log('🗑️ Quitar del carrito:', productoId);
   
   // Filtrar el carrito quitando el producto
   carrito = carrito.filter(item => item.id !== productoId);
@@ -721,7 +721,7 @@ function limpiarCarrito() {
   if (confirmar) {
     carrito = [];
     actualizarCarrito();
-    console.log('🧹 Carrito limpiado');
+    // console.log('🧹 Carrito limpiado');
     mostrarNotificacion('🧹 Carrito limpiado');
   }
 }
@@ -863,7 +863,7 @@ function cancelarVenta() {
     limpiarCarrito();
     document.getElementById('searchProductInput').value = '';
     mostrarResultadosVacios();
-    console.log('❌ Venta cancelada');
+    // console.log('❌ Venta cancelada');
   }
 }
 
@@ -878,7 +878,7 @@ async function procesarVenta() {
     return;
   }
   
-  console.log('💰 Procesando venta...');
+  // console.log('💰 Procesando venta...');
   
   // Validar stock disponible antes de procesar
   for (const item of carrito) {
@@ -982,8 +982,8 @@ async function procesarVenta() {
     
     // MODO DE DESARROLLO: simular venta exitosa
     if (MODO_DESARROLLO) {
-      console.log('⚠️ MODO DE DESARROLLO: Simulando venta exitosa');
-      console.log('📊 Datos de venta:', {
+      // console.log('⚠️ MODO DE DESARROLLO: Simulando venta exitosa');
+      // console.log('📊 Datos de venta:', {
         numero: numeroVentaActual,
         items: carrito.length,
         total: total
@@ -1059,7 +1059,7 @@ async function procesarVenta() {
     
     // Guardar la venta en Firestore
     const ventaRef = await firebaseDB.collection('sales').add(ventaData);
-    console.log('✅ Venta guardada:', ventaRef.id);
+    // console.log('✅ Venta guardada:', ventaRef.id);
     
     // Actualizar el inventario de cada producto
     for (const item of carrito) {
@@ -1075,7 +1075,7 @@ async function procesarVenta() {
           updated_at: firebase.firestore.FieldValue.serverTimestamp()
         });
         
-        console.log(`📦 Stock actualizado: ${item.name} (${stockActual} → ${nuevoStock})`);
+        // console.log(`📦 Stock actualizado: ${item.name} (${stockActual} → ${nuevoStock})`);
       }
     }
     
@@ -1094,10 +1094,10 @@ async function procesarVenta() {
     btnProcesar.disabled = false;
     btnProcesar.innerHTML = textoOriginal;
     
-    console.log('✅ Venta procesada exitosamente');
+    // console.log('✅ Venta procesada exitosamente');
     
   } catch (error) {
-    console.error('❌ Error al procesar venta:', error);
+    // console.error('❌ Error al procesar venta:', error);
     alert('❌ Error al procesar la venta. Por favor, intenta nuevamente.');
     
     // Rehabilitar botón
@@ -1185,7 +1185,7 @@ function cerrarModal() {
 function mostrarNotificacion(mensaje) {
   // Por ahora solo un console.log
   // Podrías implementar un toast notification aquí
-  console.log('📢', mensaje);
+  // console.log('📢', mensaje);
 }
 
 // ===== ACTUALIZAR MENÚ POR ROL =====
@@ -1193,7 +1193,7 @@ function actualizarMenuPorRol() {
   if (!currentUser) return;
   
   const role = currentUser.role || 'empleado';
-  console.log('🔐 Menú actualizado para rol:', role);
+  // console.log('🔐 Menú actualizado para rol:', role);
   
   // El menú se maneja completamente desde helpers.js con aplicarRestriccionesMenu()
   // y CSS con la clase 'admin-only'. No se necesita lógica adicional aquí.
@@ -1204,7 +1204,7 @@ function actualizarMenuPorRol() {
  * Genera el HTML del recibo y lo imprime
  */
 function imprimirRecibo() {
-  console.log('🖨️ Generando recibo para imprimir...');
+  // console.log('🖨️ Generando recibo para imprimir...');
   
   // Obtener datos del modal
   const numeroVenta = document.getElementById('modalSaleNumber').textContent;
@@ -1358,7 +1358,7 @@ function imprimirRecibo() {
     }, 100);
   }, 100);
   
-  console.log('✅ Recibo generado y enviado a impresión');
+  // console.log('✅ Recibo generado y enviado a impresión');
 }
 
 // ===== 27. GUARDAR ITEMS DE ÚLTIMA VENTA =====
@@ -1375,5 +1375,5 @@ function guardarItemsParaRecibo() {
   }));
 }
 
-console.log('✅ Ventas.js completamente cargado');
+// console.log('✅ Ventas.js completamente cargado');
 

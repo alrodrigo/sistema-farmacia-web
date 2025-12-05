@@ -32,8 +32,8 @@ async function loadUserData(uid) {
             const userData = userDoc.data();
             
             // Debug: Ver todos los campos del usuario
-            console.log('📋 Datos completos del usuario:', userData);
-            console.log('📋 Campos disponibles:', Object.keys(userData));
+            // console.log('📋 Datos completos del usuario:', userData);
+            // console.log('📋 Campos disponibles:', Object.keys(userData));
             
             // Buscar el nombre en diferentes campos posibles
             const userName = userData.name || 
@@ -44,7 +44,7 @@ async function loadUserData(uid) {
                             'Usuario';
             
             document.getElementById('userName').textContent = userName;
-            console.log('👤 Usuario mostrado:', userName);
+            // console.log('👤 Usuario mostrado:', userName);
             
             // Mostrar rol
             const userRoleElement = document.getElementById('userRole');
@@ -57,10 +57,10 @@ async function loadUserData(uid) {
             // Actualizar menú según rol
             actualizarMenuPorRol(userData);
         } else {
-            console.error('❌ Documento de usuario no encontrado');
+            // console.error('❌ Documento de usuario no encontrado');
         }
     } catch (error) {
-        console.error('❌ Error cargando datos del usuario:', error);
+        // console.error('❌ Error cargando datos del usuario:', error);
     }
 }
 
@@ -129,9 +129,9 @@ function setDefaultDates() {
     document.getElementById('fechaInicio').value = firstDayStr;
     document.getElementById('fechaFin').value = todayStr;
     
-    console.log('📅 Fechas por defecto establecidas:');
-    console.log('  Inicio:', firstDayStr);
-    console.log('  Fin:', todayStr);
+    // console.log('📅 Fechas por defecto establecidas:');
+    // console.log('  Inicio:', firstDayStr);
+    // console.log('  Fin:', todayStr);
 }
 
 // ==================== CARGAR DATOS DE VENTAS ====================
@@ -153,7 +153,7 @@ async function loadSalesData() {
                 const fechaField = data.fecha || data.created_at;
                 
                 if (!fechaField) {
-                    console.warn(`⚠️ Venta ${doc.id} no tiene campo 'fecha' ni 'created_at', se ignorará`);
+                    // console.warn(`⚠️ Venta ${doc.id} no tiene campo 'fecha' ni 'created_at', se ignorará`);
                     return null;
                 }
 
@@ -165,23 +165,23 @@ async function loadSalesData() {
                         fecha: fechaField.toDate ? fechaField.toDate() : new Date(fechaField)
                     };
                 } catch (error) {
-                    console.warn(`⚠️ Error procesando venta ${doc.id}:`, error);
+                    // console.warn(`⚠️ Error procesando venta ${doc.id}:`, error);
                     return null;
                 }
             })
             .filter(sale => sale !== null) // Eliminar ventas inválidas
             .sort((a, b) => b.fecha - a.fecha); // Ordenar en JavaScript
 
-        console.log(`✅ ${allSales.length} ventas cargadas correctamente`);
+        // console.log(`✅ ${allSales.length} ventas cargadas correctamente`);
         
         if (allSales.length === 0) {
-            console.log('💡 No hay ventas en la base de datos. Crea algunas ventas primero.');
+            // console.log('💡 No hay ventas en la base de datos. Crea algunas ventas primero.');
         }
         
         applyFilters();
         
     } catch (error) {
-        console.error('❌ Error cargando ventas:', error);
+        // console.error('❌ Error cargando ventas:', error);
         showError('Error al cargar los datos de ventas. Verifica la consola.');
     }
 }
@@ -200,11 +200,11 @@ function applyFilters() {
     const [yFin, mFin, dFin] = fechaFinStr.split('-').map(Number);
     const fechaFin = new Date(yFin, mFin - 1, dFin, 23, 59, 59, 999);
 
-    console.log('📅 Filtrando ventas:');
-    console.log('  Input inicio:', fechaInicioStr, '→', fechaInicio.toLocaleString('es-BO'));
-    console.log('  Input fin:', fechaFinStr, '→', fechaFin.toLocaleString('es-BO'));
-    console.log('  💳 Método de pago:', paymentMethod);
-    console.log('  Total ventas sin filtrar:', allSales.length);
+    // console.log('📅 Filtrando ventas:');
+    // console.log('  Input inicio:', fechaInicioStr, '→', fechaInicio.toLocaleString('es-BO'));
+    // console.log('  Input fin:', fechaFinStr, '→', fechaFin.toLocaleString('es-BO'));
+    // console.log('  💳 Método de pago:', paymentMethod);
+    // console.log('  Total ventas sin filtrar:', allSales.length);
 
     filteredSales = allSales.filter(sale => {
         const saleDate = sale.fecha;
@@ -217,13 +217,13 @@ function applyFilters() {
         }
         
         if (!enRango || !coincideMetodo) {
-            console.log(`  ❌ Venta excluida: ${saleDate.toLocaleString('es-BO')} - Método: ${sale.payment_method}`);
+            // console.log(`  ❌ Venta excluida: ${saleDate.toLocaleString('es-BO')} - Método: ${sale.payment_method}`);
         }
         
         return enRango && coincideMetodo;
     });
 
-    console.log('  ✅ Ventas filtradas:', filteredSales.length);
+    // console.log('  ✅ Ventas filtradas:', filteredSales.length);
     updateUI();
 }
 
@@ -358,18 +358,18 @@ function renderSalesTable() {
 
 // ==================== TOP PRODUCTOS ====================
 function renderTopProducts() {
-    console.log('🏆 Renderizando top productos...');
-    console.log('  Ventas filtradas:', filteredSales.length);
+    // console.log('🏆 Renderizando top productos...');
+    // console.log('  Ventas filtradas:', filteredSales.length);
     
     const productsMap = {};
 
     // Agrupar productos y sumar cantidades
     filteredSales.forEach(sale => {
-        console.log('  Procesando venta:', sale.id);
-        console.log('    Items:', sale.items);
+        // console.log('  Procesando venta:', sale.id);
+        // console.log('    Items:', sale.items);
         
         if (!sale.items || !Array.isArray(sale.items)) {
-            console.warn('    ⚠️ Esta venta no tiene items válidos');
+            // console.warn('    ⚠️ Esta venta no tiene items válidos');
             return;
         }
         
@@ -380,7 +380,7 @@ function renderTopProducts() {
             const precio = item.unit_price || item.precio || item.price || 0;
             const subtotal = item.subtotal || item.total || (precio * cantidad) || 0;
             
-            console.log('      - Producto:', nombre, 'Cantidad:', cantidad, 'Subtotal:', subtotal);
+            // console.log('      - Producto:', nombre, 'Cantidad:', cantidad, 'Subtotal:', subtotal);
             
             if (productsMap[nombre]) {
                 productsMap[nombre].cantidad += cantidad;
@@ -395,7 +395,7 @@ function renderTopProducts() {
         });
     });
     
-    console.log('  Productos agrupados:', productsMap);
+    // console.log('  Productos agrupados:', productsMap);
 
     // Convertir a array y ordenar por cantidad
     const topProducts = Object.values(productsMap)
@@ -992,7 +992,7 @@ function exportToPDF() {
     const filename = `Reporte_Ventas_${fechaInicio}_a_${fechaFin}.pdf`;
     doc.save(filename);
     
-    console.log('✅ PDF generado:', filename);
+    // console.log('✅ PDF generado:', filename);
 }
 
 // ==================== ESTADOS UI ====================
@@ -1035,7 +1035,7 @@ function logout() {
             window.location.href = 'index.html';
         })
         .catch((error) => {
-            console.error('Error al cerrar sesión:', error);
+            // console.error('Error al cerrar sesión:', error);
         });
 }
 
@@ -1044,7 +1044,7 @@ function actualizarMenuPorRol(userData) {
     if (!userData) return;
     
     const role = userData.role || 'empleado';
-    console.log('🔐 Menú actualizado para rol:', role);
+    // console.log('🔐 Menú actualizado para rol:', role);
     
     // El menú se maneja completamente desde helpers.js con aplicarRestriccionesMenu()
     // y CSS con la clase 'admin-only'. No se necesita lógica adicional aquí.
@@ -1187,7 +1187,7 @@ function generateSalesChart() {
         }
     });
     
-    console.log('📊 Gráfico de ventas generado con', sortedData.length, 'puntos');
+    // console.log('📊 Gráfico de ventas generado con', sortedData.length, 'puntos');
 }
 
 function generateProductsChart() {
@@ -1214,7 +1214,7 @@ function generateProductsChart() {
         .slice(0, 10); // Top 10
     
     if (sortedProducts.length === 0) {
-        console.warn('⚠️ No hay productos para mostrar en el gráfico');
+        // console.warn('⚠️ No hay productos para mostrar en el gráfico');
         return;
     }
     
@@ -1311,5 +1311,5 @@ function generateProductsChart() {
         }
     });
     
-    console.log('📊 Gráfico de productos generado con', sortedProducts.length, 'productos');
+    // console.log('📊 Gráfico de productos generado con', sortedProducts.length, 'productos');
 }

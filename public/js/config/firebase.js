@@ -24,7 +24,7 @@ auth.languageCode = 'es';
 // Configurar persistencia de sesión
 auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
   .catch((error) => {
-    console.error('Error al configurar persistencia:', error);
+    // console.error('Error al configurar persistencia:', error);
   });
 
 // Exportar servicios para usar en otros archivos
@@ -32,4 +32,4 @@ window.firebaseAuth = auth;
 window.firebaseDB = db;
 // window.firebaseStorage = storage;
 
-console.log('🔥 Firebase inicializado correctamente');
+// console.log('🔥 Firebase inicializado correctamente');

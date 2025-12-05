@@ -1,6 +1,6 @@
 // ==================== PROVEEDORES.JS ====================
 
-console.log('🚛 Proveedores.js cargado');
+// console.log('🚛 Proveedores.js cargado');
 
 // ===== REFERENCIAS A FIREBASE =====
 const firebaseAuth = window.firebaseAuth;
@@ -14,7 +14,7 @@ let proveedorEditandoId = null;
 
 // ===== INICIALIZACIÓN =====
 document.addEventListener('DOMContentLoaded', async function() {
-    console.log('📄 DOM cargado, iniciando gestión de proveedores...');
+    // console.log('📄 DOM cargado, iniciando gestión de proveedores...');
     
     await verificarAutenticacion();
     configurarEventos();
@@ -24,12 +24,12 @@ document.addEventListener('DOMContentLoaded', async function() {
 
 // ==================== AUTENTICACIÓN ====================
 async function verificarAutenticacion() {
-    console.log('🔐 Verificando autenticación...');
+    // console.log('🔐 Verificando autenticación...');
     
     return new Promise((resolve) => {
         firebaseAuth.onAuthStateChanged(async (user) => {
             if (user) {
-                console.log('✅ Usuario autenticado:', user.email);
+                // console.log('✅ Usuario autenticado:', user.email);
                 
                 try {
                     const userDoc = await firebaseDB.collection('users').doc(user.uid).get();
@@ -53,15 +53,15 @@ async function verificarAutenticacion() {
                         
                         resolve(true);
                     } else {
-                        console.error('❌ Usuario no encontrado en Firestore');
+                        // console.error('❌ Usuario no encontrado en Firestore');
                         window.location.href = 'index.html';
                     }
                 } catch (error) {
-                    console.error('❌ Error al obtener datos del usuario:', error);
+                    // console.error('❌ Error al obtener datos del usuario:', error);
                     window.location.href = 'index.html';
                 }
             } else {
-                console.log('❌ No hay usuario autenticado');
+                // console.log('❌ No hay usuario autenticado');
                 window.location.href = 'index.html';
             }
         });
@@ -100,7 +100,7 @@ function logout() {
 
 // ==================== EVENTOS ====================
 function configurarEventos() {
-    console.log('🔘 Configurando eventos...');
+    // console.log('🔘 Configurando eventos...');
     
     // Búsqueda
     document.getElementById('searchInput').addEventListener('input', filtrarProveedores);
@@ -135,7 +135,7 @@ function configurarEventos() {
 
 // ==================== CARGAR PROVEEDORES ====================
 async function cargarProveedores() {
-    console.log('📦 Cargando proveedores...');
+    // console.log('📦 Cargando proveedores...');
     
     try {
         const snapshot = await firebaseDB.collection('proveedores')
@@ -150,14 +150,14 @@ async function cargarProveedores() {
             });
         });
         
-        console.log(`✅ ${proveedores.length} proveedores cargados`);
+        // console.log(`✅ ${proveedores.length} proveedores cargados`);
         
         proveedoresFiltrados = [...proveedores];
         renderizarProveedores();
         cargarFiltros();
         
     } catch (error) {
-        console.error('❌ Error al cargar proveedores:', error);
+        // console.error('❌ Error al cargar proveedores:', error);
         alert('Error al cargar proveedores');
     }
 }
@@ -323,10 +323,10 @@ async function cargarEstadisticas() {
         
         renderizarProveedores();
         
-        console.log('📊 Estadísticas actualizadas');
+        // console.log('📊 Estadísticas actualizadas');
         
     } catch (error) {
-        console.error('Error al cargar estadísticas:', error);
+        // console.error('Error al cargar estadísticas:', error);
     }
 }
 
@@ -463,7 +463,7 @@ async function guardarProveedor(event) {
         if (proveedorEditandoId) {
             // Actualizar proveedor existente
             await firebaseDB.collection('proveedores').doc(proveedorEditandoId).update(proveedorData);
-            console.log('✅ Proveedor actualizado');
+            // console.log('✅ Proveedor actualizado');
             alert('✅ Proveedor actualizado correctamente');
         } else {
             // Crear nuevo proveedor
@@ -472,7 +472,7 @@ async function guardarProveedor(event) {
             proveedorData.productosCount = 0;
             
             await firebaseDB.collection('proveedores').add(proveedorData);
-            console.log('✅ Proveedor creado');
+            // console.log('✅ Proveedor creado');
             alert('✅ Proveedor creado correctamente');
         }
         
@@ -481,7 +481,7 @@ async function guardarProveedor(event) {
         await cargarEstadisticas();
         
     } catch (error) {
-        console.error('Error al guardar proveedor:', error);
+        // console.error('Error al guardar proveedor:', error);
         alert('❌ Error al guardar el proveedor. Verifica tu conexión.');
     } finally {
         btnGuardar.disabled = false;
@@ -523,16 +523,16 @@ async function eliminarProveedor(id) {
         
         await batch.commit();
         
-        console.log('✅ Proveedor eliminado');
+        // console.log('✅ Proveedor eliminado');
         alert('✅ Proveedor eliminado correctamente');
         
         await cargarProveedores();
         await cargarEstadisticas();
         
     } catch (error) {
-        console.error('Error al eliminar proveedor:', error);
+        // console.error('Error al eliminar proveedor:', error);
         alert('Error al eliminar el proveedor');
     }
 }
 
-console.log('✅ Proveedores.js completamente cargado');
+// console.log('✅ Proveedores.js completamente cargado');

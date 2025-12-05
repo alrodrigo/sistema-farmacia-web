@@ -202,7 +202,7 @@ function aplicarRestriccionesMenu(user) {
     if (!currentUser) {
         const cachedRole = localStorage.getItem('userRole');
         if (cachedRole) {
-            console.log('🔒 Aplicando restricciones desde caché:', cachedRole);
+            // console.log('🔒 Aplicando restricciones desde caché:', cachedRole);
             if (cachedRole === 'admin') {
                 document.body.classList.add('show-admin-options');
             } else {
@@ -210,12 +210,12 @@ function aplicarRestriccionesMenu(user) {
             }
             return;
         }
-        console.warn('⚠️ No se puede aplicar restricciones: usuario no disponible');
+        // console.warn('⚠️ No se puede aplicar restricciones: usuario no disponible');
         return;
     }
     
     const role = currentUser.role || 'empleado';
-    console.log('🔒 Aplicando restricciones de menú para rol:', role);
+    // console.log('🔒 Aplicando restricciones de menú para rol:', role);
     
     // Guardar rol en localStorage para futuras cargas
     localStorage.setItem('userRole', role);
@@ -223,15 +223,15 @@ function aplicarRestriccionesMenu(user) {
     // Si es ADMIN, mostrar todas las opciones agregando clase al body
     if (role === 'admin') {
         document.body.classList.add('show-admin-options');
-        console.log('✓ Opciones de admin mostradas');
+        // console.log('✓ Opciones de admin mostradas');
     } else {
         // Si es EMPLEADO, asegurar que las opciones están ocultas
         document.body.classList.remove('show-admin-options');
-        console.log('✓ Restricciones de empleado aplicadas (opciones admin ocultas)');
+        // console.log('✓ Restricciones de empleado aplicadas (opciones admin ocultas)');
     }
 }
 
-console.log('✅ Utilidades cargadas correctamente');
+// console.log('✅ Utilidades cargadas correctamente');
 
 // Aplicar restricciones inmediatamente al cargar (usa caché si está disponible)
 aplicarRestriccionesMenu();
@@ -341,5 +341,5 @@ aplicarRestriccionesMenu();
         init();
     }
     
-    console.log('✅ Menú móvil listo');
+    // console.log('✅ Menú móvil listo');
 })();

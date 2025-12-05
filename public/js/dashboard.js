@@ -3,7 +3,7 @@
 // PROPÓSITO: Lógica del dashboard principal
 // =====================================================
 
-console.log('🎯 Dashboard.js cargado');
+// console.log('🎯 Dashboard.js cargado');
 
 // ===== 1. REFERENCIAS A FIREBASE =====
 const firebaseAuth = window.firebaseAuth;
@@ -15,7 +15,7 @@ let currentUser = null;  // Guardará los datos del usuario actual
 
 // ===== 3. CUANDO LA PÁGINA CARGA =====
 document.addEventListener('DOMContentLoaded', async function() {
-    console.log('📄 DOM cargado, iniciando dashboard...');
+    // console.log('📄 DOM cargado, iniciando dashboard...');
     
     // Verificar autenticación
     await verificarAutenticacion();
@@ -33,14 +33,14 @@ document.addEventListener('DOMContentLoaded', async function() {
  * Si no está logueado, lo redirige al login
  */
 async function verificarAutenticacion() {
-    console.log('🔐 Verificando autenticación...');
+    // console.log('🔐 Verificando autenticación...');
     
     return new Promise((resolve) => {
         // Firebase nos avisa cuando cambia el estado de autenticación
         firebaseAuth.onAuthStateChanged(async (user) => {
             if (user) {
                 // ✅ Usuario logueado
-                console.log('✅ Usuario autenticado:', user.email);
+                // console.log('✅ Usuario autenticado:', user.email);
                 
                 // Obtener datos adicionales del usuario desde Firestore
                 try {
@@ -64,13 +64,13 @@ async function verificarAutenticacion() {
                         
                         resolve(true);
                     } else {
-                        console.error('❌ Documento de usuario no encontrado en Firestore');
+                        // console.error('❌ Documento de usuario no encontrado en Firestore');
                         alert('⚠️ Tu cuenta no está configurada correctamente. Cerrando sesión...');
                         await firebaseAuth.signOut();
                         redirectTo('index.html');
                     }
                 } catch (error) {
-                    console.error('❌ Error al obtener datos del usuario:', error);
+                    // console.error('❌ Error al obtener datos del usuario:', error);
                     alert('⚠️ Error al cargar tu perfil: ' + error.message);
                     await firebaseAuth.signOut();
                     redirectTo('index.html');
@@ -78,7 +78,7 @@ async function verificarAutenticacion() {
                 
             } else {
                 // ❌ No hay usuario logueado
-                console.log('❌ No hay usuario autenticado');
+                // console.log('❌ No hay usuario autenticado');
                 redirectTo('index.html');
             }
         });
@@ -103,7 +103,7 @@ function mostrarNombreUsuario() {
                           'Usuario';
         
         userNameElement.textContent = displayName;
-        console.log('👤 Usuario mostrado:', displayName);
+        // console.log('👤 Usuario mostrado:', displayName);
     }
     
     if (currentUser && userRoleElement) {
@@ -111,7 +111,7 @@ function mostrarNombreUsuario() {
         const role = currentUser.role || 'empleado';
         const roleText = role === 'admin' ? 'Administrador' : 'Empleado';
         userRoleElement.textContent = roleText;
-        console.log('👔 Rol mostrado:', roleText);
+        // console.log('👔 Rol mostrado:', roleText);
     }
 }
 
@@ -120,7 +120,7 @@ function mostrarNombreUsuario() {
  * Configura los eventos de clic de todos los botones
  */
 function configurarEventos() {
-    console.log('🔘 Configurando eventos...');
+    // console.log('🔘 Configurando eventos...');
     
     // Botón de logout
     const btnLogout = document.getElementById('btnLogout');
@@ -147,7 +147,7 @@ function configurarEventos() {
         menuToggle.addEventListener('click', function(e) {
             e.stopPropagation();
             sidebar.classList.toggle('active');
-            console.log('📱 Menú móvil toggled');
+            // console.log('📱 Menú móvil toggled');
         });
         
         // Cerrar sidebar al hacer click fuera (solo en móviles)
@@ -158,7 +158,7 @@ function configurarEventos() {
                 
                 if (!isClickInsideSidebar && !isClickOnToggle && sidebar.classList.contains('active')) {
                     sidebar.classList.remove('active');
-                    console.log('📱 Menú cerrado al hacer click fuera');
+                    // console.log('📱 Menú cerrado al hacer click fuera');
                 }
             }
         });
@@ -186,15 +186,15 @@ function configurarEventos() {
  * Cierra la sesión del usuario y lo redirige al login
  */
 async function cerrarSesion() {
-    console.log('🚪 Cerrando sesión...');
+    // console.log('🚪 Cerrando sesión...');
     
     try {
         await firebaseAuth.signOut();
         clearCurrentUser();
-        console.log('✅ Sesión cerrada exitosamente');
+        // console.log('✅ Sesión cerrada exitosamente');
         redirectTo('index.html');
     } catch (error) {
-        console.error('❌ Error al cerrar sesión:', error);
+        // console.error('❌ Error al cerrar sesión:', error);
         alert('Error al cerrar sesión. Intenta nuevamente.');
     }
 }
@@ -205,7 +205,7 @@ async function cerrarSesion() {
  * Esta es la función MÁS IMPORTANTE - conecta con Firestore
  */
 async function cargarEstadisticas() {
-    console.log('📊 Cargando estadísticas...');
+    // console.log('📊 Cargando estadísticas...');
     
     try {
         // Cargar en paralelo para ser más rápido
@@ -216,10 +216,10 @@ async function cargarEstadisticas() {
             cargarIngresosHoy()
         ]);
         
-        console.log('✅ Todas las estadísticas cargadas');
+        // console.log('✅ Todas las estadísticas cargadas');
         
     } catch (error) {
-        console.error('❌ Error al cargar estadísticas:', error);
+        // console.error('❌ Error al cargar estadísticas:', error);
     }
 }
 
@@ -238,10 +238,10 @@ async function cargarTotalProductos() {
         // Actualizar el número en el HTML
         document.getElementById('totalProductos').textContent = total;
         
-        console.log(`📦 Total productos: ${total}`);
+        // console.log(`📦 Total productos: ${total}`);
         
     } catch (error) {
-        console.error('❌ Error al cargar total productos:', error);
+        // console.error('❌ Error al cargar total productos:', error);
         document.getElementById('totalProductos').textContent = '-';
     }
 }
@@ -283,10 +283,10 @@ async function cargarProductosStockBajo() {
             mostrarTablaStockBajo(productosStockBajo);
         }
         
-        console.log(`⚠️ Productos con stock bajo: ${total}`);
+        // console.log(`⚠️ Productos con stock bajo: ${total}`);
         
     } catch (error) {
-        console.error('❌ Error al cargar stock bajo:', error);
+        // console.error('❌ Error al cargar stock bajo:', error);
         document.getElementById('stockBajo').textContent = '-';
     }
 }
@@ -334,7 +334,7 @@ function mostrarTablaStockBajo(productos) {
         tbody.appendChild(row);
     });
     
-    console.log(`📋 Tabla de stock bajo mostrada con ${productos.length} productos`);
+    // console.log(`📋 Tabla de stock bajo mostrada con ${productos.length} productos`);
 }
 
 /**
@@ -372,10 +372,10 @@ async function cargarVentasHoy() {
         
         document.getElementById('ventasHoy').textContent = totalVentas;
         
-        console.log(`🛒 Ventas hoy: ${totalVentas}`);
+        // console.log(`🛒 Ventas hoy: ${totalVentas}`);
         
     } catch (error) {
-        console.error('❌ Error al cargar ventas:', error);
+        // console.error('❌ Error al cargar ventas:', error);
         document.getElementById('ventasHoy').textContent = '-';
     }
 }
@@ -414,10 +414,10 @@ async function cargarIngresosHoy() {
         
         document.getElementById('ingresosHoy').textContent = formatted;
         
-        console.log(`💰 Ingresos hoy: ${formatted}`);
+        // console.log(`💰 Ingresos hoy: ${formatted}`);
         
     } catch (error) {
-        console.error('❌ Error al cargar ingresos:', error);
+        // console.error('❌ Error al cargar ingresos:', error);
         document.getElementById('ingresosHoy').textContent = 'Bs. -';
     }
 }
@@ -430,12 +430,12 @@ function actualizarMenuPorRol() {
     if (!currentUser) return;
     
     const role = currentUser.role || 'empleado';
-    console.log('🔐 Actualizando menú para rol:', role);
+    // console.log('🔐 Actualizando menú para rol:', role);
     
     // El menú se maneja completamente desde helpers.js con aplicarRestriccionesMenu()
     // y CSS con la clase 'admin-only'. No se necesita lógica adicional aquí.
-    console.log('✓ Restricciones de menú manejadas por helpers.js');
+    // console.log('✓ Restricciones de menú manejadas por helpers.js');
 }
 
 // ===== 12. LOG FINAL =====
-console.log('✅ Dashboard.js completamente cargado');
+// console.log('✅ Dashboard.js completamente cargado');

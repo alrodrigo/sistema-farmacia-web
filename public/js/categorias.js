@@ -1,6 +1,6 @@
 // ==================== CATEGORIAS.JS ====================
 
-console.log('📦 Categorias.js cargado');
+// console.log('📦 Categorias.js cargado');
 
 // Variables globales
 let currentUser = null;
@@ -13,7 +13,7 @@ let editingCategoryId = null;
 
 // ==================== INICIALIZACIÓN ====================
 document.addEventListener('DOMContentLoaded', async function() {
-    console.log('📄 DOM cargado, iniciando gestión de categorías...');
+    // console.log('📄 DOM cargado, iniciando gestión de categorías...');
     
     // Verificar autenticación y rol
     await verificarAutenticacion();
@@ -33,7 +33,7 @@ async function verificarAutenticacion() {
     return new Promise((resolve) => {
         auth.onAuthStateChanged(async (user) => {
             if (user) {
-                console.log('✅ Usuario autenticado:', user.email);
+                // console.log('✅ Usuario autenticado:', user.email);
                 
                 // Obtener datos del usuario
                 const userDoc = await db.collection('users').doc(user.uid).get();
@@ -66,11 +66,11 @@ async function verificarAutenticacion() {
                     
                     resolve(true);
                 } else {
-                    console.error('❌ Usuario no encontrado en Firestore');
+                    // console.error('❌ Usuario no encontrado en Firestore');
                     window.location.href = 'index.html';
                 }
             } else {
-                console.log('❌ No hay usuario autenticado');
+                // console.log('❌ No hay usuario autenticado');
                 window.location.href = 'index.html';
             }
         });
@@ -79,7 +79,7 @@ async function verificarAutenticacion() {
 
 // ==================== CONFIGURAR EVENTOS ====================
 function configurarEventos() {
-    console.log('🔘 Configurando eventos...');
+    // console.log('🔘 Configurando eventos...');
     
     // Botón nueva categoría
     document.getElementById('btnNuevaCategoria').addEventListener('click', abrirModalNueva);
@@ -111,7 +111,7 @@ function configurarEventos() {
                 await auth.signOut();
                 window.location.href = 'index.html';
             } catch (error) {
-                console.error('Error al cerrar sesión:', error);
+                // console.error('Error al cerrar sesión:', error);
             }
         });
     }
@@ -139,7 +139,7 @@ function configurarEventos() {
 // ==================== CARGAR CATEGORÍAS ====================
 async function cargarCategorias() {
     try {
-        console.log('📦 Cargando categorías...');
+        // console.log('📦 Cargando categorías...');
         
         const snapshot = await db.collection('categorias')
             .orderBy('nombre', 'asc')
@@ -152,7 +152,7 @@ async function cargarCategorias() {
         
         // Si no hay categorías, crear las predefinidas
         if (categorias.length === 0) {
-            console.log('⚠️ No hay categorías, creando categorías predefinidas...');
+            // console.log('⚠️ No hay categorías, creando categorías predefinidas...');
             await crearCategoriasPredefinidas();
             // Recargar después de crear
             const newSnapshot = await db.collection('categorias').get();
@@ -163,17 +163,17 @@ async function cargarCategorias() {
             categorias.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
         }
         
-        console.log(`✅ ${categorias.length} categorías cargadas`);
+        // console.log(`✅ ${categorias.length} categorías cargadas`);
         
         renderizarCategorias();
         
     } catch (error) {
-        console.error('❌ Error al cargar categorías:', error);
-        console.error('Detalles del error:', error.message);
+        // console.error('❌ Error al cargar categorías:', error);
+        // console.error('Detalles del error:', error.message);
         
         // Si el error es por falta de índice o colección vacía, intentar sin orderBy
         if (error.code === 'failed-precondition' || error.message.includes('index')) {
-            console.log('⚠️ Intentando cargar sin ordenar...');
+            // console.log('⚠️ Intentando cargar sin ordenar...');
             try {
                 const snapshot = await db.collection('categorias').get();
                 categorias = snapshot.docs.map(doc => ({
@@ -183,7 +183,7 @@ async function cargarCategorias() {
                 
                 // Si no hay categorías, crear las predefinidas
                 if (categorias.length === 0) {
-                    console.log('⚠️ No hay categorías, creando categorías predefinidas...');
+                    // console.log('⚠️ No hay categorías, creando categorías predefinidas...');
                     await crearCategoriasPredefinidas();
                     const newSnapshot = await db.collection('categorias').get();
                     categorias = newSnapshot.docs.map(doc => ({
@@ -195,11 +195,11 @@ async function cargarCategorias() {
                 // Ordenar manualmente en JavaScript
                 categorias.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
                 
-                console.log(`✅ ${categorias.length} categorías cargadas (sin índice)`);
+                // console.log(`✅ ${categorias.length} categorías cargadas (sin índice)`);
                 renderizarCategorias();
                 return;
             } catch (retryError) {
-                console.error('❌ Error en reintento:', retryError);
+                // console.error('❌ Error en reintento:', retryError);
             }
         }
         
@@ -294,7 +294,7 @@ async function editarCategoria(id) {
         document.getElementById('modalCategoria').classList.add('active');
         
     } catch (error) {
-        console.error('Error al cargar categoría:', error);
+        // console.error('Error al cargar categoría:', error);
         alert('Error al cargar la categoría');
     }
 }
@@ -338,7 +338,7 @@ async function guardarCategoria(e) {
         if (editingCategoryId) {
             // Actualizar
             await db.collection('categorias').doc(editingCategoryId).update(categoriaData);
-            console.log('✅ Categoría actualizada');
+            // console.log('✅ Categoría actualizada');
             alert('✅ Categoría actualizada correctamente');
         } else {
             // Crear nueva
@@ -346,7 +346,7 @@ async function guardarCategoria(e) {
             categoriaData.productosCount = 0;
             
             await db.collection('categorias').add(categoriaData);
-            console.log('✅ Categoría creada');
+            // console.log('✅ Categoría creada');
             alert('✅ Categoría creada correctamente');
         }
         
@@ -355,7 +355,7 @@ async function guardarCategoria(e) {
         await cargarEstadisticas();
         
     } catch (error) {
-        console.error('Error al guardar categoría:', error);
+        // console.error('Error al guardar categoría:', error);
         alert('Error al guardar la categoría');
     }
 }
@@ -390,14 +390,14 @@ async function eliminarCategoria(id) {
         
         await batch.commit();
         
-        console.log('✅ Categoría eliminada');
+        // console.log('✅ Categoría eliminada');
         alert('✅ Categoría eliminada correctamente');
         
         await cargarCategorias();
         await cargarEstadisticas();
         
     } catch (error) {
-        console.error('Error al eliminar categoría:', error);
+        // console.error('Error al eliminar categoría:', error);
         alert('Error al eliminar la categoría');
     }
 }
@@ -461,10 +461,10 @@ async function cargarEstadisticas() {
         
         await batch.commit();
         
-        console.log('📊 Estadísticas actualizadas');
+        // console.log('📊 Estadísticas actualizadas');
         
     } catch (error) {
-        console.error('Error al cargar estadísticas:', error);
+        // console.error('Error al cargar estadísticas:', error);
     }
 }
 
@@ -480,7 +480,7 @@ async function crearCategoriasPredefinidas() {
     ];
     
     try {
-        console.log('🚀 Creando categorías predefinidas...');
+        // console.log('🚀 Creando categorías predefinidas...');
         
         for (const cat of predefinidas) {
             await db.collection('categorias').add({
@@ -490,17 +490,17 @@ async function crearCategoriasPredefinidas() {
                 created_at: firebase.firestore.FieldValue.serverTimestamp(),
                 updated_at: firebase.firestore.FieldValue.serverTimestamp()
             });
-            console.log(`✅ Categoría creada: ${cat.nombre}`);
+            // console.log(`✅ Categoría creada: ${cat.nombre}`);
         }
         
-        console.log('✅ Todas las categorías predefinidas fueron creadas exitosamente');
+        // console.log('✅ Todas las categorías predefinidas fueron creadas exitosamente');
         alert('✅ ¡6 categorías predefinidas creadas con éxito!');
         
         await cargarCategorias();
         await cargarEstadisticas();
         
     } catch (error) {
-        console.error('❌ Error al crear categorías predefinidas:', error);
+        // console.error('❌ Error al crear categorías predefinidas:', error);
         alert('Error al crear categorías predefinidas: ' + error.message);
     }
 }

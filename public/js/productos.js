@@ -3,7 +3,7 @@
 // PROPÓSITO: Lógica de la página de gestión de productos
 // =====================================================
 
-console.log('📦 Productos.js cargado');
+// console.log('📦 Productos.js cargado');
 
 // ===== 1. REFERENCIAS A FIREBASE =====
 const firebaseAuth = window.firebaseAuth;
@@ -22,7 +22,7 @@ let proveedoresMap = {}; // { id: { nombre, pais, ... } }
 
 // ===== 3. CUANDO LA PÁGINA CARGA =====
 document.addEventListener('DOMContentLoaded', async function() {
-    console.log('📄 DOM cargado, iniciando página de productos...');
+    // console.log('📄 DOM cargado, iniciando página de productos...');
     
     // Verificar autenticación
     await verificarAutenticacion();
@@ -36,12 +36,12 @@ document.addEventListener('DOMContentLoaded', async function() {
 
 // ===== 4. VERIFICAR AUTENTICACIÓN =====
 async function verificarAutenticacion() {
-    console.log('🔐 Verificando autenticación...');
+    // console.log('🔐 Verificando autenticación...');
     
     return new Promise((resolve) => {
         firebaseAuth.onAuthStateChanged(async (user) => {
             if (user) {
-                console.log('✅ Usuario autenticado:', user.email);
+                // console.log('✅ Usuario autenticado:', user.email);
                 
                 try {
                     const userDoc = await firebaseDB.collection('users').doc(user.uid).get();
@@ -66,19 +66,19 @@ async function verificarAutenticacion() {
                         
                         resolve(true);
                     } else {
-                        console.error('❌ Documento de usuario no encontrado');
+                        // console.error('❌ Documento de usuario no encontrado');
                         await firebaseAuth.signOut();
                         alert('⚠️ Tu cuenta no está configurada correctamente.');
                         redirectTo('index.html');
                     }
                 } catch (error) {
-                    console.error('❌ Error al obtener datos del usuario:', error);
+                    // console.error('❌ Error al obtener datos del usuario:', error);
                     await firebaseAuth.signOut();
                     alert('⚠️ Error al cargar tu perfil: ' + error.message);
                     redirectTo('index.html');
                 }
             } else {
-                console.log('❌ No hay usuario autenticado');
+                // console.log('❌ No hay usuario autenticado');
                 redirectTo('index.html');
             }
         });
@@ -100,7 +100,7 @@ function mostrarNombreUsuario() {
                           'Usuario';
         
         userNameElement.textContent = displayName;
-        console.log('👤 Usuario mostrado:', displayName);
+        // console.log('👤 Usuario mostrado:', displayName);
     }
     
     if (currentUser && userRoleElement) {
@@ -112,7 +112,7 @@ function mostrarNombreUsuario() {
 
 // ===== 6. CONFIGURAR EVENTOS =====
 function configurarEventos() {
-    console.log('🔘 Configurando eventos...');
+    // console.log('🔘 Configurando eventos...');
     
     // Botón de logout
     const btnLogout = document.getElementById('btnLogout');
@@ -234,22 +234,22 @@ function configurarEventos() {
 
 // ===== 7. CERRAR SESIÓN =====
 async function cerrarSesion() {
-    console.log('🚪 Cerrando sesión...');
+    // console.log('🚪 Cerrando sesión...');
     
     try {
         await firebaseAuth.signOut();
         clearCurrentUser();
-        console.log('✅ Sesión cerrada exitosamente');
+        // console.log('✅ Sesión cerrada exitosamente');
         redirectTo('index.html');
     } catch (error) {
-        console.error('❌ Error al cerrar sesión:', error);
+        // console.error('❌ Error al cerrar sesión:', error);
         alert('Error al cerrar sesión. Intenta nuevamente.');
     }
 }
 
 // ===== 8. CARGAR DATOS INICIALES =====
 async function cargarDatosIniciales() {
-    console.log('📊 Cargando datos iniciales...');
+    // console.log('📊 Cargando datos iniciales...');
     
     try {
         // Cargar categorías y proveedores primero (para lookups)
@@ -268,7 +268,7 @@ async function cargarDatosIniciales() {
         actualizarTarjetasInfo();
         
     } catch (error) {
-        console.error('❌ Error al cargar datos:', error);
+        // console.error('❌ Error al cargar datos:', error);
         mostrarError('Error al cargar los datos. Por favor, recarga la página.');
     }
 }
@@ -279,21 +279,21 @@ async function cargarCategoriasCache() {
         // Cargar TODAS las categorías (no solo activas) para lookup completo
         const snapshot = await firebaseDB.collection('categorias').get();
         
-        console.log('🔍 DEBUG CACHÉ: Snapshot size:', snapshot.size);
+        // console.log('🔍 DEBUG CACHÉ: Snapshot size:', snapshot.size);
         
         categoriasMap = {};
         snapshot.forEach(doc => {
             const data = doc.data();
-            console.log('🔍 DEBUG CACHÉ: Categoría:', doc.id, data.nombre);
+            // console.log('🔍 DEBUG CACHÉ: Categoría:', doc.id, data.nombre);
             categoriasMap[doc.id] = {
                 id: doc.id,
                 ...data
             };
         });
         
-        console.log(`✅ ${Object.keys(categoriasMap).length} categorías cargadas en caché`);
+        // console.log(`✅ ${Object.keys(categoriasMap).length} categorías cargadas en caché`);
     } catch (error) {
-        console.error('❌ Error al cargar categorías:', error);
+        // console.error('❌ Error al cargar categorías:', error);
     }
 }
 
@@ -310,15 +310,15 @@ async function cargarProveedoresCache() {
             };
         });
         
-        console.log(`✅ ${Object.keys(proveedoresMap).length} proveedores cargados en caché`);
+        // console.log(`✅ ${Object.keys(proveedoresMap).length} proveedores cargados en caché`);
     } catch (error) {
-        console.error('❌ Error al cargar proveedores:', error);
+        // console.error('❌ Error al cargar proveedores:', error);
     }
 }
 
 // ===== 9. CARGAR PRODUCTOS =====
 async function cargarProductos() {
-    console.log('📦 Cargando productos desde Firestore...');
+    // console.log('📦 Cargando productos desde Firestore...');
     
     try {
         const snapshot = await firebaseDB.collection('products').get();
@@ -337,13 +337,13 @@ async function cargarProductos() {
         // Inicialmente, productos filtrados = todos los productos
         productosFiltrados = [...todosLosProductos];
         
-        console.log(`✅ ${todosLosProductos.length} productos cargados`);
+        // console.log(`✅ ${todosLosProductos.length} productos cargados`);
         
         // Mostrar en la tabla
         mostrarProductos();
         
     } catch (error) {
-        console.error('❌ Error al cargar productos:', error);
+        // console.error('❌ Error al cargar productos:', error);
         throw error;
     }
 }
@@ -418,7 +418,7 @@ function mostrarProductos() {
     // Actualizar paginación
     actualizarPaginacion();
     
-    console.log(`📋 Mostrando ${productosActuales.length} productos (página ${paginaActual})`);
+    // console.log(`📋 Mostrando ${productosActuales.length} productos (página ${paginaActual})`);
     
     // Aplicar restricciones de rol después de renderizar
     aplicarRestriccionesPorRol();
@@ -480,7 +480,7 @@ function aplicarFiltros() {
     // Actualizar tarjetas info
     actualizarTarjetasInfo();
     
-    console.log(`🔍 Filtros aplicados: ${productosFiltrados.length} productos encontrados`);
+    // console.log(`🔍 Filtros aplicados: ${productosFiltrados.length} productos encontrados`);
 }
 
 // ===== 13. LIMPIAR FILTROS =====
@@ -537,7 +537,7 @@ function cargarOpcionesFiltros() {
         });
     }
     
-    console.log(`📋 Filtros cargados: ${categoriaIds.length} categorías, ${proveedorIds.length} proveedores`);
+    // console.log(`📋 Filtros cargados: ${categoriaIds.length} categorías, ${proveedorIds.length} proveedores`);
 }
 
 // ===== 15. ACTUALIZAR TARJETAS INFORMATIVAS =====
@@ -594,7 +594,7 @@ function paginaSiguiente() {
 function verProducto(id) {
     const producto = todosLosProductos.find(p => p.id === id);
     if (producto) {
-        console.log('👁️ Ver producto:', producto);
+        // console.log('👁️ Ver producto:', producto);
         abrirModalVer(producto);
     }
 }
@@ -602,13 +602,13 @@ function verProducto(id) {
 function editarProducto(id) {
     const producto = todosLosProductos.find(p => p.id === id);
     if (producto) {
-        console.log('✏️ Editar producto:', producto);
+        // console.log('✏️ Editar producto:', producto);
         abrirModalEditar(producto);
     }
 }
 
 async function eliminarProducto(id, nombre) {
-    console.log('🗑️ Intentando eliminar producto:', id, nombre);
+    // console.log('🗑️ Intentando eliminar producto:', id, nombre);
     
     const confirmar = confirm(`¿Estás seguro de eliminar el producto:\n\n"${nombre}"?\n\nEsta acción no se puede deshacer.`);
     
@@ -618,7 +618,7 @@ async function eliminarProducto(id, nombre) {
     
     try {
         await firebaseDB.collection('products').doc(id).delete();
-        console.log('✅ Producto eliminado:', id);
+        // console.log('✅ Producto eliminado:', id);
         
         alert(`✅ Producto "${nombre}" eliminado correctamente`);
         
@@ -626,7 +626,7 @@ async function eliminarProducto(id, nombre) {
         await cargarProductos();
         
     } catch (error) {
-        console.error('❌ Error al eliminar producto:', error);
+        // console.error('❌ Error al eliminar producto:', error);
         alert('❌ Error al eliminar el producto. Verifica tus permisos.');
     }
 }
@@ -636,7 +636,7 @@ let modoEdicion = false;
 let productoEditandoId = null;
 
 async function abrirModalNuevo() {
-    console.log('📝 Abriendo modal para nuevo producto');
+    // console.log('📝 Abriendo modal para nuevo producto');
     
     modoEdicion = false;
     productoEditandoId = null;
@@ -661,7 +661,7 @@ async function abrirModalNuevo() {
 }
 
 function abrirModalVer(producto) {
-    console.log('👁️ Abriendo modal para ver producto:', producto.name);
+    // console.log('👁️ Abriendo modal para ver producto:', producto.name);
     
     modoEdicion = false;
     productoEditandoId = null;
@@ -707,7 +707,7 @@ function abrirModalVer(producto) {
 }
 
 function abrirModalEditar(producto) {
-    console.log('✏️ Abriendo modal para editar producto:', producto.name);
+    // console.log('✏️ Abriendo modal para editar producto:', producto.name);
     
     modoEdicion = true;
     productoEditandoId = producto.id;
@@ -745,7 +745,7 @@ function abrirModalEditar(producto) {
 }
 
 function cerrarModal() {
-    console.log('❌ Cerrando modal');
+    // console.log('❌ Cerrando modal');
     
     document.getElementById('productoModal').classList.remove('active');
     document.body.style.overflow = 'auto';
@@ -910,7 +910,7 @@ function validarFormulario() {
         esValido = false;
     } else if (stockMinimo > stockActual && !modoEdicion) {
         // Advertencia (no bloquea) si el stock mínimo es mayor al actual en nuevo producto
-        console.warn('⚠️ Stock mínimo mayor al stock actual');
+        // console.warn('⚠️ Stock mínimo mayor al stock actual');
     }
     
     return esValido;
@@ -941,11 +941,11 @@ function limpiarErrores() {
 // ===== 20. GUARDAR PRODUCTO =====
 async function guardarProducto(event) {
     event.preventDefault();
-    console.log('💾 Intentando guardar producto...');
+    // console.log('💾 Intentando guardar producto...');
     
     // Validar formulario
     if (!validarFormulario()) {
-        console.log('❌ Formulario inválido');
+        // console.log('❌ Formulario inválido');
         // Encontrar el primer error y mostrarlo en el alert
         const primerError = document.querySelector('.error-message:not(:empty)');
         if (primerError) {
@@ -982,7 +982,7 @@ async function guardarProducto(event) {
         if (modoEdicion) {
             // Actualizar producto existente
             await firebaseDB.collection('products').doc(productoEditandoId).update(productoData);
-            console.log('✅ Producto actualizado:', productoEditandoId);
+            // console.log('✅ Producto actualizado:', productoEditandoId);
             alert('✅ Producto actualizado correctamente');
         } else {
             // Crear nuevo producto
@@ -990,7 +990,7 @@ async function guardarProducto(event) {
             productoData.created_by = currentUser.uid;
             
             const docRef = await firebaseDB.collection('products').add(productoData);
-            console.log('✅ Producto creado:', docRef.id);
+            // console.log('✅ Producto creado:', docRef.id);
             alert('✅ Producto creado correctamente');
         }
         
@@ -999,7 +999,7 @@ async function guardarProducto(event) {
         await cargarProductos();
         
     } catch (error) {
-        console.error('❌ Error al guardar producto:', error);
+        // console.error('❌ Error al guardar producto:', error);
         alert('❌ Error al guardar el producto. Verifica tus permisos.');
     } finally {
         // Rehabilitar botón
@@ -1063,7 +1063,7 @@ function aplicarRestriccionesPorRol() {
         botonesEliminar.forEach(btn => btn.style.display = 'none');
         
         // Dejar solo el botón de "Ver"
-        console.log('🔒 Restricciones aplicadas: solo lectura para empleado');
+        // console.log('🔒 Restricciones aplicadas: solo lectura para empleado');
     }
 }
 
@@ -1072,7 +1072,7 @@ function actualizarMenuPorRol() {
     if (!currentUser) return;
     
     const role = currentUser.role || 'empleado';
-    console.log('🔐 Actualizando menú para rol:', role);
+    // console.log('🔐 Actualizando menú para rol:', role);
     
     // Si es empleado, ocultar opciones de admin
     if (role === 'empleado') {
@@ -1098,7 +1098,7 @@ function actualizarMenuPorRol() {
                 btn.style.display = 'none';
             });
             
-            console.log('🔒 Botones de edición/eliminación ocultados para empleado');
+            // console.log('🔒 Botones de edición/eliminación ocultados para empleado');
         };
         
         // Aplicar después de cargar productos
@@ -1112,15 +1112,15 @@ function actualizarMenuPorRol() {
             });
         }
         
-        console.log('👤 Menú de empleado aplicado - MODO SOLO LECTURA');
+        // console.log('👤 Menú de empleado aplicado - MODO SOLO LECTURA');
     } else {
-        console.log('👑 Menú de admin aplicado (completo)');
+        // console.log('👑 Menú de admin aplicado (completo)');
     }
 }
 
 // ===== CARGAR CATEGORÍAS DESDE FIRESTORE =====
 async function cargarCategoriasSelect() {
-    console.log('📁 Cargando categorías desde Firestore...');
+    // console.log('📁 Cargando categorías desde Firestore...');
     
     const selectCategoria = document.getElementById('inputCategoria');
     if (!selectCategoria) return;
@@ -1129,14 +1129,14 @@ async function cargarCategoriasSelect() {
         // Cargar TODAS las categorías (activas e inactivas)
         let snapshot = await firebaseDB.collection('categorias').get();
         
-        console.log('🔍 DEBUG: Snapshot size:', snapshot.size);
-        console.log('🔍 DEBUG: Snapshot empty?', snapshot.empty);
+        // console.log('🔍 DEBUG: Snapshot size:', snapshot.size);
+        // console.log('🔍 DEBUG: Snapshot empty?', snapshot.empty);
         
         // Limpiar opciones excepto la primera
         selectCategoria.innerHTML = '<option value="">Selecciona una categoría</option>';
         
         if (snapshot.empty) {
-            console.log('⚠️ No hay categorías, creando categorías por defecto...');
+            // console.log('⚠️ No hay categorías, creando categorías por defecto...');
             
             // Crear categorías por defecto
             await crearCategoriasPorDefecto();
@@ -1154,14 +1154,14 @@ async function cargarCategoriasSelect() {
         const categorias = [];
         snapshot.forEach(doc => {
             const data = doc.data();
-            console.log('🔍 DEBUG: Categoría encontrada:', doc.id, data.nombre, data);
+            // console.log('🔍 DEBUG: Categoría encontrada:', doc.id, data.nombre, data);
             categorias.push({
                 id: doc.id,
                 ...data
             });
         });
         
-        console.log('🔍 DEBUG: Total categorías en array:', categorias.length);
+        // console.log('🔍 DEBUG: Total categorías en array:', categorias.length);
         
         categorias.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
         
@@ -1173,10 +1173,10 @@ async function cargarCategoriasSelect() {
             selectCategoria.appendChild(option);
         });
         
-        console.log(`✅ ${categorias.length} categorías cargadas`);
+        // console.log(`✅ ${categorias.length} categorías cargadas`);
         
     } catch (error) {
-        console.error('❌ Error al cargar categorías:', error);
+        // console.error('❌ Error al cargar categorías:', error);
         selectCategoria.innerHTML = '<option value="" disabled>Error al cargar categorías</option>';
     }
 }
@@ -1202,15 +1202,15 @@ async function crearCategoriasPorDefecto() {
                 updated_at: firebase.firestore.FieldValue.serverTimestamp()
             });
         }
-        console.log('✅ Categorías por defecto creadas');
+        // console.log('✅ Categorías por defecto creadas');
     } catch (error) {
-        console.error('❌ Error al crear categorías por defecto:', error);
+        // console.error('❌ Error al crear categorías por defecto:', error);
     }
 }
 
 // ===== CARGAR PROVEEDORES DESDE FIRESTORE =====
 async function cargarProveedoresSelect() {
-    console.log('🏭 Cargando proveedores desde Firestore...');
+    // console.log('🏭 Cargando proveedores desde Firestore...');
     
     const selectProveedor = document.getElementById('inputProveedor');
     if (!selectProveedor) return;
@@ -1222,7 +1222,7 @@ async function cargarProveedoresSelect() {
         selectProveedor.innerHTML = '<option value="">Selecciona un laboratorio</option>';
         
         if (snapshot.empty) {
-            console.log('⚠️ No hay proveedores registrados, creando proveedores por defecto...');
+            // console.log('⚠️ No hay proveedores registrados, creando proveedores por defecto...');
             await crearProveedoresPorDefecto();
             // Recargar después de crear
             await cargarProveedoresSelect();
@@ -1248,10 +1248,10 @@ async function cargarProveedoresSelect() {
             selectProveedor.appendChild(option);
         });
         
-        console.log(`✅ ${proveedores.length} proveedores cargados`);
+        // console.log(`✅ ${proveedores.length} proveedores cargados`);
         
     } catch (error) {
-        console.error('❌ Error al cargar proveedores:', error);
+        // console.error('❌ Error al cargar proveedores:', error);
         selectProveedor.innerHTML = '<option value="" disabled>Error al cargar laboratorios</option>';
     }
 }
@@ -1274,9 +1274,9 @@ async function crearProveedoresPorDefecto() {
                 created_at: firebase.firestore.FieldValue.serverTimestamp()
             });
         }
-        console.log('✅ Proveedores por defecto creados');
+        // console.log('✅ Proveedores por defecto creados');
     } catch (error) {
-        console.error('❌ Error al crear proveedores:', error);
+        // console.error('❌ Error al crear proveedores:', error);
     }
 }
 
@@ -1330,7 +1330,7 @@ if (btnGuardarCategoria) {
             
             const docRef = await firebaseDB.collection('categorias').add(nuevaCategoria);
             
-            console.log('✅ Categoría creada:', docRef.id);
+            // console.log('✅ Categoría creada:', docRef.id);
             
             // Recargar caché de categorías
             await cargarCategoriasCache();
@@ -1349,7 +1349,7 @@ if (btnGuardarCategoria) {
             mostrarExito('Categoría creada exitosamente');
             
         } catch (error) {
-            console.error('❌ Error al crear categoría:', error);
+            // console.error('❌ Error al crear categoría:', error);
             alert('Error al crear la categoría: ' + error.message);
         } finally {
             btnGuardarCategoria.disabled = false;
@@ -1408,7 +1408,7 @@ if (btnGuardarProveedor) {
             
             const docRef = await firebaseDB.collection('proveedores').add(nuevoProveedor);
             
-            console.log('✅ Proveedor creado:', docRef.id);
+            // console.log('✅ Proveedor creado:', docRef.id);
             
             // Recargar caché de proveedores
             await cargarProveedoresCache();
@@ -1427,7 +1427,7 @@ if (btnGuardarProveedor) {
             mostrarExito('Laboratorio creado exitosamente');
             
         } catch (error) {
-            console.error('❌ Error al crear proveedor:', error);
+            // console.error('❌ Error al crear proveedor:', error);
             alert('Error al crear el laboratorio: ' + error.message);
         } finally {
             btnGuardarProveedor.disabled = false;
@@ -1476,6 +1476,6 @@ function mostrarExito(mensaje) {
     }, 3000);
 }
 
-console.log('✅ Productos.js completamente cargado');
-console.log('🔄 Versión: 2025-11-14-16:50 - DEBUG ACTIVADO');
+// console.log('✅ Productos.js completamente cargado');
+// console.log('🔄 Versión: 2025-11-14-16:50 - DEBUG ACTIVADO');
 

@@ -28,7 +28,7 @@ async function loginUser(email, password) {
             throw new Error('Datos de usuario no encontrados');
         }
     } catch (error) {
-        console.error('Error en login:', error);
+        // console.error('Error en login:', error);
         throw error;
     }
 }
@@ -42,7 +42,7 @@ async function logoutUser() {
         clearCurrentUser();
         redirectTo('index.html');
     } catch (error) {
-        console.error('Error en logout:', error);
+        // console.error('Error en logout:', error);
         throw error;
     }
 }
@@ -94,15 +94,15 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 const userDoc = await firebaseDB.collection('users').doc(user.uid).get();
                 if (userDoc.exists) {
-                    console.log('✅ Usuario ya logueado, redirigiendo a dashboard');
+                    // console.log('✅ Usuario ya logueado, redirigiendo a dashboard');
                     redirectTo('dashboard.html');
                 } else {
-                    console.error('❌ Usuario sin documento en Firestore, cerrando sesión');
+                    // console.error('❌ Usuario sin documento en Firestore, cerrando sesión');
                     await firebaseAuth.signOut();
                     showAlert('Error: Tu cuenta no está configurada correctamente. Por favor contacta al administrador.', 'error');
                 }
             } catch (error) {
-                console.error('❌ Error verificando usuario:', error);
+                // console.error('❌ Error verificando usuario:', error);
                 await firebaseAuth.signOut();
                 showAlert('Error al verificar tu cuenta. Intenta iniciar sesión nuevamente.', 'error');
             }
@@ -150,7 +150,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }, 2000);
                 
             } catch (error) {
-                console.error('Error en login:', error);
+                // console.error('Error en login:', error);
                 const errorMessage = getFirebaseErrorMessage(error);
                 showAlert(errorMessage, 'error');
                 toggleButtonLoading(btnLogin, false);
@@ -159,4 +159,4 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-console.log('🔐 Servicio de autenticación cargado');
+// console.log('🔐 Servicio de autenticación cargado');

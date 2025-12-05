@@ -3,7 +3,7 @@
 // PROPÓSITO: Lógica de la página de gestión de usuarios
 // =====================================================
 
-console.log('👥 Usuarios.js cargado');
+// console.log('👥 Usuarios.js cargado');
 
 // ===== 1. REFERENCIAS A FIREBASE =====
 const firebaseAuth = window.firebaseAuth;
@@ -20,7 +20,7 @@ let usuarioEditandoId = null;
 
 // ===== 3. CUANDO LA PÁGINA CARGA =====
 document.addEventListener('DOMContentLoaded', async function() {
-    console.log('📄 DOM cargado, iniciando página de usuarios...');
+    // console.log('📄 DOM cargado, iniciando página de usuarios...');
     
     // Verificar autenticación
     await verificarAutenticacion();
@@ -34,12 +34,12 @@ document.addEventListener('DOMContentLoaded', async function() {
 
 // ===== 4. VERIFICAR AUTENTICACIÓN =====
 async function verificarAutenticacion() {
-    console.log('🔐 Verificando autenticación...');
+    // console.log('🔐 Verificando autenticación...');
     
     return new Promise((resolve) => {
         firebaseAuth.onAuthStateChanged(async (user) => {
             if (user) {
-                console.log('✅ Usuario autenticado:', user.email);
+                // console.log('✅ Usuario autenticado:', user.email);
                 
                 try {
                     const userDoc = await firebaseDB.collection('users').doc(user.uid).get();
@@ -53,7 +53,7 @@ async function verificarAutenticacion() {
                         
                         // Empleados pueden ver la página en modo solo lectura
                         if (currentUser.role === 'empleado') {
-                            console.log('👁️ Acceso de empleado en modo solo lectura');
+                            // console.log('👁️ Acceso de empleado en modo solo lectura');
                         }
                         
                         // Mostrar nombre del usuario
@@ -69,15 +69,15 @@ async function verificarAutenticacion() {
                         
                         resolve();
                     } else {
-                        console.error('❌ Usuario no encontrado en Firestore');
+                        // console.error('❌ Usuario no encontrado en Firestore');
                         window.location.href = 'index.html';
                     }
                 } catch (error) {
-                    console.error('❌ Error al obtener datos del usuario:', error);
+                    // console.error('❌ Error al obtener datos del usuario:', error);
                     window.location.href = 'index.html';
                 }
             } else {
-                console.log('❌ No hay usuario autenticado');
+                // console.log('❌ No hay usuario autenticado');
                 window.location.href = 'index.html';
             }
         });
@@ -92,7 +92,7 @@ function mostrarNombreUsuario() {
     if (userName && currentUser) {
         const displayName = getUserDisplayName(currentUser);
         userName.textContent = displayName;
-        console.log('👤 Usuario mostrado:', displayName);
+        // console.log('👤 Usuario mostrado:', displayName);
     }
     
     if (userRoleElement && currentUser) {
@@ -105,7 +105,7 @@ function mostrarNombreUsuario() {
 // ===== 6. ACTUALIZAR MENÚ POR ROL =====
 function actualizarMenuPorRol() {
     const role = currentUser?.role;
-    console.log('🔐 Actualizando menú para rol:', role);
+    // console.log('🔐 Actualizando menú para rol:', role);
     
     // El menú se maneja desde helpers.js y CSS (clase admin-only)
     
@@ -122,7 +122,7 @@ function actualizarMenuPorRol() {
 
 // ===== 7. CONFIGURAR EVENTOS =====
 function configurarEventos() {
-    console.log('🔘 Configurando eventos...');
+    // console.log('🔘 Configurando eventos...');
     
     // Botón nuevo usuario (DESHABILITADO)
     // Los usuarios se deben crear desde Firebase Console (Authentication)
@@ -223,7 +223,7 @@ function configurarEventos() {
 
 // ===== 8. CARGAR USUARIOS =====
 async function cargarUsuarios() {
-    console.log('👥 Cargando usuarios desde Firestore...');
+    // console.log('👥 Cargando usuarios desde Firestore...');
     
     try {
         const snapshot = await firebaseDB.collection('users').get();
@@ -246,7 +246,7 @@ async function cargarUsuarios() {
         // Inicialmente, usuarios filtrados = todos los usuarios
         usuariosFiltrados = [...todosLosUsuarios];
         
-        console.log(`✅ ${todosLosUsuarios.length} usuarios cargados`);
+        // console.log(`✅ ${todosLosUsuarios.length} usuarios cargados`);
         
         // Mostrar en la tabla
         mostrarUsuarios();
@@ -255,7 +255,7 @@ async function cargarUsuarios() {
         actualizarEstadisticas();
         
     } catch (error) {
-        console.error('❌ Error al cargar usuarios:', error);
+        // console.error('❌ Error al cargar usuarios:', error);
         alert('Error al cargar usuarios. Por favor, recarga la página.');
     }
 }
@@ -350,7 +350,7 @@ function mostrarUsuarios() {
     // Actualizar paginación
     actualizarPaginacion();
     
-    console.log(`📋 Mostrando ${usuariosActuales.length} usuarios (página ${paginaActual})`);
+    // console.log(`📋 Mostrando ${usuariosActuales.length} usuarios (página ${paginaActual})`);
 }
 
 // ===== 10. ACTUALIZAR ESTADÍSTICAS =====
@@ -410,7 +410,7 @@ function actualizarPaginacion() {
 
 // ===== 13. ABRIR MODAL NUEVO =====
 function abrirModalNuevo() {
-    console.log('📝 Abriendo modal para nuevo usuario');
+    // console.log('📝 Abriendo modal para nuevo usuario');
     
     modoEdicion = false;
     usuarioEditandoId = null;
@@ -458,7 +458,7 @@ function abrirModalNuevo() {
 
 // ===== 14. EDITAR USUARIO =====
 async function editarUsuario(id) {
-    console.log('✏️ Editando usuario:', id);
+    // console.log('✏️ Editando usuario:', id);
     
     // Verificar permisos de admin
     if (currentUser.role !== 'admin') {
@@ -515,7 +515,7 @@ async function editarUsuario(id) {
 
 // ===== 15. CERRAR MODAL =====
 function cerrarModal() {
-    console.log('❌ Cerrando modal');
+    // console.log('❌ Cerrando modal');
     document.getElementById('usuarioModal').classList.remove('active');
     document.body.style.overflow = 'auto';
 }
@@ -523,11 +523,11 @@ function cerrarModal() {
 // ===== 16. GUARDAR USUARIO =====
 async function guardarUsuario(event) {
     event.preventDefault();
-    console.log('💾 Intentando guardar usuario...');
+    // console.log('💾 Intentando guardar usuario...');
     
     // Validar formulario
     if (!validarFormulario()) {
-        console.log('❌ Formulario inválido');
+        // console.log('❌ Formulario inválido');
         return;
     }
     
@@ -551,7 +551,7 @@ async function guardarUsuario(event) {
                 updated_at: firebase.firestore.FieldValue.serverTimestamp()
             });
             
-            console.log('✅ Usuario actualizado:', usuarioEditandoId);
+            // console.log('✅ Usuario actualizado:', usuarioEditandoId);
             alert('✅ Usuario actualizado correctamente');
             
         } else {
@@ -569,7 +569,7 @@ async function guardarUsuario(event) {
                   `👔 Rol: ${rol === 'admin' ? 'Administrador' : 'Empleado'}\n\n` +
                   `El administrador creará el usuario y te notificará cuando esté listo.`);
             
-            console.log('💡 Solicitud de creación de usuario:', { email, nombre, rol });
+            // console.log('💡 Solicitud de creación de usuario:', { email, nombre, rol });
             
             // Cerrar modal sin recargar
             cerrarModal();
@@ -581,7 +581,7 @@ async function guardarUsuario(event) {
         await cargarUsuarios();
         
     } catch (error) {
-        console.error('❌ Error al guardar usuario:', error);
+        // console.error('❌ Error al guardar usuario:', error);
         
         let errorMessage = 'Error al guardar el usuario.';
         
@@ -760,7 +760,7 @@ function togglePasswordVisibility() {
 
 // ===== 22. ABRIR MODAL CAMBIAR CONTRASEÑA =====
 function abrirModalPassword(id) {
-    console.log('🔑 Abriendo modal de contraseña para usuario:', id);
+    // console.log('🔑 Abriendo modal de contraseña para usuario:', id);
     
     // Verificar permisos de admin
     if (currentUser.role !== 'admin') {
@@ -780,7 +780,7 @@ function abrirModalPassword(id) {
 
 // ===== 23. CERRAR MODAL PASSWORD =====
 function cerrarPasswordModal() {
-    console.log('❌ Cerrando modal de contraseña');
+    // console.log('❌ Cerrando modal de contraseña');
     document.getElementById('passwordModal').classList.remove('active');
     usuarioEditandoId = null;
 }
@@ -788,7 +788,7 @@ function cerrarPasswordModal() {
 // ===== 24. CAMBIAR CONTRASEÑA =====
 async function cambiarPassword(event) {
     event.preventDefault();
-    console.log('🔑 Cambiando contraseña...');
+    // console.log('🔑 Cambiando contraseña...');
     
     const newPassword = document.getElementById('inputNewPassword').value;
     const confirmPassword = document.getElementById('inputConfirmNewPassword').value;
@@ -832,7 +832,7 @@ async function cambiarPassword(event) {
                     password_updated_at: firebase.firestore.FieldValue.serverTimestamp()
                 });
                 
-                console.log('✅ Tu contraseña ha sido actualizada');
+                // console.log('✅ Tu contraseña ha sido actualizada');
                 alert('✅ Tu contraseña ha sido actualizada correctamente');
                 
                 cerrarPasswordModal();
@@ -840,7 +840,7 @@ async function cambiarPassword(event) {
             } catch (updateError) {
                 // Si requiere re-autenticación
                 if (updateError.code === 'auth/requires-recent-login') {
-                    console.log('⚠️ Se requiere re-autenticación reciente');
+                    // console.log('⚠️ Se requiere re-autenticación reciente');
                     
                     // Solicitar contraseña actual
                     const passwordActual = prompt('🔐 Por seguridad, ingresa tu contraseña actual:');
@@ -858,7 +858,7 @@ async function cambiarPassword(event) {
                         );
                         await user.reauthenticateWithCredential(credential);
                         
-                        console.log('✅ Re-autenticación exitosa');
+                        // console.log('✅ Re-autenticación exitosa');
                         
                         // Intentar cambiar contraseña nuevamente
                         await user.updatePassword(newPassword);
@@ -868,13 +868,13 @@ async function cambiarPassword(event) {
                             password_updated_at: firebase.firestore.FieldValue.serverTimestamp()
                         });
                         
-                        console.log('✅ Tu contraseña ha sido actualizada');
+                        // console.log('✅ Tu contraseña ha sido actualizada');
                         alert('✅ Tu contraseña ha sido actualizada correctamente');
                         
                         cerrarPasswordModal();
                         
                     } catch (reauthError) {
-                        console.error('❌ Error en re-autenticación:', reauthError);
+                        // console.error('❌ Error en re-autenticación:', reauthError);
                         
                         if (reauthError.code === 'auth/wrong-password') {
                             alert('❌ Contraseña actual incorrecta');
@@ -906,14 +906,14 @@ async function cambiarPassword(event) {
             // Enviar correo de recuperación
             await firebaseAuth.sendPasswordResetEmail(emailUsuario);
             
-            console.log('✅ Correo de recuperación enviado a:', emailUsuario);
+            // console.log('✅ Correo de recuperación enviado a:', emailUsuario);
             alert(`✅ Correo de recuperación enviado a:\n${emailUsuario}\n\nEl usuario debe revisar su bandeja de entrada.`);
             
             cerrarPasswordModal();
         }
         
     } catch (error) {
-        console.error('❌ Error al cambiar contraseña:', error);
+        // console.error('❌ Error al cambiar contraseña:', error);
         
         let errorMessage = 'Error al cambiar la contraseña';
         
@@ -939,7 +939,7 @@ function limpiarErroresPassword() {
 
 // ===== 26. ELIMINAR USUARIO =====
 async function eliminarUsuario(id, nombre) {
-    console.log('🗑️ Intentando eliminar usuario:', id, nombre);
+    // console.log('🗑️ Intentando eliminar usuario:', id, nombre);
     
     // Verificar permisos de admin
     if (currentUser.role !== 'admin') {
@@ -962,7 +962,7 @@ async function eliminarUsuario(id, nombre) {
     try {
         // Eliminar de Firestore
         await firebaseDB.collection('users').doc(id).delete();
-        console.log('✅ Usuario eliminado de Firestore:', id);
+        // console.log('✅ Usuario eliminado de Firestore:', id);
         
         alert(`✅ Usuario "${nombre}" eliminado correctamente.\n\n⚠️ Nota: La cuenta de Authentication debe eliminarse manualmente desde la consola de Firebase.`);
         
@@ -970,7 +970,7 @@ async function eliminarUsuario(id, nombre) {
         await cargarUsuarios();
         
     } catch (error) {
-        console.error('❌ Error al eliminar usuario:', error);
+        // console.error('❌ Error al eliminar usuario:', error);
         alert('❌ Error al eliminar el usuario. Verifica tus permisos.');
     }
 }
@@ -990,4 +990,4 @@ function formatDate(date) {
     return date.toLocaleDateString('es-ES', options);
 }
 
-console.log('✅ Usuarios.js completamente cargado');
+// console.log('✅ Usuarios.js completamente cargado');
