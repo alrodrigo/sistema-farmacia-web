@@ -237,73 +237,48 @@ console.log('✅ Utilidades cargadas correctamente');
 aplicarRestriccionesMenu();
 
 // ===== MENÚ MÓVIL =====
-/**
- * Inicializa el toggle del menú móvil
- */
-function initMobileMenu() {
-    const menuToggle = document.getElementById('menuToggle');
-    const sidebar = document.getElementById('sidebar');
+// Usar event delegation global para evitar problemas con navegación
+(function() {
+    let initialized = false;
     
-    if (!menuToggle || !sidebar) {
-        console.warn('⚠️ Menú móvil: elementos no encontrados');
-        return;
-    }
-    
-    // Remover listeners anteriores si existen (prevenir duplicados)
-    const oldToggle = menuToggle.cloneNode(true);
-    menuToggle.parentNode.replaceChild(oldToggle, menuToggle);
-    
-    // Toggle del menú
-    oldToggle.addEventListener('click', (e) => {
-        e.stopPropagation();
-        sidebar.classList.toggle('active');
-        document.body.classList.toggle('menu-open');
-        console.log('🔄 Menú toggle:', sidebar.classList.contains('active') ? 'abierto' : 'cerrado');
-    });
-    
-    // Cerrar menú al hacer click fuera (usando event delegation)
-    const closeMenuOutside = (e) => {
-        if (sidebar.classList.contains('active') &&
-            !sidebar.contains(e.target) && 
-            !oldToggle.contains(e.target)) {
-            sidebar.classList.remove('active');
-            document.body.classList.remove('menu-open');
-            console.log('🔄 Menú cerrado (click fuera)');
-        }
-    };
-    
-    // Remover listener anterior si existe
-    document.removeEventListener('click', window.closeMenuOutside);
-    window.closeMenuOutside = closeMenuOutside;
-    document.addEventListener('click', closeMenuOutside);
-    
-    // Cerrar menú al seleccionar una opción en móvil
-    const navItems = sidebar.querySelectorAll('.nav-item');
-    navItems.forEach(item => {
-        item.addEventListener('click', () => {
-            if (window.innerWidth <= 768) {
-                sidebar.classList.remove('active');
-                document.body.classList.remove('menu-open');
-                console.log('🔄 Menú cerrado (navegación)');
+    function setupMobileMenu() {
+        if (initialized) return;
+        
+        // Toggle del menú - usar event delegation en document
+        document.body.addEventListener('click', function(e) {
+            // Si clickean el botón toggle
+            if (e.target.closest('.menu-toggle')) {
+                e.preventDefault();
+                const sidebar = document.getElementById('sidebar');
+                if (sidebar) {
+                    const isActive = sidebar.classList.toggle('active');
+                    document.body.classList.toggle('menu-open', isActive);
+                }
+                return;
+            }
+            
+            // Si clickean fuera del sidebar cuando está abierto
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar && sidebar.classList.contains('active')) {
+                if (!sidebar.contains(e.target) && !e.target.closest('.menu-toggle')) {
+                    sidebar.classList.remove('active');
+                    document.body.classList.remove('menu-open');
+                }
+            }
+            
+            // Si clickean en un item del menú en móvil
+            if (e.target.closest('.nav-item') && window.innerWidth <= 768) {
+                if (sidebar) {
+                    sidebar.classList.remove('active');
+                    document.body.classList.remove('menu-open');
+                }
             }
         });
-    });
-    
-    console.log('✅ Menú móvil inicializado correctamente');
-}
-
-// Inicializar cuando el DOM esté completamente cargado
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initMobileMenu);
-} else {
-    // Si ya está cargado, ejecutar inmediatamente
-    initMobileMenu();
-}
-
-// Re-inicializar si la página se recarga desde caché (bfcache)
-window.addEventListener('pageshow', (event) => {
-    if (event.persisted) {
-        console.log('🔄 Página restaurada desde caché, re-inicializando menú');
-        initMobileMenu();
+        
+        initialized = true;
+        console.log('✅ Menú móvil configurado con event delegation');
     }
-});
+    
+    // Ejecutar inmediatamente
+    setupMobileMenu();
+})();
