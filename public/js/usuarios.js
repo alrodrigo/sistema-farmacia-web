@@ -319,7 +319,7 @@ function mostrarUsuarios() {
             <td>
                 <div class="user-name">
                     <i class="fas fa-user-circle"></i>
-                    ${usuario.name || 'Sin nombre'}
+                    ${usuario.nombre || usuario.name || usuario.first_name || usuario.email?.split('@')[0] || 'Sin nombre'}
                     ${isCurrentUser ? '<span class="badge-estado activo">(Tú)</span>' : ''}
                 </div>
             </td>
@@ -491,7 +491,7 @@ async function editarUsuario(id) {
     document.getElementById('inputConfirmPassword').required = false;
     
     // Llenar formulario
-    document.getElementById('inputNombre').value = usuario.name || '';
+    document.getElementById('inputNombre').value = usuario.nombre || usuario.name || usuario.first_name || '';
     const inputEmail = document.getElementById('inputEmail');
     inputEmail.value = usuario.email || '';
     // Bloquear email en edición (no se puede cambiar en Firebase Authentication sin backend)
@@ -544,6 +544,7 @@ async function guardarUsuario(event) {
             // Actualizar usuario existente en Firestore
             // Nota: El email NO se puede cambiar por seguridad de Firebase Authentication
             await firebaseDB.collection('users').doc(usuarioEditandoId).update({
+                nombre: nombre,
                 name: nombre,
                 role: rol,
                 updated_at: firebase.firestore.FieldValue.serverTimestamp()
