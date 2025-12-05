@@ -237,48 +237,109 @@ console.log('✅ Utilidades cargadas correctamente');
 aplicarRestriccionesMenu();
 
 // ===== MENÚ MÓVIL =====
-// Usar event delegation global para evitar problemas con navegación
+// ===== MENÚ MÓVIL =====
+// Inicialización única y silenciosa
 (function() {
-    let initialized = false;
+    if (window.__mobileMenuReady) return;
+    window.__mobileMenuReady = true;
     
-    function setupMobileMenu() {
-        if (initialized) return;
-        
-        // Toggle del menú - usar event delegation en document
-        document.body.addEventListener('click', function(e) {
-            // Si clickean el botón toggle
-            if (e.target.closest('.menu-toggle')) {
-                e.preventDefault();
-                const sidebar = document.getElementById('sidebar');
-                if (sidebar) {
-                    const isActive = sidebar.classList.toggle('active');
-                    document.body.classList.toggle('menu-open', isActive);
-                }
-                return;
-            }
+    let overlay = null;
+    
+    // Crear overlay dinámicamente
+    function createOverlay() {
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'menu-overlay';
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 999;
+                display: none;
+                opacity: 0;
+                transition: opacity 0.3s ease;
+            `;
+            document.body.appendChild(overlay);
             
-            // Si clickean fuera del sidebar cuando está abierto
-            const sidebar = document.getElementById('sidebar');
-            if (sidebar && sidebar.classList.contains('active')) {
-                if (!sidebar.contains(e.target) && !e.target.closest('.menu-toggle')) {
-                    sidebar.classList.remove('active');
-                    document.body.classList.remove('menu-open');
-                }
-            }
-            
-            // Si clickean en un item del menú en móvil
-            if (e.target.closest('.nav-item') && window.innerWidth <= 768) {
-                if (sidebar) {
-                    sidebar.classList.remove('active');
-                    document.body.classList.remove('menu-open');
-                }
-            }
-        });
-        
-        initialized = true;
-        console.log('✅ Menú móvil configurado con event delegation');
+            // Click en overlay cierra menú
+            overlay.addEventListener('click', closeMenu);
+        }
+        return overlay;
     }
     
-    // Ejecutar inmediatamente
-    setupMobileMenu();
+    function openMenu() {
+        const sidebar = document.getElementById('sidebar');
+        if (!sidebar) return;
+        
+        const overlayEl = createOverlay();
+        sidebar.classList.add('active');
+        overlayEl.style.display = 'block';
+        
+        // Pequeño delay para permitir transición de opacidad
+        requestAnimationFrame(() => {
+            overlayEl.style.opacity = '1';
+        });
+        
+        document.body.style.overflow = 'hidden'; // Prevenir scroll
+    }
+    
+    function closeMenu() {
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar) {
+            sidebar.classList.remove('active');
+        }
+        
+        if (overlay) {
+            overlay.style.opacity = '0';
+            setTimeout(() => {
+                if (overlay) overlay.style.display = 'none';
+            }, 300);
+        }
+        
+        document.body.style.overflow = ''; // Restaurar scroll
+        document.body.classList.remove('menu-open'); // Limpieza por si acaso
+    }
+    
+    // Event delegation en document
+    document.addEventListener('click', function(e) {
+        // Toggle del botón hamburguesa
+        if (e.target.closest('.menu-toggle, #menuToggle')) {
+            e.preventDefault();
+            e.stopPropagation();
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar && sidebar.classList.contains('active')) {
+                closeMenu();
+            } else {
+                openMenu();
+            }
+            return;
+        }
+        
+        // Cerrar al navegar en móvil
+        if (e.target.closest('.nav-item') && window.innerWidth <= 768) {
+            closeMenu();
+        }
+    });
+    
+    // Limpieza inicial cuando el DOM esté listo
+    function init() {
+        createOverlay();
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar) {
+            sidebar.classList.remove('active');
+        }
+        document.body.classList.remove('menu-open');
+        document.body.style.overflow = '';
+    }
+    
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+    
+    console.log('✅ Menú móvil listo');
 })();

@@ -21,6 +21,9 @@
     
     <!-- CSS -->
     <link rel="stylesheet" href="css/usuarios.css">
+
+    <!-- Responsive (DEBE IR AL FINAL) -->
+    <link rel="stylesheet" href="css/responsive.css">
 </head>
 <body>
     <!-- ==================== NAVBAR SUPERIOR ==================== -->
@@ -285,6 +288,7 @@
                                     id="inputPassword" 
                                     placeholder="Mínimo 6 caracteres"
                                     minlength="6"
+                                    autocomplete="new-password"
                                 >
                                 <button type="button" class="btn-icon-small" id="btnTogglePassword">
                                     <i class="fas fa-eye"></i>
@@ -303,6 +307,7 @@
                                 class="form-control"
                                 id="inputConfirmPassword" 
                                 placeholder="Repite la contraseña"
+                                autocomplete="new-password"
                             >
                             <span class="error-message" id="errorConfirmPassword"></span>
                         </div>
@@ -371,6 +376,7 @@
                         id="inputNewPassword" 
                         placeholder="Mínimo 6 caracteres"
                         minlength="6"
+                        autocomplete="new-password"
                         required
                     >
                     <span class="error-message" id="errorNewPassword"></span>
@@ -385,6 +391,7 @@
                         class="form-control"
                         id="inputConfirmNewPassword" 
                         placeholder="Repite la contraseña"
+                        autocomplete="new-password"
                         required
                     >
                     <span class="error-message" id="errorConfirmNewPassword"></span>
