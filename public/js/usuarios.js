@@ -426,6 +426,7 @@ function abrirModalNuevo() {
     
     // Habilitar campo de email (solo se bloquea en modo edición)
     const inputEmail = document.getElementById('inputEmail');
+    inputEmail.readOnly = false;
     inputEmail.disabled = false;
     inputEmail.style.backgroundColor = '';
     inputEmail.style.cursor = '';
@@ -495,7 +496,7 @@ async function editarUsuario(id) {
     const inputEmail = document.getElementById('inputEmail');
     inputEmail.value = usuario.email || '';
     // Bloquear email en edición (no se puede cambiar en Firebase Authentication sin backend)
-    inputEmail.disabled = true;
+    inputEmail.readOnly = true;
     inputEmail.style.backgroundColor = '#f5f5f5';
     inputEmail.style.cursor = 'not-allowed';
     inputEmail.title = 'El email no se puede modificar por seguridad';
