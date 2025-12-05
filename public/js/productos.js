@@ -792,23 +792,26 @@ function validarFormulario() {
     // Nombre
     const nombre = document.getElementById('inputNombre').value.trim();
     if (!nombre) {
-        mostrarError('inputNombre', 'El nombre es obligatorio');
+        mostrarError('inputNombre', '⚠️ El nombre del producto es obligatorio');
         esValido = false;
     } else if (nombre.length < 3) {
-        mostrarError('inputNombre', 'El nombre debe tener al menos 3 caracteres');
+        mostrarError('inputNombre', '⚠️ El nombre debe tener al menos 3 caracteres');
         esValido = false;
     } else if (nombre.length > 100) {
-        mostrarError('inputNombre', 'El nombre no debe exceder 100 caracteres');
+        mostrarError('inputNombre', '⚠️ El nombre no debe exceder 100 caracteres');
         esValido = false;
     }
     
     // SKU
     const sku = document.getElementById('inputSKU').value.trim().toUpperCase();
     if (!sku) {
-        mostrarError('inputSKU', 'El SKU es obligatorio');
+        mostrarError('inputSKU', '⚠️ El código SKU es obligatorio');
         esValido = false;
     } else if (sku.length < 2) {
-        mostrarError('inputSKU', 'El SKU debe tener al menos 2 caracteres');
+        mostrarError('inputSKU', '⚠️ El código SKU debe tener al menos 2 caracteres');
+        esValido = false;
+    } else if (!/^[A-Z0-9-_]+$/.test(sku)) {
+        mostrarError('inputSKU', '⚠️ El código SKU solo puede contener letras, números, guiones y guiones bajos');
         esValido = false;
     } else {
         // Validar SKU duplicado
@@ -816,24 +819,7 @@ function validarFormulario() {
             p.sku === sku && p.id !== productoEditandoId
         );
         if (skuDuplicado) {
-            mostrarError('inputSKU', 'Este SKU ya existe en otro producto');
-            esValido = false;
-        }
-    }
-    
-    // Código de barras (opcional pero si existe debe ser válido)
-    const barcode = document.getElementById('inputBarcode').value.trim();
-    if (barcode) {
-        if (barcode.length < 8) {
-            mostrarError('inputBarcode', 'El código de barras debe tener al menos 8 dígitos');
-            esValido = false;
-        }
-        // Validar código de barras duplicado
-        const barcodeDuplicado = todosLosProductos.find(p => 
-            p.barcode === barcode && p.id !== productoEditandoId
-        );
-        if (barcodeDuplicado) {
-            mostrarError('inputBarcode', 'Este código de barras ya existe en otro producto');
+            mostrarError('inputSKU', `❌ El código SKU "${sku}" ya existe en el producto: ${skuDuplicado.name}`);
             esValido = false;
         }
     }
@@ -841,14 +827,14 @@ function validarFormulario() {
     // Categoría
     const categoria = document.getElementById('inputCategoria').value;
     if (!categoria) {
-        mostrarError('inputCategoria', 'Selecciona una categoría');
+        mostrarError('inputCategoria', '⚠️ Debes seleccionar una categoría para el producto');
         esValido = false;
     }
     
     // Proveedor
     const proveedor = document.getElementById('inputProveedor').value;
     if (!proveedor) {
-        mostrarError('inputProveedor', 'Selecciona un laboratorio');
+        mostrarError('inputProveedor', '⚠️ Debes seleccionar el laboratorio/proveedor del producto');
         esValido = false;
     }
     
@@ -856,19 +842,19 @@ function validarFormulario() {
     const costoInput = document.getElementById('inputCosto').value;
     const costo = parseFloat(costoInput);
     if (!costoInput || costoInput.trim() === '') {
-        mostrarError('inputCosto', 'El costo es obligatorio');
+        mostrarError('inputCosto', '⚠️ El costo de compra es obligatorio');
         esValido = false;
     } else if (isNaN(costo)) {
-        mostrarError('inputCosto', 'El costo debe ser un número válido');
+        mostrarError('inputCosto', '❌ El costo debe ser un número válido (ej: 12.50)');
         esValido = false;
     } else if (costo < 0) {
-        mostrarError('inputCosto', 'El costo no puede ser negativo');
+        mostrarError('inputCosto', '❌ El costo no puede ser negativo');
         esValido = false;
     } else if (costo === 0) {
-        mostrarError('inputCosto', 'El costo debe ser mayor a cero');
+        mostrarError('inputCosto', '❌ El costo debe ser mayor a cero');
         esValido = false;
     } else if (costo > 999999) {
-        mostrarError('inputCosto', 'El costo es demasiado alto');
+        mostrarError('inputCosto', '❌ El costo es demasiado alto (máximo: 999,999)');
         esValido = false;
     }
     
@@ -876,22 +862,22 @@ function validarFormulario() {
     const precioInput = document.getElementById('inputPrecio').value;
     const precio = parseFloat(precioInput);
     if (!precioInput || precioInput.trim() === '') {
-        mostrarError('inputPrecio', 'El precio es obligatorio');
+        mostrarError('inputPrecio', '⚠️ El precio de venta es obligatorio');
         esValido = false;
     } else if (isNaN(precio)) {
-        mostrarError('inputPrecio', 'El precio debe ser un número válido');
+        mostrarError('inputPrecio', '❌ El precio debe ser un número válido (ej: 25.00)');
         esValido = false;
     } else if (precio < 0) {
-        mostrarError('inputPrecio', 'El precio no puede ser negativo');
+        mostrarError('inputPrecio', '❌ El precio no puede ser negativo');
         esValido = false;
     } else if (precio === 0) {
-        mostrarError('inputPrecio', 'El precio debe ser mayor a cero');
+        mostrarError('inputPrecio', '❌ El precio debe ser mayor a cero');
         esValido = false;
     } else if (precio <= costo) {
-        mostrarError('inputPrecio', 'El precio debe ser mayor al costo para obtener ganancia');
+        mostrarError('inputPrecio', `💰 El precio (Bs. ${precio}) debe ser mayor al costo (Bs. ${costo}) para obtener ganancia`);
         esValido = false;
     } else if (precio > 999999) {
-        mostrarError('inputPrecio', 'El precio es demasiado alto');
+        mostrarError('inputPrecio', '❌ El precio es demasiado alto (máximo: 999,999)');
         esValido = false;
     }
     
@@ -899,16 +885,16 @@ function validarFormulario() {
     const stockActualInput = document.getElementById('inputStockActual').value;
     const stockActual = parseInt(stockActualInput);
     if (!stockActualInput || stockActualInput.trim() === '') {
-        mostrarError('inputStockActual', 'El stock actual es obligatorio');
+        mostrarError('inputStockActual', '⚠️ El stock actual en inventario es obligatorio');
         esValido = false;
     } else if (isNaN(stockActual)) {
-        mostrarError('inputStockActual', 'El stock debe ser un número entero');
+        mostrarError('inputStockActual', '❌ El stock debe ser un número entero (ej: 50)');
         esValido = false;
     } else if (stockActual < 0) {
-        mostrarError('inputStockActual', 'El stock no puede ser negativo');
+        mostrarError('inputStockActual', '❌ El stock no puede ser negativo');
         esValido = false;
     } else if (stockActual > 999999) {
-        mostrarError('inputStockActual', 'El stock es demasiado alto');
+        mostrarError('inputStockActual', '❌ El stock es demasiado alto (máximo: 999,999 unidades)');
         esValido = false;
     }
     
@@ -916,13 +902,13 @@ function validarFormulario() {
     const stockMinimoInput = document.getElementById('inputStockMinimo').value;
     const stockMinimo = parseInt(stockMinimoInput);
     if (!stockMinimoInput || stockMinimoInput.trim() === '') {
-        mostrarError('inputStockMinimo', 'El stock mínimo es obligatorio');
+        mostrarError('inputStockMinimo', '⚠️ El stock mínimo de alerta es obligatorio');
         esValido = false;
     } else if (isNaN(stockMinimo)) {
-        mostrarError('inputStockMinimo', 'El stock mínimo debe ser un número entero');
+        mostrarError('inputStockMinimo', '❌ El stock mínimo debe ser un número entero (ej: 10)');
         esValido = false;
     } else if (stockMinimo < 0) {
-        mostrarError('inputStockMinimo', 'El stock mínimo no puede ser negativo');
+        mostrarError('inputStockMinimo', '❌ El stock mínimo no puede ser negativo');
         esValido = false;
     } else if (stockMinimo > stockActual && !modoEdicion) {
         // Advertencia (no bloquea) si el stock mínimo es mayor al actual en nuevo producto
