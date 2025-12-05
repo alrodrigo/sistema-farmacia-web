@@ -235,3 +235,75 @@ console.log('✅ Utilidades cargadas correctamente');
 
 // Aplicar restricciones inmediatamente al cargar (usa caché si está disponible)
 aplicarRestriccionesMenu();
+
+// ===== MENÚ MÓVIL =====
+/**
+ * Inicializa el toggle del menú móvil
+ */
+function initMobileMenu() {
+    const menuToggle = document.getElementById('menuToggle');
+    const sidebar = document.getElementById('sidebar');
+    
+    if (!menuToggle || !sidebar) {
+        console.warn('⚠️ Menú móvil: elementos no encontrados');
+        return;
+    }
+    
+    // Remover listeners anteriores si existen (prevenir duplicados)
+    const oldToggle = menuToggle.cloneNode(true);
+    menuToggle.parentNode.replaceChild(oldToggle, menuToggle);
+    
+    // Toggle del menú
+    oldToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        sidebar.classList.toggle('active');
+        document.body.classList.toggle('menu-open');
+        console.log('🔄 Menú toggle:', sidebar.classList.contains('active') ? 'abierto' : 'cerrado');
+    });
+    
+    // Cerrar menú al hacer click fuera (usando event delegation)
+    const closeMenuOutside = (e) => {
+        if (sidebar.classList.contains('active') &&
+            !sidebar.contains(e.target) && 
+            !oldToggle.contains(e.target)) {
+            sidebar.classList.remove('active');
+            document.body.classList.remove('menu-open');
+            console.log('🔄 Menú cerrado (click fuera)');
+        }
+    };
+    
+    // Remover listener anterior si existe
+    document.removeEventListener('click', window.closeMenuOutside);
+    window.closeMenuOutside = closeMenuOutside;
+    document.addEventListener('click', closeMenuOutside);
+    
+    // Cerrar menú al seleccionar una opción en móvil
+    const navItems = sidebar.querySelectorAll('.nav-item');
+    navItems.forEach(item => {
+        item.addEventListener('click', () => {
+            if (window.innerWidth <= 768) {
+                sidebar.classList.remove('active');
+                document.body.classList.remove('menu-open');
+                console.log('🔄 Menú cerrado (navegación)');
+            }
+        });
+    });
+    
+    console.log('✅ Menú móvil inicializado correctamente');
+}
+
+// Inicializar cuando el DOM esté completamente cargado
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initMobileMenu);
+} else {
+    // Si ya está cargado, ejecutar inmediatamente
+    initMobileMenu();
+}
+
+// Re-inicializar si la página se recarga desde caché (bfcache)
+window.addEventListener('pageshow', (event) => {
+    if (event.persisted) {
+        console.log('🔄 Página restaurada desde caché, re-inicializando menú');
+        initMobileMenu();
+    }
+});

@@ -775,3 +775,191 @@
     border-color: var(--input-focus-border);
     box-shadow: var(--input-shadow-focus);
 }
+
+/* ===== RESPONSIVE - COMPONENTES ===== */
+@media (max-width: 768px) {
+    /* Modales más pequeños */
+    .modal {
+        width: 100%;
+        max-width: 100%;
+        max-height: 100vh;
+        border-radius: 0;
+        margin: 0;
+    }
+
+    .modal-backdrop {
+        padding: 0;
+    }
+
+    .modal-header {
+        padding: 1rem;
+        position: sticky;
+        top: 0;
+        background: var(--modal-bg);
+        z-index: 10;
+    }
+
+    .modal-title {
+        font-size: var(--font-lg);
+    }
+
+    .modal-body {
+        padding: 1rem;
+    }
+
+    .modal-footer {
+        padding: 1rem;
+        position: sticky;
+        bottom: 0;
+        background: var(--modal-bg);
+        border-top: 1px solid var(--border-color);
+        flex-wrap: wrap;
+    }
+
+    .modal-footer .btn {
+        flex: 1;
+        min-width: 120px;
+    }
+
+    /* Formularios en modales */
+    .form-grid {
+        grid-template-columns: 1fr !important;
+        gap: 1rem;
+    }
+
+    .form-actions {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .form-actions .btn {
+        width: 100%;
+    }
+
+    /* Tablas responsive */
+    .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        border-radius: var(--radius-md);
+        box-shadow: inset 0 0 0 1px var(--border-color);
+    }
+
+    .table,
+    table {
+        min-width: 600px;
+    }
+
+    .table th,
+    .table td,
+    .data-table th,
+    .data-table td {
+        padding: 0.75rem 0.5rem;
+        font-size: var(--font-sm);
+    }
+
+    /* Indicador visual de scroll */
+    .table-container::after {
+        content: '← Desliza →';
+        position: sticky;
+        right: 0;
+        bottom: 0;
+        padding: 0.5rem;
+        background: linear-gradient(to left, var(--bg-secondary), transparent);
+        color: var(--text-light);
+        font-size: 0.75rem;
+        text-align: right;
+        pointer-events: none;
+    }
+
+    /* Badges más pequeños */
+    .badge {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+    }
+
+    /* Stats cards */
+    .stats-grid {
+        grid-template-columns: 1fr !important;
+        gap: 1rem;
+    }
+
+    /* Botones más grandes para touch */
+    .btn {
+        min-height: 44px;
+        padding: 0.75rem 1rem;
+    }
+
+    .btn-sm {
+        min-height: 36px;
+        padding: 0.5rem 0.75rem;
+    }
+
+    /* Input más grandes para touch */
+    .input-field,
+    .filter-select,
+    .search-box input {
+        min-height: 44px;
+        font-size: 16px; /* Previene zoom en iOS */
+    }
+
+    /* Filtros en columna */
+    .filter-group {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .search-box {
+        min-width: 100%;
+    }
+
+    .filter-select {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    /* Modales fullscreen en móviles pequeños */
+    .modal {
+        border-radius: 0;
+    }
+
+    .modal-header,
+    .modal-body,
+    .modal-footer {
+        padding: 0.75rem;
+    }
+
+    .modal-title {
+        font-size: var(--font-base);
+    }
+
+    /* Tablas más compactas */
+    table {
+        min-width: 500px;
+    }
+
+    .data-table th,
+    .data-table td {
+        padding: 0.5rem 0.25rem;
+        font-size: 0.75rem;
+    }
+
+    /* Alerts más compactos */
+    .alert {
+        padding: 0.75rem;
+        font-size: var(--font-sm);
+    }
+
+    /* Cards más compactos */
+    .card {
+        padding: 1rem;
+    }
+
+    .card-header {
+        padding: 1rem;
+    }
+
+    .card-body {
+        padding: 1rem;
+    }
+}
