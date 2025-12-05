@@ -212,6 +212,7 @@ async function cargarEstadisticas() {
         await Promise.all([
             cargarTotalProductos(),
             cargarProductosStockBajo(),
+            cargarProductosProximosVencer(),
             cargarVentasHoy(),
             cargarIngresosHoy()
         ]);
@@ -346,6 +347,130 @@ function irAProducto(productId) {
     localStorage.setItem('editProductId', productId);
     // Redirigir a la página de productos
     window.location.href = 'productos.html';
+}
+
+// ===== PRODUCTOS PRÓXIMOS A VENCER =====
+/**
+ * Detecta productos que vencen en los próximos 30 días
+ * Y muestra una lista detallada
+ */
+async function cargarProductosProximosVencer() {
+    try {
+        // Obtener todos los productos
+        const snapshot = await firebaseDB.collection('products').get();
+        
+        // Array para guardar productos próximos a vencer
+        const productosProximosVencer = [];
+        
+        // Fecha actual
+        const hoy = new Date();
+        hoy.setHours(0, 0, 0, 0);
+        
+        // Fecha límite: 30 días desde hoy
+        const fechaLimite = new Date(hoy);
+        fechaLimite.setDate(fechaLimite.getDate() + 30);
+        
+        snapshot.forEach(doc => {
+            const producto = doc.data();
+            
+            // Verificar si tiene fecha de vencimiento
+            if (producto.expiration_date) {
+                // Convertir Firestore Timestamp a Date
+                const fechaVencimiento = producto.expiration_date.toDate ? 
+                    producto.expiration_date.toDate() : 
+                    new Date(producto.expiration_date);
+                
+                // Si vence dentro de 30 días o ya venció
+                if (fechaVencimiento <= fechaLimite) {
+                    // Calcular días restantes
+                    const diasRestantes = Math.ceil((fechaVencimiento - hoy) / (1000 * 60 * 60 * 24));
+                    
+                    productosProximosVencer.push({
+                        id: doc.id,
+                        name: producto.name,
+                        sku: producto.sku,
+                        expirationDate: fechaVencimiento,
+                        diasRestantes: diasRestantes,
+                        stock: producto.current_stock
+                    });
+                }
+            }
+        });
+        
+        // Ordenar por días restantes (los más urgentes primero)
+        productosProximosVencer.sort((a, b) => a.diasRestantes - b.diasRestantes);
+        
+        // Si hay productos próximos a vencer, mostrar la tabla
+        if (productosProximosVencer.length > 0) {
+            mostrarTablaProductosProximosVencer(productosProximosVencer);
+        }
+        
+        // console.log(`⏰ Productos próximos a vencer: ${productosProximosVencer.length}`);
+        
+    } catch (error) {
+        // console.error('❌ Error al cargar productos próximos a vencer:', error);
+    }
+}
+
+/**
+ * Muestra la tabla con los productos próximos a vencer
+ * @param {Array} productos - Array de productos próximos a vencer
+ */
+function mostrarTablaProductosProximosVencer(productos) {
+    // Mostrar la sección (por defecto está oculta)
+    const section = document.getElementById('expiringSection');
+    section.style.display = 'block';
+    
+    // Actualizar el badge con el número
+    document.getElementById('badgeExpiring').textContent = productos.length;
+    
+    // Obtener el tbody de la tabla
+    const tbody = document.getElementById('expiringTableBody');
+    tbody.innerHTML = '';  // Limpiar contenido anterior
+    
+    // Crear una fila por cada producto
+    productos.forEach(producto => {
+        const row = document.createElement('tr');
+        
+        // Determinar el color según los días restantes
+        let badgeClass = 'badge-warning';
+        let diasTexto = `${producto.diasRestantes} días`;
+        
+        if (producto.diasRestantes < 0) {
+            badgeClass = 'badge-danger';
+            diasTexto = 'VENCIDO';
+        } else if (producto.diasRestantes === 0) {
+            badgeClass = 'badge-danger';
+            diasTexto = 'Vence HOY';
+        } else if (producto.diasRestantes <= 7) {
+            badgeClass = 'badge-danger';
+        } else if (producto.diasRestantes <= 15) {
+            badgeClass = 'badge-warning';
+        }
+        
+        // Formatear fecha
+        const fechaFormateada = producto.expirationDate.toLocaleDateString('es-ES', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+        
+        row.innerHTML = `
+            <td><strong>${producto.name}</strong></td>
+            <td><code>${producto.sku}</code></td>
+            <td>${fechaFormateada}</td>
+            <td>
+                <span class="${badgeClass}">
+                    ${diasTexto}
+                </span>
+            </td>
+            <td>${producto.stock} unidades</td>
+        `;
+        
+        tbody.appendChild(row);
+    });
+    
+    // console.log(`📋 Tabla de productos próximos a vencer mostrada con ${productos.length} productos`);
 }
 
 // ===== 10. VENTAS DEL DÍA =====

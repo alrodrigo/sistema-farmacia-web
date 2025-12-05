@@ -85,7 +85,7 @@
                     <i class="fas fa-users"></i>
                     <span>Usuarios</span>
                 </a>
-                <a href="reportes.html" class="nav-item">
+                <a href="reportes.html" class="nav-item admin-only">
                     <i class="fas fa-chart-bar"></i>
                     <span>Reportes</span>
                 </a>
@@ -146,7 +146,35 @@
                 </div>
             </div>
 
-            <!-- ⚠️ NUEVA SECCIÓN: Productos con Stock Bajo -->
+            <!-- ⚠️ SECCIÓN: Productos Próximos a Vencer -->
+            <div class="expiring-section" id="expiringSection" style="display: none;">
+                <div class="section-header">
+                    <h2>
+                        <i class="fas fa-calendar-times"></i>
+                        Productos Próximos a Vencer
+                    </h2>
+                    <span class="badge-danger" id="badgeExpiring">0</span>
+                </div>
+                
+                <div class="expiring-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th>SKU</th>
+                                <th>Fecha de Vencimiento</th>
+                                <th>Días Restantes</th>
+                                <th>Stock</th>
+                            </tr>
+                        </thead>
+                        <tbody id="expiringTableBody">
+                            <!-- Se llena con JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ⚠️ SECCIÓN: Productos con Stock Bajo -->
             <div class="stock-bajo-section" id="stockBajoSection" style="display: none;">
                 <div class="section-header">
                     <h2>

@@ -23,6 +23,54 @@
     border: 1px solid var(--border-color);
 }
 
+/* ===== 7.4 SECCIÓN DE PRODUCTOS PRÓXIMOS A VENCER ===== */
+.expiring-section {
+    background: var(--card-bg);
+    padding: 1.75rem;
+    border-radius: var(--card-radius);
+    box-shadow: var(--card-shadow);
+    margin-bottom: 2rem;
+    border: 1px solid var(--border-color);
+    border-left: 4px solid var(--danger-color);
+}
+
+.expiring-table {
+    overflow-x: auto;
+}
+
+.expiring-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.expiring-table thead {
+    background: var(--table-header-bg);
+}
+
+.expiring-table th {
+    padding: 0.875rem;
+    text-align: left;
+    font-size: var(--font-sm);
+    font-weight: var(--font-semibold);
+    color: var(--text-primary);
+    border-bottom: 2px solid var(--table-border);
+}
+
+.expiring-table td {
+    padding: 0.875rem;
+    font-size: var(--font-sm);
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--table-border);
+}
+
+.expiring-table tbody tr:hover {
+    background: var(--table-hover-bg);
+}
+
+.expiring-section .section-header h2 i {
+    color: var(--danger-color);
+}
+
 /* ===== 7.5 SECCIÓN DE STOCK BAJO ===== */
 .stock-bajo-section {
     background: var(--card-bg);

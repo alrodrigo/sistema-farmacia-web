@@ -86,7 +86,7 @@
                     <i class="fas fa-users"></i>
                     <span>Usuarios</span>
                 </a>
-                <a href="reportes.html" class="nav-item">
+                <a href="reportes.html" class="nav-item admin-only">
                     <i class="fas fa-chart-bar"></i>
                     <span>Reportes</span>
                 </a>
@@ -120,7 +120,7 @@
                             <input 
                                 type="text" 
                                 id="searchProductInput" 
-                                placeholder="Buscar por nombre, SKU o código de barras..."
+                                placeholder="Buscar por nombre o SKU..."
                                 autofocus
                             >
                             <button class="btn-search" id="btnSearch">
@@ -128,7 +128,7 @@
                             </button>
                         </div>
                         <div class="search-tips">
-                            💡 <strong>Tip:</strong> Puedes escanear el código de barras directamente
+                            💡 <strong>Tip:</strong> Presiona Enter o click en buscar
                         </div>
                     </div>
 
@@ -142,9 +142,9 @@
                         <div class="results-container" id="searchResults">
                             <!-- Mensaje inicial -->
                             <div class="empty-results">
-                                <i class="fas fa-barcode"></i>
+                                <i class="fas fa-search"></i>
                                 <p>Busca un producto para comenzar</p>
-                                <small>Usa el buscador o escanea el código de barras</small>
+                                <small>Usa el buscador por nombre o SKU</small>
                             </div>
                         </div>
                     </div>

@@ -85,7 +85,7 @@
                     <i class="fas fa-users"></i>
                     <span>Usuarios</span>
                 </a>
-                <a href="reportes.html" class="nav-item active">
+                <a href="reportes.html" class="nav-item admin-only active">
                     <i class="fas fa-chart-bar"></i>
                     <span>Reportes</span>
                 </a>
@@ -141,6 +141,17 @@
                             <option value="cash">Efectivo</option>
                             <option value="card">Tarjeta</option>
                             <option value="transfer">Transferencia</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="vendorFilter">
+                            <i class="fas fa-user"></i>
+                            Vendedor (Cierre de Caja):
+                        </label>
+                        <select id="vendorFilter" class="form-control">
+                            <option value="all">Todos los vendedores</option>
+                            <!-- Se llenará dinámicamente con JS -->
                         </select>
                     </div>
                     

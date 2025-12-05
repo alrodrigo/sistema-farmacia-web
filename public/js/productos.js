@@ -677,13 +677,21 @@ function abrirModalVer(producto) {
         // Llenar formulario con datos del producto
         document.getElementById('inputNombre').value = producto.name || '';
         document.getElementById('inputSKU').value = producto.sku || '';
-        document.getElementById('inputBarcode').value = producto.barcode || '';
         document.getElementById('inputCategoria').value = producto.category || '';
         document.getElementById('inputProveedor').value = producto.supplier || '';
         document.getElementById('inputCosto').value = producto.cost || '';
         document.getElementById('inputPrecio').value = producto.price || '';
         document.getElementById('inputStockActual').value = producto.current_stock || 0;
         document.getElementById('inputStockMinimo').value = producto.min_stock || 0;
+        
+        // Cargar fecha de vencimiento si existe
+        if (producto.expiration_date) {
+            const fecha = producto.expiration_date.toDate ? producto.expiration_date.toDate() : new Date(producto.expiration_date);
+            document.getElementById('inputFechaVencimiento').value = fecha.toISOString().split('T')[0];
+        } else {
+            document.getElementById('inputFechaVencimiento').value = '';
+        }
+        
         document.getElementById('inputDescripcion').value = producto.description || '';
         
         // Calcular margen
@@ -724,13 +732,21 @@ function abrirModalEditar(producto) {
         // Llenar formulario con datos del producto
         document.getElementById('inputNombre').value = producto.name || '';
         document.getElementById('inputSKU').value = producto.sku || '';
-        document.getElementById('inputBarcode').value = producto.barcode || '';
         document.getElementById('inputCategoria').value = producto.category || '';
         document.getElementById('inputProveedor').value = producto.supplier || '';
         document.getElementById('inputCosto').value = producto.cost || '';
         document.getElementById('inputPrecio').value = producto.price || '';
         document.getElementById('inputStockActual').value = producto.current_stock || 0;
         document.getElementById('inputStockMinimo').value = producto.min_stock || 0;
+        
+        // Cargar fecha de vencimiento si existe
+        if (producto.expiration_date) {
+            const fecha = producto.expiration_date.toDate ? producto.expiration_date.toDate() : new Date(producto.expiration_date);
+            document.getElementById('inputFechaVencimiento').value = fecha.toISOString().split('T')[0];
+        } else {
+            document.getElementById('inputFechaVencimiento').value = '';
+        }
+        
         document.getElementById('inputDescripcion').value = producto.description || '';
         
         // Calcular margen
@@ -964,16 +980,17 @@ async function guardarProducto(event) {
     
     try {
         // Recopilar datos del formulario
+        const fechaVencimiento = document.getElementById('inputFechaVencimiento').value;
         const productoData = {
             name: document.getElementById('inputNombre').value.trim(),
             sku: document.getElementById('inputSKU').value.trim().toUpperCase(),
-            barcode: document.getElementById('inputBarcode').value.trim() || null,
             category: document.getElementById('inputCategoria').value,
             supplier: document.getElementById('inputProveedor').value,
             cost: parseFloat(document.getElementById('inputCosto').value),
             price: parseFloat(document.getElementById('inputPrecio').value),
             current_stock: parseInt(document.getElementById('inputStockActual').value),
             min_stock: parseInt(document.getElementById('inputStockMinimo').value),
+            expiration_date: fechaVencimiento ? new Date(fechaVencimiento + 'T00:00:00') : null,
             description: document.getElementById('inputDescripcion').value.trim() || null,
             updated_at: firebase.firestore.FieldValue.serverTimestamp(),
             updated_by: currentUser.uid

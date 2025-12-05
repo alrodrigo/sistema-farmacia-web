@@ -4,6 +4,7 @@
 let currentUser = null;
 let allSales = [];
 let filteredSales = [];
+let allVendors = [];
 
 // ==================== INICIALIZACIÓN ====================
 document.addEventListener('DOMContentLoaded', function() {
@@ -18,6 +19,7 @@ function initializeAuth() {
         if (user) {
             currentUser = user;
             await loadUserData(user.uid);
+            await loadVendors();
             loadSalesData();
         } else {
             window.location.href = 'index.html';
@@ -186,12 +188,38 @@ async function loadSalesData() {
     }
 }
 
+// ==================== CARGAR VENDEDORES ====================
+async function loadVendors() {
+    try {
+        const usersSnapshot = await firebase.firestore().collection('users').get();
+        allVendors = usersSnapshot.docs.map(doc => ({
+            uid: doc.id,
+            ...doc.data()
+        }));
+        
+        // Llenar el select de vendedores
+        const vendorSelect = document.getElementById('vendorFilter');
+        vendorSelect.innerHTML = '<option value="all">Todos los vendedores</option>';
+        
+        allVendors.forEach(vendor => {
+            const displayName = vendor.nombre || vendor.name || vendor.email?.split('@')[0] || 'Vendedor';
+            const option = document.createElement('option');
+            option.value = vendor.uid;
+            option.textContent = displayName;
+            vendorSelect.appendChild(option);
+        });
+    } catch (error) {
+        // console.error('Error cargando vendedores:', error);
+    }
+}
+
 // ==================== FILTROS ====================
 function applyFilters() {
     // Obtener valores de los inputs (formato: YYYY-MM-DD)
     const fechaInicioStr = document.getElementById('fechaInicio').value;
     const fechaFinStr = document.getElementById('fechaFin').value;
     const paymentMethod = document.getElementById('paymentMethod').value;
+    const vendorFilter = document.getElementById('vendorFilter').value;
     
     // Parsear fechas en hora local (sin conversión UTC)
     const [yInicio, mInicio, dInicio] = fechaInicioStr.split('-').map(Number);
@@ -216,11 +244,17 @@ function applyFilters() {
             coincideMetodo = sale.payment_method === paymentMethod;
         }
         
-        if (!enRango || !coincideMetodo) {
+        // Filtro por vendedor (cierre de caja)
+        let coincideVendedor = true;
+        if (vendorFilter !== 'all') {
+            coincideVendedor = sale.seller_id === vendorFilter;
+        }
+        
+        if (!enRango || !coincideMetodo || !coincideVendedor) {
             // console.log(`  ❌ Venta excluida: ${saleDate.toLocaleString('es-BO')} - Método: ${sale.payment_method}`);
         }
         
-        return enRango && coincideMetodo;
+        return enRango && coincideMetodo && coincideVendedor;
     });
 
     // console.log('  ✅ Ventas filtradas:', filteredSales.length);
@@ -265,6 +299,7 @@ function updateUI() {
     }
 
     hideLoading();
+    hideEmptyState();
     updateSummaryCards();
     renderSalesTable();
     renderTopProducts();
@@ -1004,6 +1039,11 @@ function showLoading() {
 
 function hideLoading() {
     document.getElementById('loadingState').style.display = 'none';
+}
+
+function hideEmptyState() {
+    document.getElementById('emptyState').style.display = 'none';
+    document.getElementById('salesTable').style.display = 'table';
 }
 
 function showEmptyState() {
