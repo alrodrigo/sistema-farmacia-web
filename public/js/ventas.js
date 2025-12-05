@@ -984,10 +984,10 @@ async function procesarVenta() {
     if (MODO_DESARROLLO) {
       // console.log('⚠️ MODO DE DESARROLLO: Simulando venta exitosa');
       // console.log('📊 Datos de venta:', {
-        numero: numeroVentaActual,
-        items: carrito.length,
-        total: total
-      });
+      //   numero: numeroVentaActual,
+      //   items: carrito.length,
+      //   total: total
+      // });
       
       // Simular delay de red
       await new Promise(resolve => setTimeout(resolve, 1000));
