@@ -78,6 +78,11 @@
     navigator.serviceWorker.register('/sw.js')
       .then((registration) => {
         console.log('✅ Service Worker registrado:', registration.scope);
+        
+        // Si es la primera vez que se registra, mostrar mensaje
+        if (!navigator.serviceWorker.controller) {
+          console.log('🎉 Sistema de actualización automática activado. Las próximas actualizaciones serán automáticas.');
+        }
 
         // Verificar actualizaciones cada 60 segundos
         setInterval(() => {
