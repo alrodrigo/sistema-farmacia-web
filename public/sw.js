@@ -63,6 +63,12 @@ self.addEventListener('activate', (event) => {
 // Estrategia: Network First, fallback a Cache
 // Siempre intenta obtener la versión más reciente de la red
 self.addEventListener('fetch', (event) => {
+  // Solo cachear peticiones GET (POST, PUT, DELETE no se pueden cachear)
+  if (event.request.method !== 'GET') {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+
   event.respondWith(
     fetch(event.request)
       .then((response) => {
