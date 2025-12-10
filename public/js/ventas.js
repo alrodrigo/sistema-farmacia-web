@@ -463,7 +463,7 @@ function buscarProductos(termino) {
   const resultados = todosLosProductos.filter(producto => {
     return producto.name.toLowerCase().includes(terminoLower) ||
            (producto.sku && producto.sku.toLowerCase().includes(terminoLower)) ||
-           (producto.barcode && producto.barcode.includes(terminoLower));
+           (producto.description && producto.description.toLowerCase().includes(terminoLower));
   });
   
   // console.log(`✅ ${resultados.length} productos encontrados`);
@@ -639,7 +639,15 @@ function actualizarCarrito() {
           <button class="btn-qty" onclick="cambiarCantidad('${item.id}', -1)">
             <i class="fas fa-minus"></i>
           </button>
-          <span class="qty-value">${item.cantidad}</span>
+          <input 
+            type="number" 
+            class="qty-input" 
+            value="${item.cantidad}" 
+            min="1" 
+            max="${item.stock_disponible}"
+            onchange="actualizarCantidadDirecta('${item.id}', this.value)"
+            onclick="this.select()"
+          />
           <button class="btn-qty" onclick="cambiarCantidad('${item.id}', 1)">
             <i class="fas fa-plus"></i>
           </button>
@@ -695,6 +703,45 @@ function cambiarCantidad(productoId, cambio) {
   
   item.cantidad = nuevaCantidad;
   actualizarCarrito();
+}
+
+// ===== NUEVA: ACTUALIZAR CANTIDAD DIRECTA =====
+/**
+ * Actualiza la cantidad desde el input directo
+ * @param {string} productoId - ID del producto
+ * @param {string} valor - Valor ingresado
+ */
+function actualizarCantidadDirecta(productoId, valor) {
+  // console.log(`🔢 Actualizar cantidad directa: ${productoId}, valor: ${valor}`);
+  
+  const item = carrito.find(i => i.id === productoId);
+  if (!item) return;
+  
+  const nuevaCantidad = parseInt(valor);
+  
+  // Validar que sea un número válido
+  if (isNaN(nuevaCantidad) || nuevaCantidad < 1) {
+    alert('⚠️ Ingresa una cantidad válida (mínimo 1)');
+    actualizarCarrito(); // Restaurar valor anterior
+    return;
+  }
+  
+  // Obtener stock actualizado del producto
+  const producto = todosLosProductos.find(p => p.id === productoId);
+  if (producto) {
+    item.stock_disponible = producto.current_stock;
+  }
+  
+  // Validar que no exceda el stock
+  if (nuevaCantidad > item.stock_disponible) {
+    alert(`⚠️ Stock insuficiente. Disponible: ${item.stock_disponible} unidades`);
+    actualizarCarrito(); // Restaurar valor anterior
+    return;
+  }
+  
+  item.cantidad = nuevaCantidad;
+  actualizarCarrito();
+  mostrarNotificacion(`✅ Cantidad actualizada: ${nuevaCantidad}`);
 }
 
 // ===== 18. QUITAR DEL CARRITO =====

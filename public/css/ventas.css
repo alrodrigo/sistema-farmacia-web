@@ -465,6 +465,29 @@
   text-align: center;
 }
 
+.qty-input {
+  width: 60px;
+  padding: 8px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary, #1f2937);
+  text-align: center;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  background: white;
+  transition: all 0.3s ease;
+}
+
+.qty-input:focus {
+  outline: none;
+  border-color: var(--primary-color, #667eea);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.qty-input:hover {
+  border-color: #d1d5db;
+}
+
 .cart-item-subtotal {
   font-size: 16px;
   font-weight: 700;

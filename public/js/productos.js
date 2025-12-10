@@ -446,11 +446,11 @@ function aplicarFiltros() {
     const filterStock = document.getElementById('filterStock').value;
     
     productosFiltrados = todosLosProductos.filter(producto => {
-        // Filtro de búsqueda (nombre, SKU, barcode)
+        // Filtro de búsqueda (nombre, SKU, descripción)
         const coincideBusqueda = !searchTerm || 
             producto.name.toLowerCase().includes(searchTerm) ||
             (producto.sku && producto.sku.toLowerCase().includes(searchTerm)) ||
-            (producto.barcode && producto.barcode.includes(searchTerm));
+            (producto.description && producto.description.toLowerCase().includes(searchTerm));
         
         // Filtro de categoría
         const coincideCategoria = !filterCategoria || producto.category === filterCategoria;
