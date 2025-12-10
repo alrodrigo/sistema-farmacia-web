@@ -449,7 +449,7 @@ function actualizarFechaHora() {
  * @param {string} termino - Término de búsqueda
  */
 function buscarProductos(termino) {
-  // console.log('🔍 Buscando productos:', termino);
+  console.log('🔍 Buscando productos:', termino);
   
   const terminoLower = termino.toLowerCase().trim();
   
@@ -461,12 +461,21 @@ function buscarProductos(termino) {
   
   // Filtrar productos
   const resultados = todosLosProductos.filter(producto => {
-    return producto.name.toLowerCase().includes(terminoLower) ||
-           (producto.sku && producto.sku.toLowerCase().includes(terminoLower)) ||
-           (producto.description && producto.description.toLowerCase().includes(terminoLower));
+    const coincideNombre = producto.name.toLowerCase().includes(terminoLower);
+    const coincideSku = producto.sku && producto.sku.toLowerCase().includes(terminoLower);
+    const coincideDescripcion = producto.description && producto.description.toLowerCase().includes(terminoLower);
+    
+    // Debug: mostrar productos con su descripción
+    if (termino.length > 3) {
+      console.log('Producto:', producto.name, 
+                  '| Descripción:', producto.description ? producto.description.substring(0, 50) + '...' : 'SIN DESCRIPCIÓN',
+                  '| Coincide:', coincideNombre || coincideSku || coincideDescripcion);
+    }
+    
+    return coincideNombre || coincideSku || coincideDescripcion;
   });
   
-  // console.log(`✅ ${resultados.length} productos encontrados`);
+  console.log(`✅ ${resultados.length} productos encontrados de ${todosLosProductos.length} totales`);
   mostrarResultados(resultados);
 }
 
