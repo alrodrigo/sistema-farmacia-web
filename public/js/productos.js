@@ -681,6 +681,7 @@ function abrirModalVer(producto) {
         document.getElementById('inputProveedor').value = producto.supplier || '';
         document.getElementById('inputCosto').value = producto.cost || '';
         document.getElementById('inputPrecio').value = producto.price || '';
+        document.getElementById('inputPrecioCaja').value = producto.price_per_box || '';
         document.getElementById('inputStockActual').value = producto.current_stock || 0;
         document.getElementById('inputStockMinimo').value = producto.min_stock || 0;
         
@@ -736,6 +737,7 @@ function abrirModalEditar(producto) {
         document.getElementById('inputProveedor').value = producto.supplier || '';
         document.getElementById('inputCosto').value = producto.cost || '';
         document.getElementById('inputPrecio').value = producto.price || '';
+        document.getElementById('inputPrecioCaja').value = producto.price_per_box || '';
         document.getElementById('inputStockActual').value = producto.current_stock || 0;
         document.getElementById('inputStockMinimo').value = producto.min_stock || 0;
         
@@ -974,6 +976,10 @@ async function guardarProducto(event) {
             supplier: document.getElementById('inputProveedor').value,
             cost: parseFloat(document.getElementById('inputCosto').value),
             price: parseFloat(document.getElementById('inputPrecio').value),
+            price_per_box: (function(){
+                const val = document.getElementById('inputPrecioCaja').value;
+                return val !== undefined && val !== null && val !== '' ? parseFloat(val) : null;
+            })(),
             current_stock: parseInt(document.getElementById('inputStockActual').value),
             min_stock: parseInt(document.getElementById('inputStockMinimo').value),
             expiration_date: fechaVencimiento ? new Date(fechaVencimiento + 'T00:00:00') : null,
