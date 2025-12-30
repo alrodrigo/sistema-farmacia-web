@@ -1,96 +1,33 @@
-# 🚀 Configuración de CI/CD
+💊 Sistema de Gestión de Farmacia ServiSalud
+📋 Descripción
+Sistema web moderno y completo para la gestión integral de farmacia, incluyendo inventario, ventas, categorías, usuarios y reportes. Desarrollado con tecnologías web estándar y Firebase como backend.
 
-## ¿Qué es CI/CD?
+✨ Características Principales
+🔐 Autenticación segura - Login con Firebase Authentication
+📦 Gestión de inventario - Control completo de productos y stock
+💰 Punto de venta (POS) - Sistema de ventas rápido e intuitivo
+🏷️ Categorías - Organización visual con colores e iconos
+👥 Gestión de usuarios - Control de acceso por roles
+📊 Dashboard en tiempo real - Estadísticas y alertas
+📈 Reportes - Análisis de ventas e inventario
+🎨 Diseño moderno - Interfaz ServiSalud con tema personalizado
+🚀 Estado del Proyecto
+Estado: ✅ En producción (funcional)
+Versión: 1.0
+Última actualización: Noviembre 2025
 
-**CI/CD** significa **Continuous Integration / Continuous Deployment** (Integración Continua / Despliegue Continuo).
+Módulos Completados ✅
+ Sistema de autenticación
+ Dashboard principal
+ Gestión de productos
+ Gestión de categorías
+ Sistema de ventas (POS)
+ Gestión de usuarios
+ Sistema de diseño ServiSalud
 
-En palabras simples:
-- **CI (Integración Continua):** Cada vez que subes código, se verifican automáticamente los errores
-- **CD (Despliegue Continuo):** Si todo está bien, se publica automáticamente en producción
 
-## ¿Cómo funciona en nuestro proyecto?
+📧 Contacto
+Desarrollador: Rodrigo
+Email: alrodrigo25@hotmail.com
+Repositorio: github.com/alrodrigo/sistema-farmacia-web
 
-```
-1. Haces cambios en tu código local
-   ↓
-2. Haces commit y push a GitHub
-   ↓
-3. GitHub Actions se activa automáticamente
-   ↓
-4. Despliega tu código a Firebase Hosting
-   ↓
-5. Tu sitio web se actualiza automáticamente
-   ✅ ¡Todo listo!
-```
-
-## 📋 Configuración Inicial (Solo una vez)
-
-### Paso 1: Obtener las credenciales de Firebase
-
-```bash
-# En tu terminal, ejecuta:
-firebase login:ci
-```
-
-Esto te dará un **token** como este:
-```
-1//0abc123xyz...
-```
-
-### Paso 2: Agregar el token a GitHub
-
-1. Ve a tu repositorio en GitHub
-2. Click en **Settings** (Configuración)
-3. Click en **Secrets and variables** → **Actions**
-4. Click en **New repository secret**
-5. Agrega estos secrets:
-
-| Name | Value |
-|------|-------|
-| `FIREBASE_SERVICE_ACCOUNT_SISTEMA_FARMACIA_WEB` | (El token que obtuviste) |
-
-### Paso 3: ¡Listo!
-
-Ahora cada vez que hagas `git push origin main`, GitHub Actions desplegará automáticamente.
-
-## 📊 Ver el estado del Deploy
-
-1. Ve a tu repositorio en GitHub
-2. Click en la pestaña **Actions**
-3. Verás todos los deploys con su estado:
-   - ✅ Verde = Deploy exitoso
-   - ❌ Rojo = Algo falló
-   - 🟡 Amarillo = En proceso
-
-## 🔧 Personalización
-
-Si quieres cambiar cuándo se despliega, edita `.github/workflows/firebase-hosting.yml`:
-
-```yaml
-on:
-  push:
-    branches:
-      - main           # Despliega cuando subes a main
-      - production     # Puedes agregar más ramas
-```
-
-## 🚨 Troubleshooting
-
-### Error: "Permission denied"
-- Verifica que agregaste el secret correctamente en GitHub
-
-### Error: "Firebase project not found"
-- Verifica que el `projectId` en el workflow sea correcto
-
-### El deploy no se activa
-- Verifica que estés haciendo push a la rama `main`
-- Revisa la pestaña Actions para ver si hay errores
-
-## 📚 Recursos Adicionales
-
-- [GitHub Actions Documentation](https://docs.github.com/en/actions)
-- [Firebase Hosting with GitHub Actions](https://github.com/FirebaseExtended/action-hosting-deploy)
-
----
-
-**¿Preguntas?** Consulta con tu mentor o abre un issue en GitHub.
