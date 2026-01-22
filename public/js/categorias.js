@@ -13,7 +13,7 @@ let editingCategoryId = null;
 
 // ==================== INICIALIZACIÓN ====================
 document.addEventListener('DOMContentLoaded', async function() {
-    // console.log('📄 DOM cargado, iniciando gestión de categorías...');
+    console.log('📄 DOM cargado, iniciando gestión de categorías...');
     
     // Verificar autenticación y rol
     await verificarAutenticacion();
@@ -79,7 +79,7 @@ async function verificarAutenticacion() {
 
 // ==================== CONFIGURAR EVENTOS ====================
 function configurarEventos() {
-    // console.log('🔘 Configurando eventos...');
+    console.log('🔘 Configurando eventos...');
     
     // Botón nueva categoría
     document.getElementById('btnNuevaCategoria').addEventListener('click', abrirModalNueva);
@@ -133,8 +133,11 @@ function configurarEventos() {
     // Toggle sidebar
     const menuToggle = document.getElementById('menuToggle');
     const sidebar = document.getElementById('sidebar');
+    console.log('🔍 menuToggle:', menuToggle);
+    console.log('🔍 sidebar:', sidebar);
     
     if (menuToggle && sidebar) {
+        console.log('✅ Configurando evento del menú...');
         menuToggle.addEventListener('click', function(e) {
             e.stopPropagation();
             sidebar.classList.toggle('active');
