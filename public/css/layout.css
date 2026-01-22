@@ -28,13 +28,22 @@
 }
 
 .menu-toggle {
-    display: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     background: none;
     border: none;
     font-size: 1.5rem;
     color: var(--text-primary);
     cursor: pointer;
     padding: 0.5rem;
+    transition: var(--transition-base);
+}
+
+.menu-toggle:hover {
+    color: var(--primary-color);
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-md);
 }
 
 /* Logo - estilo ServiSalud */
@@ -184,10 +193,17 @@
     padding: 1.5rem 0;
     position: fixed;
     top: var(--navbar-height);
-    left: 0;
+    left: -250px; /* Colapsado por defecto */
     bottom: 0;
     overflow-y: auto;
     border-right: 1px solid var(--sidebar-border);
+    transition: left 0.3s ease;
+    z-index: 999;
+}
+
+/* Sidebar visible cuando tiene clase 'active' */
+.sidebar.active {
+    left: 0;
 }
 
 .sidebar-nav {
@@ -240,8 +256,9 @@ body.show-admin-options .nav-item.admin-only {
 /* ===== CONTENIDO PRINCIPAL ===== */
 .content {
     flex: 1;
-    margin-left: var(--sidebar-width);
+    margin-left: 0; /* Sin margen cuando el menú está colapsado */
     padding: 2rem;
+    transition: margin-left 0.3s ease;
 }
 
 .content-header {

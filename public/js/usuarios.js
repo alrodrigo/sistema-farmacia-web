@@ -129,8 +129,11 @@ function configurarEventos() {
     // porque requiere configuración de email/password en el backend
     // Este botón está oculto en el HTML
     const btnNuevoUsuario = document.getElementById('btnNuevoUsuario');
-    if (btnNuevoUsuario && btnNuevoUsuario.style.display !== 'none') {
-        btnNuevoUsuario.addEventListener('click', abrirModalNuevo);
+    if (btnNuevoUsuario) {
+        btnNuevoUsuario.addEventListener('click', () => {
+            // Redirigir a la página de crear usuarios
+            window.location.href = 'crear-usuarios.html';
+        });
     }
     
     // Cerrar modal usuario
