@@ -1,25 +1,25 @@
 // Service Worker para actualización automática del sistema
-const CACHE_VERSION = 'v1.0.1';
+const CACHE_VERSION = 'v1.0.2';
 const CACHE_NAME = `farmacia-${CACHE_VERSION}`;
 
 // Archivos a cachear
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/dashboard.html',
-  '/ventas.html',
-  '/productos.html',
-  '/categorias.html',
-  '/proveedores.html',
-  '/usuarios.html',
-  '/reportes.html',
-  '/css/theme.css',
-  '/css/components.css',
-  '/css/layout.css',
-  '/js/config/firebase.js',
-  '/js/utils/helpers.js',
-  '/img/logo-servisalud.png',
-  '/favicon.svg'
+  '/public/',
+  '/public/index.html',
+  '/public/dashboard.html',
+  '/public/ventas.html',
+  '/public/productos.html',
+  '/public/categorias.html',
+  '/public/proveedores.html',
+  '/public/usuarios.html',
+  '/public/reportes.html',
+  '/public/css/theme.css',
+  '/public/css/components.css',
+  '/public/css/layout.css',
+  '/public/js/config/firebase.js',
+  '/public/js/utils/helpers.js',
+  '/public/img/logo-servisalud.png',
+  '/public/favicon.svg'
 ];
 
 // Instalación del Service Worker

@@ -16,7 +16,7 @@ service cloud.firestore {
     // Función para verificar si el usuario es empleado o admin
     function isEmployee() {
       return isSignedIn() && 
-             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'employee'];
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'empleado'];
     }
     
     // USUARIOS - Permitir auto-registro y que admin gestione
