@@ -1,5 +1,5 @@
 // Service Worker para actualización automática del sistema
-const CACHE_VERSION = 'v1.0.2';
+const CACHE_VERSION = 'v1.0.3';
 const CACHE_NAME = `farmacia-${CACHE_VERSION}`;
 
 // Archivos a cachear
