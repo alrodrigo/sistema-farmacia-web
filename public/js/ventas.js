@@ -303,9 +303,54 @@ async function cargarDatosIniciales() {
   }
 }
 
+// ===== 8.5 FUNCIONES DE CACHÉ =====
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutos en milisegundos
+const PRODUCTS_CACHE_KEY = 'ventas_productos_cache';
+const PRODUCTS_CACHE_TIME_KEY = 'ventas_productos_cache_time';
+
+// Guardar productos en caché
+function guardarProductosEnCache(productos) {
+  try {
+    localStorage.setItem(PRODUCTS_CACHE_KEY, JSON.stringify(productos));
+    localStorage.setItem(PRODUCTS_CACHE_TIME_KEY, Date.now().toString());
+  } catch (error) {
+    console.warn('⚠️ No se pudo guardar caché:', error);
+  }
+}
+
+// Obtener productos del caché
+function obtenerProductosDeCache() {
+  try {
+    const cacheTime = localStorage.getItem(PRODUCTS_CACHE_TIME_KEY);
+    if (!cacheTime) return null;
+    
+    const edad = Date.now() - parseInt(cacheTime);
+    if (edad > CACHE_DURATION) {
+      // Caché expirado
+      return null;
+    }
+    
+    const productos = localStorage.getItem(PRODUCTS_CACHE_KEY);
+    return productos ? JSON.parse(productos) : null;
+  } catch (error) {
+    console.warn('⚠️ Error al leer caché:', error);
+    return null;
+  }
+}
+
+// Invalidar caché de productos
+function invalidarCacheProductos() {
+  try {
+    localStorage.removeItem(PRODUCTS_CACHE_KEY);
+    localStorage.removeItem(PRODUCTS_CACHE_TIME_KEY);
+  } catch (error) {
+    console.warn('⚠️ Error al invalidar caché:', error);
+  }
+}
+
 // ===== 9. CARGAR PRODUCTOS =====
 async function cargarProductos() {
-  // console.log('📦 Cargando productos desde Firestore...');
+  // console.log('📦 Cargando productos...');
   
   // MODO DE DESARROLLO: usar productos de prueba
   if (MODO_DESARROLLO) {
@@ -370,7 +415,17 @@ async function cargarProductos() {
     return;
   }
   
+  // Intentar obtener del caché primero
+  const productosEnCache = obtenerProductosDeCache();
+  if (productosEnCache && productosEnCache.length > 0) {
+    todosLosProductos = productosEnCache;
+    // console.log(`✅ ${todosLosProductos.length} productos cargados desde caché`);
+    return;
+  }
+  
+  // Si no hay caché o expiró, cargar desde Firestore
   try {
+    // console.log('📡 Cargando productos desde Firestore...');
     const snapshot = await firebaseDB.collection('products').get();
     
     todosLosProductos = [];
@@ -381,7 +436,10 @@ async function cargarProductos() {
       });
     });
     
-    // console.log(`✅ ${todosLosProductos.length} productos cargados`);
+    // Guardar en caché
+    guardarProductosEnCache(todosLosProductos);
+    
+    // console.log(`✅ ${todosLosProductos.length} productos cargados desde Firestore`);
     
   } catch (error) {
     // console.error('❌ Error al cargar productos:', error);
@@ -1134,7 +1192,8 @@ async function procesarVenta() {
     document.getElementById('saleNumber').textContent = 
       String(numeroVentaActual).padStart(4, '0');
     
-    // Recargar productos (para actualizar stock disponible)
+    // Invalidar caché y recargar productos (para actualizar stock disponible)
+    invalidarCacheProductos();
     await cargarProductos();
     
     // IMPORTANTE: Restaurar botón después de completar la venta

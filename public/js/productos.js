@@ -317,10 +317,65 @@ async function cargarProveedoresCache() {
 }
 
 // ===== 9. CARGAR PRODUCTOS =====
+// ===== 8.5 FUNCIONES DE CACHÉ =====
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutos
+const PRODUCTS_CACHE_KEY = 'productos_cache';
+const PRODUCTS_CACHE_TIME_KEY = 'productos_cache_time';
+
+function guardarProductosEnCache(productos) {
+    try {
+        localStorage.setItem(PRODUCTS_CACHE_KEY, JSON.stringify(productos));
+        localStorage.setItem(PRODUCTS_CACHE_TIME_KEY, Date.now().toString());
+    } catch (error) {
+        console.warn('⚠️ No se pudo guardar caché:', error);
+    }
+}
+
+function obtenerProductosDeCache() {
+    try {
+        const cacheTime = localStorage.getItem(PRODUCTS_CACHE_TIME_KEY);
+        if (!cacheTime) return null;
+        
+        const edad = Date.now() - parseInt(cacheTime);
+        if (edad > CACHE_DURATION) return null;
+        
+        const productos = localStorage.getItem(PRODUCTS_CACHE_KEY);
+        return productos ? JSON.parse(productos) : null;
+    } catch (error) {
+        console.warn('⚠️ Error al leer caché:', error);
+        return null;
+    }
+}
+
+function invalidarCacheProductos() {
+    try {
+        localStorage.removeItem(PRODUCTS_CACHE_KEY);
+        localStorage.removeItem(PRODUCTS_CACHE_TIME_KEY);
+        // También invalidar caché de ventas
+        localStorage.removeItem('ventas_productos_cache');
+        localStorage.removeItem('ventas_productos_cache_time');
+    } catch (error) {
+        console.warn('⚠️ Error al invalidar caché:', error);
+    }
+}
+
+// ===== 9. CARGAR PRODUCTOS =====
 async function cargarProductos() {
-    // console.log('📦 Cargando productos desde Firestore...');
+    // console.log('📦 Cargando productos...');
+    
+    // Intentar obtener del caché primero
+    const productosEnCache = obtenerProductosDeCache();
+    if (productosEnCache && productosEnCache.length > 0) {
+        todosLosProductos = productosEnCache;
+        todosLosProductos.sort((a, b) => a.name.localeCompare(b.name));
+        productosFiltrados = [...todosLosProductos];
+        // console.log(`✅ ${todosLosProductos.length} productos cargados desde caché`);
+        mostrarProductos();
+        return;
+    }
     
     try {
+        // console.log('📡 Cargando productos desde Firestore...');
         const snapshot = await firebaseDB.collection('products').get();
         
         todosLosProductos = [];
@@ -331,13 +386,16 @@ async function cargarProductos() {
             });
         });
         
+        // Guardar en caché
+        guardarProductosEnCache(todosLosProductos);
+        
         // Ordenar por nombre
         todosLosProductos.sort((a, b) => a.name.localeCompare(b.name));
         
         // Inicialmente, productos filtrados = todos los productos
         productosFiltrados = [...todosLosProductos];
         
-        // console.log(`✅ ${todosLosProductos.length} productos cargados`);
+        // console.log(`✅ ${todosLosProductos.length} productos cargados desde Firestore`);
         
         // Mostrar en la tabla
         mostrarProductos();
@@ -622,7 +680,8 @@ async function eliminarProducto(id, nombre) {
         
         alert(`✅ Producto "${nombre}" eliminado correctamente`);
         
-        // Recargar productos
+        // Invalidar caché y recargar productos
+        invalidarCacheProductos();
         await cargarProductos();
         
     } catch (error) {
@@ -1003,8 +1062,9 @@ async function guardarProducto(event) {
             alert('✅ Producto creado correctamente');
         }
         
-        // Cerrar modal y recargar productos
+        // Cerrar modal e invalidar caché
         cerrarModal();
+        invalidarCacheProductos();
         await cargarProductos();
         
     } catch (error) {
