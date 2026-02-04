@@ -254,6 +254,13 @@ async function cargarTotalProductos() {
  */
 async function cargarProductosStockBajo() {
     try {
+        // Primero cargar todos los proveedores/laboratorios
+        const proveedoresSnapshot = await firebaseDB.collection('proveedores').get();
+        const proveedoresMap = {};
+        proveedoresSnapshot.forEach(doc => {
+            proveedoresMap[doc.id] = doc.data().name || doc.data().nombre || 'Sin nombre';
+        });
+        
         // Obtener todos los productos
         const snapshot = await firebaseDB.collection('products').get();
         
@@ -265,9 +272,18 @@ async function cargarProductosStockBajo() {
             
             // Si el stock actual es menor al stock mínimo
             if (producto.current_stock < producto.min_stock) {
+                // Obtener nombre del laboratorio
+                let nombreLaboratorio = 'Sin laboratorio';
+                if (producto.supplier) {
+                    nombreLaboratorio = proveedoresMap[producto.supplier] || producto.supplier;
+                } else if (producto.supplier_name) {
+                    nombreLaboratorio = producto.supplier_name;
+                }
+                
                 productosStockBajo.push({
                     id: doc.id,
                     name: producto.name,
+                    supplier: nombreLaboratorio,
                     currentStock: producto.current_stock,
                     minStock: producto.min_stock,
                     faltante: producto.min_stock - producto.current_stock
@@ -314,6 +330,7 @@ function mostrarTablaStockBajo(productos) {
         
         row.innerHTML = `
             <td><strong>${producto.name}</strong></td>
+            <td>${producto.supplier}</td>
             <td>
                 <span class="badge-danger">
                     ${producto.currentStock} unidades
@@ -356,6 +373,13 @@ function irAProducto(productId) {
  */
 async function cargarProductosProximosVencer() {
     try {
+        // Primero cargar todos los proveedores/laboratorios
+        const proveedoresSnapshot = await firebaseDB.collection('proveedores').get();
+        const proveedoresMap = {};
+        proveedoresSnapshot.forEach(doc => {
+            proveedoresMap[doc.id] = doc.data().name || doc.data().nombre || 'Sin nombre';
+        });
+        
         // Obtener todos los productos
         const snapshot = await firebaseDB.collection('products').get();
         
@@ -385,10 +409,20 @@ async function cargarProductosProximosVencer() {
                     // Calcular días restantes
                     const diasRestantes = Math.ceil((fechaVencimiento - hoy) / (1000 * 60 * 60 * 24));
                     
+                    // Obtener nombre del laboratorio
+                    let nombreLaboratorio = 'Sin laboratorio';
+                    if (producto.supplier) {
+                        // Si supplier es un ID, buscar en el map
+                        nombreLaboratorio = proveedoresMap[producto.supplier] || producto.supplier;
+                    } else if (producto.supplier_name) {
+                        nombreLaboratorio = producto.supplier_name;
+                    }
+                    
                     productosProximosVencer.push({
                         id: doc.id,
                         name: producto.name,
                         sku: producto.sku,
+                        supplier: nombreLaboratorio,
                         expirationDate: fechaVencimiento,
                         diasRestantes: diasRestantes,
                         stock: producto.current_stock
@@ -458,6 +492,7 @@ function mostrarTablaProductosProximosVencer(productos) {
         row.innerHTML = `
             <td><strong>${producto.name}</strong></td>
             <td><code>${producto.sku}</code></td>
+            <td>${producto.supplier}</td>
             <td>${fechaFormateada}</td>
             <td>
                 <span class="${badgeClass}">

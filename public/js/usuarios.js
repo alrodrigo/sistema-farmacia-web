@@ -222,6 +222,36 @@ function configurarEventos() {
             }
         });
     }
+    
+    // Toggle sidebar (menú hamburguesa)
+    const menuToggle = document.getElementById('menuToggle');
+    const sidebar = document.getElementById('sidebar');
+    
+    if (menuToggle && sidebar) {
+        menuToggle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            sidebar.classList.toggle('active');
+        });
+        
+        // Cerrar sidebar al hacer clic fuera (solo en móvil)
+        document.addEventListener('click', function(e) {
+            if (window.innerWidth <= 768) {
+                const isClickInsideSidebar = sidebar.contains(e.target);
+                const isClickOnToggle = menuToggle.contains(e.target);
+                
+                if (!isClickInsideSidebar && !isClickOnToggle && sidebar.classList.contains('active')) {
+                    sidebar.classList.remove('active');
+                }
+            }
+        });
+        
+        // Cerrar sidebar automáticamente al cambiar a desktop
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768) {
+                sidebar.classList.remove('active');
+            }
+        });
+    }
 }
 
 // ===== 8. CARGAR USUARIOS =====

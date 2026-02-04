@@ -21,7 +21,7 @@
         position: fixed;
         top: 20px;
         right: 20px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
         color: white;
         padding: 16px 24px;
         border-radius: 12px;
@@ -35,8 +35,8 @@
       ">
         <i class="fas fa-sync-alt" style="font-size: 20px; animation: spin 2s linear infinite;"></i>
         <div>
-          <div style="font-weight: 600; font-size: 14px;">Nueva versión disponible</div>
-          <div style="font-size: 12px; opacity: 0.9;">Actualizando sistema...</div>
+          <div style="font-weight: 600; font-size: 15px;">✅ Actualizado a Parche v3.15</div>
+          <div style="font-size: 12px; opacity: 0.9;">Sistema optimizado y mejoras aplicadas</div>
         </div>
       </div>
       <style>

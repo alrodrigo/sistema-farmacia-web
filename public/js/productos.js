@@ -367,7 +367,8 @@ async function cargarProductos() {
     const productosEnCache = obtenerProductosDeCache();
     if (productosEnCache && productosEnCache.length > 0) {
         todosLosProductos = productosEnCache;
-        todosLosProductos.sort((a, b) => a.name.localeCompare(b.name));
+        // NO ordenar alfabéticamente - mantener orden de creación
+        // todosLosProductos.sort((a, b) => a.name.localeCompare(b.name));
         productosFiltrados = [...todosLosProductos];
         // console.log(`✅ ${todosLosProductos.length} productos cargados desde caché`);
         mostrarProductos();
@@ -376,7 +377,10 @@ async function cargarProductos() {
     
     try {
         // console.log('📡 Cargando productos desde Firestore...');
-        const snapshot = await firebaseDB.collection('products').get();
+        // Ordenar por fecha de creación (orden correlativo)
+        const snapshot = await firebaseDB.collection('products')
+            .orderBy('created_at', 'asc')
+            .get();
         
         todosLosProductos = [];
         snapshot.forEach(doc => {
@@ -389,8 +393,8 @@ async function cargarProductos() {
         // Guardar en caché
         guardarProductosEnCache(todosLosProductos);
         
-        // Ordenar por nombre
-        todosLosProductos.sort((a, b) => a.name.localeCompare(b.name));
+        // NO ordenar alfabéticamente - mantener orden de creación
+        // todosLosProductos.sort((a, b) => a.name.localeCompare(b.name));
         
         // Inicialmente, productos filtrados = todos los productos
         productosFiltrados = [...todosLosProductos];
@@ -528,6 +532,15 @@ function aplicarFiltros() {
         
         return coincideBusqueda && coincideCategoria && coincideProveedor && coincideStock;
     });
+    
+    // Si hay filtro de proveedor activo, ordenar por SKU
+    if (filterProveedor) {
+        productosFiltrados.sort((a, b) => {
+            const skuA = a.sku || '';
+            const skuB = b.sku || '';
+            return skuA.localeCompare(skuB);
+        });
+    }
     
     // Resetear a la primera página
     paginaActual = 1;
