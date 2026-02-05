@@ -2,6 +2,7 @@
 
 // Variables globales
 let currentUser = null;
+let currentUserData = null; // Nuevo: datos completos del usuario incluyendo rol
 let allSales = [];
 let filteredSales = [];
 let allVendors = [];
@@ -18,7 +19,7 @@ function initializeAuth() {
     firebase.auth().onAuthStateChanged(async (user) => {
         if (user) {
             currentUser = user;
-            await loadUserData(user.uid);
+            currentUserData = await loadUserData(user.uid);
             await loadVendors();
             loadSalesData();
         } else {
@@ -58,11 +59,16 @@ async function loadUserData(uid) {
             
             // Actualizar menú según rol
             actualizarMenuPorRol(userData);
+            
+            // Retornar los datos completos del usuario
+            return userData;
         } else {
             // console.error('❌ Documento de usuario no encontrado');
+            return null;
         }
     } catch (error) {
         // console.error('❌ Error cargando datos del usuario:', error);
+        return null;
     }
 }
 
@@ -166,10 +172,8 @@ async function loadSalesData() {
     showLoading();
     
     try {
-        // Obtener todas las ventas (sin orderBy para evitar necesitar índice)
-        const salesSnapshot = await firebase.firestore()
-            .collection('sales')
-            .get();
+        // Obtener todas las ventas (sin filtro de vendedor para evitar necesitar índice compuesto)
+        const salesSnapshot = await firebase.firestore().collection('sales').get();
 
         // Filtrar y mapear ventas con manejo de errores
         allSales = salesSnapshot.docs
@@ -196,8 +200,18 @@ async function loadSalesData() {
                     return null;
                 }
             })
-            .filter(sale => sale !== null) // Eliminar ventas inválidas
-            .sort((a, b) => b.fecha - a.fecha); // Ordenar en JavaScript
+            .filter(sale => sale !== null); // Eliminar ventas inválidas
+        
+        // Si el usuario NO es admin, filtrar solo sus ventas manualmente
+        if (currentUserData && currentUserData.role !== 'admin') {
+            allSales = allSales.filter(sale => sale.seller_id === currentUser.uid);
+            // console.log('👤 Vendedor: filtrando solo ventas propias');
+        } else {
+            // console.log('👤 Admin: mostrando todas las ventas');
+        }
+        
+        // Ordenar por fecha
+        allSales.sort((a, b) => b.fecha - a.fecha);
 
         // console.log(`✅ ${allSales.length} ventas cargadas correctamente`);
         

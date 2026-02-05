@@ -15,12 +15,19 @@ Sistema web moderno y completo para la gestión integral de farmacia, incluyendo
 
 ## 🚀 Estado del Proyecto
 **Estado:** ✅ En producción (funcional)  
-**Versión:** 1.0  
-**Última actualización:** Noviembre 2025
+**Versión:** 3.16  
+**Última actualización:** Febrero 2026
+
+### 🆕 Novedades v3.16
+- ✅ **Separación de perfiles por vendedor** - Cada vendedor solo ve sus propias ventas
+- ✅ **Dashboard personalizado por rol** - Admins ven todo, vendedores solo sus datos
+- ✅ **Reportes independientes** - Filtrado automático de ventas por usuario
+- ✅ **Reseteo automático de método de pago** - Vuelve a efectivo después de cada venta
+- ✅ **Optimización de consultas** - Mejor rendimiento sin necesidad de índices compuestos
 
 ### Módulos Completados ✅
 - [x] Sistema de autenticación
-- [x] Dashboard principal
+- [x] Dashboard principal (con separación por rol)
 - [x] Gestión de productos
 - [x] Gestión de categorías
 - [x] Sistema de ventas (POS)

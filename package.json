@@ -1,6 +1,6 @@
 {
   "name": "sistema-farmacia-web",
-  "version": "1.0.0",
+  "version": "3.16.0",
   "description": "Sistema completo de gestión para farmacia con Firebase",
   "main": "public/index.html",
   "scripts": {

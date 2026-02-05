@@ -511,6 +511,8 @@ function mostrarTablaProductosProximosVencer(productos) {
 // ===== 10. VENTAS DEL DÍA =====
 /**
  * Cuenta cuántas ventas se hicieron HOY
+ * Los vendedores solo ven sus propias ventas
+ * Los administradores ven todas las ventas
  */
 async function cargarVentasHoy() {
     try {
@@ -522,20 +524,32 @@ async function cargarVentasHoy() {
         const finDia = new Date();
         finDia.setHours(23, 59, 59, 999);
         
-        // Consultar ventas entre esas fechas
+        // Obtener todas las ventas de hoy (sin filtro de vendedor para evitar necesitar índice compuesto)
         const snapshot = await firebaseDB.collection('sales')
             .where('created_at', '>=', hoy)
             .where('created_at', '<=', finDia)
             .get();
         
-        const totalVentas = snapshot.size;
+        // Si el usuario NO es admin, filtrar manualmente solo sus ventas
+        let totalVentas = snapshot.size;
+        
+        if (currentUser && currentUser.role !== 'admin') {
+            // Filtrar manualmente en JavaScript (no requiere índice)
+            totalVentas = 0;
+            snapshot.forEach(doc => {
+                const venta = doc.data();
+                if (venta.seller_id === currentUser.uid) {
+                    totalVentas++;
+                }
+            });
+        }
         
         document.getElementById('ventasHoy').textContent = totalVentas;
         
         // console.log(`🛒 Ventas hoy: ${totalVentas}`);
         
     } catch (error) {
-        // console.error('❌ Error al cargar ventas:', error);
+        console.error('❌ Error al cargar ventas:', error);
         document.getElementById('ventasHoy').textContent = '-';
     }
 }
@@ -543,8 +557,19 @@ async function cargarVentasHoy() {
 // ===== 11. INGRESOS DEL DÍA =====
 /**
  * Suma el total de dinero ganado HOY
+ * Solo visible para administradores (tarjeta oculta para vendedores)
  */
 async function cargarIngresosHoy() {
+    // Solo cargar ingresos si el usuario es admin
+    if (!currentUser || currentUser.role !== 'admin') {
+        // Ocultar la tarjeta para empleados/vendedores
+        const cardIngresos = document.getElementById('cardIngresosHoy');
+        if (cardIngresos) {
+            cardIngresos.style.display = 'none';
+        }
+        return;
+    }
+    
     try {
         const hoy = new Date();
         hoy.setHours(0, 0, 0, 0);
@@ -552,11 +577,16 @@ async function cargarIngresosHoy() {
         const finDia = new Date();
         finDia.setHours(23, 59, 59, 999);
         
-        // Obtener todas las ventas de hoy
-        const snapshot = await firebaseDB.collection('sales')
+        // Construir consulta base
+        let query = firebaseDB.collection('sales')
             .where('created_at', '>=', hoy)
-            .where('created_at', '<=', finDia)
-            .get();
+            .where('created_at', '<=', finDia);
+        
+        // Los administradores ven TODAS las ventas (no filtrar)
+        // (Si se quisiera que vean solo las suyas, se agregaría el filtro aquí)
+        
+        // Ejecutar consulta
+        const snapshot = await query.get();
         
         // Sumar los totales de cada venta
         let totalIngresos = 0;

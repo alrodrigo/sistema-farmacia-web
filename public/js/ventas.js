@@ -966,7 +966,7 @@ function cancelarVenta() {
   
   if (confirmar) {
     limpiarCarrito();
-    document.getElementById('searchProductInput').value = '';
+    resetearFormularioPago();
     mostrarResultadosVacios();
     // console.log('❌ Venta cancelada');
   }
@@ -1257,16 +1257,12 @@ function mostrarModalExito(numeroVenta, total) {
     document.getElementById('modalChangeRow').style.display = 'none';
   }
   
-  // Limpiar carrito y resetear campos de pago
+  // Limpiar carrito
   carrito = [];
   actualizarCarrito();
   
-  // Resetear campos de pago
-  document.getElementById('discountValue').value = '';
-  document.getElementById('amountReceived').value = '';
-  document.getElementById('paymentMethod').value = 'cash';
-  document.getElementById('changeRow').style.display = 'none';
-  document.getElementById('discountRow').style.display = 'none';
+  // Resetear formulario de pago usando la función dedicada
+  resetearFormularioPago();
   
   // Mostrar modal
   const modal = document.getElementById('saleSuccessModal');
@@ -1281,6 +1277,39 @@ function cerrarModal() {
   modal.classList.remove('active');
   modal.style.display = 'none';
   document.body.style.overflow = 'auto';
+  
+  // Asegurar que el formulario esté limpio para la próxima venta
+  resetearFormularioPago();
+}
+
+// ===== 24.5 RESETEAR FORMULARIO DE PAGO =====
+/**
+ * Resetea todos los campos del formulario de pago a sus valores por defecto
+ */
+function resetearFormularioPago() {
+  // Resetear método de pago a efectivo (valor por defecto)
+  document.getElementById('paymentMethod').value = 'cash';
+  
+  // Resetear campos de descuento
+  document.getElementById('discountValue').value = '';
+  document.getElementById('discountType').value = 'percent';
+  
+  // Resetear monto recibido
+  document.getElementById('amountReceived').value = '';
+  
+  // Ocultar filas condicionales
+  document.getElementById('changeRow').style.display = 'none';
+  document.getElementById('discountRow').style.display = 'none';
+  
+  // Mostrar sección de monto recibido (ya que por defecto es efectivo)
+  document.getElementById('amountSection').style.display = 'block';
+  
+  // Enfocar el buscador para la próxima venta
+  const searchInput = document.getElementById('searchProductInput');
+  if (searchInput) {
+    searchInput.value = '';
+    searchInput.focus();
+  }
 }
 
 // ===== 25. MOSTRAR NOTIFICACIÓN =====
