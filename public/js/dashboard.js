@@ -200,25 +200,18 @@ async function cerrarSesion() {
 }
 
 // ===== 8. CARGAR ESTADÍSTICAS DEL DASHBOARD =====
-/**
- * Carga todas las estadísticas desde Firebase
- * Esta es la función MÁS IMPORTANTE - conecta con Firestore
- */
 async function cargarEstadisticas() {
-    // console.log('📊 Cargando estadísticas...');
-    
     try {
-        // Cargar en paralelo para ser más rápido
+        // Paso 1: poblar AppCache con products + proveedores (1 sola lectura por sesión)
+        // cargarTotalProductos() depende de este cache, debe ir primero.
+        await inicializarDashboardData();
+
+        // Paso 2: el resto en paralelo — totalProductos ya lee del cache (0 lecturas extra)
         await Promise.all([
             cargarTotalProductos(),
-            cargarProductosStockBajo(),
-            cargarProductosProximosVencer(),
             cargarVentasHoy(),
             cargarIngresosHoy()
         ]);
-        
-        // console.log('✅ Todas las estadísticas cargadas');
-        
     } catch (error) {
         // console.error('❌ Error al cargar estadísticas:', error);
     }
@@ -226,87 +219,135 @@ async function cargarEstadisticas() {
 
 // ===== 8. CONTAR TOTAL DE PRODUCTOS =====
 /**
- * Cuenta cuántos productos hay en total en Firebase
+ * Lee del AppCache (sessionStorage) — 0 lecturas Firestore.
+ * Los productos ya fueron descargados por inicializarDashboardData().
  */
 async function cargarTotalProductos() {
     try {
-        // Consultar la colección 'products' en Firestore
-        const snapshot = await firebaseDB.collection('products').get();
-        
-        // snapshot.size nos da la cantidad de documentos
-        const total = snapshot.size;
-        
-        // Actualizar el número en el HTML
-        document.getElementById('totalProductos').textContent = total;
-        
-        // console.log(`📦 Total productos: ${total}`);
-        
+        const productos = await AppCache.getProductos(firebaseDB);
+        document.getElementById('totalProductos').textContent = productos.length;
     } catch (error) {
-        // console.error('❌ Error al cargar total productos:', error);
-        document.getElementById('totalProductos').textContent = '-';
+        // console.error('\u274c Error al cargar total productos:', error);
+        document.getElementById('totalProductos').textContent = '0';
     }
 }
 
-// ===== 9. PRODUCTOS CON STOCK BAJO =====
+// ===== 9. FUNCIÓN MAESTRA: descarga products + proveedores una sola vez =====
 /**
- * Cuenta productos con stock por debajo del mínimo
- * Y MUESTRA una lista detallada de cuáles son
+ * Descarga las colecciones 'products' y 'proveedores' UNA sola vez
+ * y reparte los datos a las funciones que los necesitan.
+ * Elimina lecturas duplicadas.
  */
-async function cargarProductosStockBajo() {
+async function inicializarDashboardData() {
     try {
-        // Primero cargar todos los proveedores/laboratorios
-        const proveedoresSnapshot = await firebaseDB.collection('proveedores').get();
+        // AppCache: 0 lecturas a Firestore si los datos ya están en sessionStorage
+        const [productosArray, proveedoresArray] = await Promise.all([
+            AppCache.getProductos(firebaseDB),
+            AppCache.getProveedores(firebaseDB)
+        ]);
+
+        // Construir mapa id→nombre en memoria
         const proveedoresMap = {};
-        proveedoresSnapshot.forEach(doc => {
-            proveedoresMap[doc.id] = doc.data().name || doc.data().nombre || 'Sin nombre';
+        proveedoresArray.forEach(prov => {
+            proveedoresMap[prov.id] = prov.name || prov.nombre || 'Sin nombre';
         });
-        
-        // Obtener todos los productos
-        const snapshot = await firebaseDB.collection('products').get();
-        
-        // Array para guardar los productos con stock bajo
-        const productosStockBajo = [];
-        
-        snapshot.forEach(doc => {
-            const producto = doc.data();
-            
-            // Si el stock actual es menor al stock mínimo
-            if (producto.current_stock < producto.min_stock) {
-                // Obtener nombre del laboratorio
-                let nombreLaboratorio = 'Sin laboratorio';
-                if (producto.supplier) {
-                    nombreLaboratorio = proveedoresMap[producto.supplier] || producto.supplier;
-                } else if (producto.supplier_name) {
-                    nombreLaboratorio = producto.supplier_name;
-                }
-                
-                productosStockBajo.push({
-                    id: doc.id,
-                    name: producto.name,
-                    supplier: nombreLaboratorio,
-                    currentStock: producto.current_stock,
-                    minStock: producto.min_stock,
-                    faltante: producto.min_stock - producto.current_stock
-                });
-            }
-        });
-        
-        // Actualizar el contador en la tarjeta
-        const total = productosStockBajo.length;
-        document.getElementById('stockBajo').textContent = total;
-        
-        // Si hay productos con stock bajo, mostrar la tabla
-        if (total > 0) {
-            mostrarTablaStockBajo(productosStockBajo);
-        }
-        
-        // console.log(`⚠️ Productos con stock bajo: ${total}`);
-        
+
+        // Pasar los datos en memoria (sin más lecturas a Firebase)
+        procesarStockBajo(productosArray, proveedoresMap);
+        procesarProximosVencer(productosArray, proveedoresMap);
+
     } catch (error) {
-        // console.error('❌ Error al cargar stock bajo:', error);
+        // console.error('❌ Error al inicializar datos del dashboard:', error);
         document.getElementById('stockBajo').textContent = '-';
     }
 }
+
+// ===== 9a. PROCESAR STOCK BAJO (en memoria, sin Firebase) =====
+/**
+ * Recibe los datos ya descargados y filtra en memoria.
+ * @param {Array} productosArray - Array de productos ya descargados
+ * @param {Object} proveedoresMap - Mapa id→nombre de proveedores
+ */
+function procesarStockBajo(productosArray, proveedoresMap) {
+    const productosStockBajo = productosArray
+        .filter(producto => producto.current_stock < producto.min_stock)
+        .map(producto => {
+            let nombreLaboratorio = 'Sin laboratorio';
+            if (producto.supplier) {
+                nombreLaboratorio = proveedoresMap[producto.supplier] || producto.supplier;
+            } else if (producto.supplier_name) {
+                nombreLaboratorio = producto.supplier_name;
+            }
+            return {
+                id: producto.id,
+                name: producto.name,
+                supplier: nombreLaboratorio,
+                currentStock: producto.current_stock,
+                minStock: producto.min_stock,
+                faltante: producto.min_stock - producto.current_stock
+            };
+        });
+
+    document.getElementById('stockBajo').textContent = productosStockBajo.length;
+
+    if (productosStockBajo.length > 0) {
+        mostrarTablaStockBajo(productosStockBajo);
+    }
+}
+
+// ===== 9b. PROCESAR PRÓXIMOS A VENCER (en memoria, sin Firebase) =====
+/**
+ * Recibe los datos ya descargados y filtra en memoria.
+ * @param {Array} productosArray - Array de productos ya descargados
+ * @param {Object} proveedoresMap - Mapa id→nombre de proveedores
+ */
+function procesarProximosVencer(productosArray, proveedoresMap) {
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+
+    const fechaLimite = new Date(hoy);
+    fechaLimite.setDate(fechaLimite.getDate() + 30);
+
+    const productosProximosVencer = productosArray
+        .filter(producto => {
+            if (!producto.expiration_date) return false;
+            const fechaVencimiento = producto.expiration_date.toDate
+                ? producto.expiration_date.toDate()
+                : new Date(producto.expiration_date);
+            return fechaVencimiento <= fechaLimite;
+        })
+        .map(producto => {
+            const fechaVencimiento = producto.expiration_date.toDate
+                ? producto.expiration_date.toDate()
+                : new Date(producto.expiration_date);
+
+            const diasRestantes = Math.ceil((fechaVencimiento - hoy) / (1000 * 60 * 60 * 24));
+
+            let nombreLaboratorio = 'Sin laboratorio';
+            if (producto.supplier) {
+                nombreLaboratorio = proveedoresMap[producto.supplier] || producto.supplier;
+            } else if (producto.supplier_name) {
+                nombreLaboratorio = producto.supplier_name;
+            }
+
+            return {
+                id: producto.id,
+                name: producto.name,
+                sku: producto.sku,
+                supplier: nombreLaboratorio,
+                expirationDate: fechaVencimiento,
+                diasRestantes,
+                stock: producto.current_stock
+            };
+        })
+        .sort((a, b) => a.diasRestantes - b.diasRestantes);
+
+    if (productosProximosVencer.length > 0) {
+        mostrarTablaProductosProximosVencer(productosProximosVencer);
+    }
+}
+
+
 
 /**
  * Muestra la tabla con los productos que tienen stock bajo
@@ -366,85 +407,7 @@ function irAProducto(productId) {
     window.location.href = 'productos.html';
 }
 
-// ===== PRODUCTOS PRÓXIMOS A VENCER =====
-/**
- * Detecta productos que vencen en los próximos 30 días
- * Y muestra una lista detallada
- */
-async function cargarProductosProximosVencer() {
-    try {
-        // Primero cargar todos los proveedores/laboratorios
-        const proveedoresSnapshot = await firebaseDB.collection('proveedores').get();
-        const proveedoresMap = {};
-        proveedoresSnapshot.forEach(doc => {
-            proveedoresMap[doc.id] = doc.data().name || doc.data().nombre || 'Sin nombre';
-        });
-        
-        // Obtener todos los productos
-        const snapshot = await firebaseDB.collection('products').get();
-        
-        // Array para guardar productos próximos a vencer
-        const productosProximosVencer = [];
-        
-        // Fecha actual
-        const hoy = new Date();
-        hoy.setHours(0, 0, 0, 0);
-        
-        // Fecha límite: 30 días desde hoy
-        const fechaLimite = new Date(hoy);
-        fechaLimite.setDate(fechaLimite.getDate() + 30);
-        
-        snapshot.forEach(doc => {
-            const producto = doc.data();
-            
-            // Verificar si tiene fecha de vencimiento
-            if (producto.expiration_date) {
-                // Convertir Firestore Timestamp a Date
-                const fechaVencimiento = producto.expiration_date.toDate ? 
-                    producto.expiration_date.toDate() : 
-                    new Date(producto.expiration_date);
-                
-                // Si vence dentro de 30 días o ya venció
-                if (fechaVencimiento <= fechaLimite) {
-                    // Calcular días restantes
-                    const diasRestantes = Math.ceil((fechaVencimiento - hoy) / (1000 * 60 * 60 * 24));
-                    
-                    // Obtener nombre del laboratorio
-                    let nombreLaboratorio = 'Sin laboratorio';
-                    if (producto.supplier) {
-                        // Si supplier es un ID, buscar en el map
-                        nombreLaboratorio = proveedoresMap[producto.supplier] || producto.supplier;
-                    } else if (producto.supplier_name) {
-                        nombreLaboratorio = producto.supplier_name;
-                    }
-                    
-                    productosProximosVencer.push({
-                        id: doc.id,
-                        name: producto.name,
-                        sku: producto.sku,
-                        supplier: nombreLaboratorio,
-                        expirationDate: fechaVencimiento,
-                        diasRestantes: diasRestantes,
-                        stock: producto.current_stock
-                    });
-                }
-            }
-        });
-        
-        // Ordenar por días restantes (los más urgentes primero)
-        productosProximosVencer.sort((a, b) => a.diasRestantes - b.diasRestantes);
-        
-        // Si hay productos próximos a vencer, mostrar la tabla
-        if (productosProximosVencer.length > 0) {
-            mostrarTablaProductosProximosVencer(productosProximosVencer);
-        }
-        
-        // console.log(`⏰ Productos próximos a vencer: ${productosProximosVencer.length}`);
-        
-    } catch (error) {
-        // console.error('❌ Error al cargar productos próximos a vencer:', error);
-    }
-}
+// cargarProductosProximosVencer() fue reemplazada por inicializarDashboardData() + procesarProximosVencer()
 
 /**
  * Muestra la tabla con los productos próximos a vencer
@@ -508,49 +471,38 @@ function mostrarTablaProductosProximosVencer(productos) {
     // console.log(`📋 Tabla de productos próximos a vencer mostrada con ${productos.length} productos`);
 }
 
-// ===== 10. VENTAS DEL DÍA =====
+// ===== 10. VENTAS DEL DÍA (con agregación .count()) =====
 /**
- * Cuenta cuántas ventas se hicieron HOY
- * Los vendedores solo ven sus propias ventas
- * Los administradores ven todas las ventas
+ * Usa .count() de Firestore: no descarga documentos, solo cuenta.
+ * Admin → cuenta todas las ventas del día.
+ * Vendedor → cuenta solo sus ventas del día.
  */
 async function cargarVentasHoy() {
     try {
-        // Obtener fecha de inicio del día (00:00:00)
         const hoy = new Date();
         hoy.setHours(0, 0, 0, 0);
-        
-        // Obtener fecha de fin del día (23:59:59)
+
         const finDia = new Date();
         finDia.setHours(23, 59, 59, 999);
-        
-        // Obtener todas las ventas de hoy (sin filtro de vendedor para evitar necesitar índice compuesto)
-        const snapshot = await firebaseDB.collection('sales')
+
+        let query = firebaseDB.collection('sales')
             .where('created_at', '>=', hoy)
-            .where('created_at', '<=', finDia)
-            .get();
-        
-        // Si el usuario NO es admin, filtrar manualmente solo sus ventas
-        let totalVentas = snapshot.size;
-        
+            .where('created_at', '<=', finDia);
+
+        // Si es vendedor, filtrar por su UID antes de contar
         if (currentUser && currentUser.role !== 'admin') {
-            // Filtrar manualmente en JavaScript (no requiere índice)
-            totalVentas = 0;
-            snapshot.forEach(doc => {
-                const venta = doc.data();
-                if (venta.seller_id === currentUser.uid) {
-                    totalVentas++;
-                }
-            });
+            query = query.where('seller_id', '==', currentUser.uid);
         }
-        
+
+        const snapshot = await query.count().get();
+        const totalVentas = snapshot.data().count;
+
         document.getElementById('ventasHoy').textContent = totalVentas;
-        
-        // console.log(`🛒 Ventas hoy: ${totalVentas}`);
-        
+
     } catch (error) {
-        console.error('❌ Error al cargar ventas:', error);
-        document.getElementById('ventasHoy').textContent = '-';
+        // console.error('❌ Error al cargar ventas:', error);
+        // Mostrar 0 en lugar de '-' cuando Firestore no responde (cuota agotada, etc.)
+        document.getElementById('ventasHoy').textContent = '0';
     }
 }
 

@@ -279,52 +279,32 @@ function cargarFiltros() {
 }
 
 // ==================== ESTADÍSTICAS ====================
-async function cargarEstadisticas() {
+function cargarEstadisticas() {
     try {
-        // Total proveedores
-        const totalProveedores = proveedores.length;
-        document.getElementById('totalProveedores').textContent = totalProveedores;
-        
-        // Proveedores activos
+        // Total proveedores — en memoria, 0 lecturas Firestore
+        document.getElementById('totalProveedores').textContent = proveedores.length;
+
+        // Proveedores activos — en memoria
         const proveedoresActivos = proveedores.filter(p => p.activo !== false).length;
         document.getElementById('proveedoresActivos').textContent = proveedoresActivos;
-        
-        // Países únicos
+
+        // Países únicos — en memoria
         const paisesUnicos = [...new Set(proveedores.map(p => p.pais).filter(p => p))].length;
         document.getElementById('paisesUnicos').textContent = paisesUnicos;
-        
-        // Productos asociados
-        const productosSnapshot = await firebaseDB.collection('products').get();
-        let totalProductos = 0;
-        
-        productosSnapshot.docs.forEach(doc => {
-            const data = doc.data();
-            if (data.supplier) {
-                totalProductos++;
-            }
-        });
-        
+
+        // Productos asociados: suma de total_productos de cada doc proveedor (0 lecturas extra)
+        const totalProductos = proveedores.reduce((sum, p) => sum + (p.total_productos || 0), 0);
         document.getElementById('productosAsociados').textContent = totalProductos;
-        
-        // Actualizar contador de productos por proveedor
-        const productosPorProveedor = {};
-        productosSnapshot.docs.forEach(doc => {
-            const data = doc.data();
-            const supplierId = data.supplier;
-            if (supplierId) {
-                productosPorProveedor[supplierId] = (productosPorProveedor[supplierId] || 0) + 1;
-            }
-        });
-        
-        // Actualizar en memoria
+
+        // Actualizar badge de cada tarjeta desde el campo total_productos del doc
         proveedores.forEach(prov => {
-            prov.productosCount = productosPorProveedor[prov.id] || 0;
+            prov.productosCount = prov.total_productos || 0;
         });
-        
+
         renderizarProveedores();
-        
-        // console.log('📊 Estadísticas actualizadas');
-        
+
+        // console.log('📊 Estadísticas actualizadas (0 lecturas Firestore)');
+
     } catch (error) {
         // console.error('Error al cargar estadísticas:', error);
     }

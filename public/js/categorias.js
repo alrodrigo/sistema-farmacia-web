@@ -329,14 +329,23 @@ async function guardarCategoria(e) {
     e.preventDefault();
     
     try {
-        const nombre = document.getElementById('nombreCategoria').value.trim();
+        const nombreInput = document.getElementById('nombreCategoria');
+        const nombre = nombreInput?.value?.trim() ?? '';
         const descripcion = document.getElementById('descripcionCategoria').value.trim();
         const color = document.getElementById('colorCategoria').value;
         const icono = document.getElementById('iconoCategoria').value;
         const activa = document.getElementById('activaCategoria').checked;
-        
-        if (!nombre) {
-            alert('El nombre es obligatorio');
+
+        // Validación estricta: evita guardados basura
+        if (!nombre || nombre.length < 2) {
+            alert('⚠️ El nombre de la categoría es obligatorio y debe tener al menos 2 caracteres.');
+            nombreInput?.focus();
+            return;
+        }
+
+        if (nombre.length > 50) {
+            alert('⚠️ El nombre no puede superar los 50 caracteres.');
+            nombreInput?.focus();
             return;
         }
         
@@ -352,11 +361,11 @@ async function guardarCategoria(e) {
         }
         
         const categoriaData = {
-            nombre,
-            descripcion,
-            color,
-            icono,
-            activa,
+            nombre: nombre,          // campo explícito — evita undefined por shorthand
+            descripcion: descripcion || '',
+            color: color || '#3b82f6',
+            icono: icono || 'fa-tag',
+            activa: activa,
             updated_at: firebase.firestore.FieldValue.serverTimestamp()
         };
         

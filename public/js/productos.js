@@ -316,94 +316,23 @@ async function cargarProveedoresCache() {
     }
 }
 
-// ===== 9. CARGAR PRODUCTOS =====
-// ===== 8.5 FUNCIONES DE CACHÉ =====
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutos
-const PRODUCTS_CACHE_KEY = 'productos_cache';
-const PRODUCTS_CACHE_TIME_KEY = 'productos_cache_time';
+// ===== 8.5 CACHÉ DE PRODUCTOS =====
+// Delegado a window.AppCache (helpers.js) — sessionStorage compartido entre páginas.
 
-function guardarProductosEnCache(productos) {
-    try {
-        localStorage.setItem(PRODUCTS_CACHE_KEY, JSON.stringify(productos));
-        localStorage.setItem(PRODUCTS_CACHE_TIME_KEY, Date.now().toString());
-    } catch (error) {
-        console.warn('⚠️ No se pudo guardar caché:', error);
-    }
-}
-
-function obtenerProductosDeCache() {
-    try {
-        const cacheTime = localStorage.getItem(PRODUCTS_CACHE_TIME_KEY);
-        if (!cacheTime) return null;
-        
-        const edad = Date.now() - parseInt(cacheTime);
-        if (edad > CACHE_DURATION) return null;
-        
-        const productos = localStorage.getItem(PRODUCTS_CACHE_KEY);
-        return productos ? JSON.parse(productos) : null;
-    } catch (error) {
-        console.warn('⚠️ Error al leer caché:', error);
-        return null;
-    }
-}
-
+/** @deprecated Usa AppCache.invalidarProductos() directamente */
 function invalidarCacheProductos() {
-    try {
-        localStorage.removeItem(PRODUCTS_CACHE_KEY);
-        localStorage.removeItem(PRODUCTS_CACHE_TIME_KEY);
-        // También invalidar caché de ventas
-        localStorage.removeItem('ventas_productos_cache');
-        localStorage.removeItem('ventas_productos_cache_time');
-    } catch (error) {
-        console.warn('⚠️ Error al invalidar caché:', error);
-    }
+    AppCache.invalidarProductos();
 }
 
 // ===== 9. CARGAR PRODUCTOS =====
 async function cargarProductos() {
     // console.log('📦 Cargando productos...');
-    
-    // Intentar obtener del caché primero
-    const productosEnCache = obtenerProductosDeCache();
-    if (productosEnCache && productosEnCache.length > 0) {
-        todosLosProductos = productosEnCache;
-        // NO ordenar alfabéticamente - mantener orden de creación
-        // todosLosProductos.sort((a, b) => a.name.localeCompare(b.name));
-        productosFiltrados = [...todosLosProductos];
-        // console.log(`✅ ${todosLosProductos.length} productos cargados desde caché`);
-        mostrarProductos();
-        return;
-    }
-    
     try {
-        // console.log('📡 Cargando productos desde Firestore...');
-        // Ordenar por fecha de creación (orden correlativo)
-        const snapshot = await firebaseDB.collection('products')
-            .orderBy('created_at', 'asc')
-            .get();
-        
-        todosLosProductos = [];
-        snapshot.forEach(doc => {
-            todosLosProductos.push({
-                id: doc.id,
-                ...doc.data()
-            });
-        });
-        
-        // Guardar en caché
-        guardarProductosEnCache(todosLosProductos);
-        
-        // NO ordenar alfabéticamente - mantener orden de creación
-        // todosLosProductos.sort((a, b) => a.name.localeCompare(b.name));
-        
-        // Inicialmente, productos filtrados = todos los productos
+        // AppCache: lee de sessionStorage si hay datos frescos; solo llama
+        // a Firestore cuando la caché es inválida o fue invalidada por una mutación.
+        todosLosProductos = await AppCache.getProductos(firebaseDB);
         productosFiltrados = [...todosLosProductos];
-        
-        // console.log(`✅ ${todosLosProductos.length} productos cargados desde Firestore`);
-        
-        // Mostrar en la tabla
         mostrarProductos();
-        
     } catch (error) {
         // console.error('❌ Error al cargar productos:', error);
         throw error;
@@ -688,15 +617,26 @@ async function eliminarProducto(id, nombre) {
     }
     
     try {
+        // Obtener proveedor del producto antes de borrarlo (ya está en memoria)
+        const productoEnMemoria = todosLosProductos.find(p => p.id === id);
+        const supplierId = productoEnMemoria?.supplier || null;
+
         await firebaseDB.collection('products').doc(id).delete();
         // console.log('✅ Producto eliminado:', id);
-        
+
+        // Decrementar contador en el proveedor correspondiente
+        if (supplierId) {
+            await firebaseDB.collection('proveedores').doc(supplierId).update({
+                total_productos: firebase.firestore.FieldValue.increment(-1)
+            });
+        }
+
         alert(`✅ Producto "${nombre}" eliminado correctamente`);
-        
+
         // Invalidar caché y recargar productos
         invalidarCacheProductos();
         await cargarProductos();
-        
+
     } catch (error) {
         // console.error('❌ Error al eliminar producto:', error);
         alert('❌ Error al eliminar el producto. Verifica tus permisos.');
@@ -1061,17 +1001,48 @@ async function guardarProducto(event) {
         };
         
         if (modoEdicion) {
-            // Actualizar producto existente
+            // Detectar cambio de proveedor ANTES de escribir
+            const productoAnterior = todosLosProductos.find(p => p.id === productoEditandoId);
+            const supplierAnterior = productoAnterior?.supplier || null;
+            const supplierNuevo    = productoData.supplier    || null;
+
             await firebaseDB.collection('products').doc(productoEditandoId).update(productoData);
             // console.log('✅ Producto actualizado:', productoEditandoId);
+
+            // Si cambió el proveedor, actualizar ambos contadores en un batch atómico
+            if (supplierAnterior !== supplierNuevo) {
+                const batch = firebaseDB.batch();
+                if (supplierAnterior) {
+                    batch.update(
+                        firebaseDB.collection('proveedores').doc(supplierAnterior),
+                        { total_productos: firebase.firestore.FieldValue.increment(-1) }
+                    );
+                }
+                if (supplierNuevo) {
+                    batch.update(
+                        firebaseDB.collection('proveedores').doc(supplierNuevo),
+                        { total_productos: firebase.firestore.FieldValue.increment(1) }
+                    );
+                }
+                await batch.commit();
+            }
+
             alert('✅ Producto actualizado correctamente');
         } else {
             // Crear nuevo producto
             productoData.created_at = firebase.firestore.FieldValue.serverTimestamp();
             productoData.created_by = currentUser.uid;
-            
-            const docRef = await firebaseDB.collection('products').add(productoData);
-            // console.log('✅ Producto creado:', docRef.id);
+
+            await firebaseDB.collection('products').add(productoData);
+            // console.log('✅ Producto creado');
+
+            // Incrementar contador en el proveedor asignado
+            if (productoData.supplier) {
+                await firebaseDB.collection('proveedores').doc(productoData.supplier).update({
+                    total_productos: firebase.firestore.FieldValue.increment(1)
+                });
+            }
+
             alert('✅ Producto creado correctamente');
         }
         
@@ -1384,14 +1355,22 @@ if (btnCerrarNuevaCategoria) {
 
 if (btnGuardarCategoria) {
     btnGuardarCategoria.addEventListener('click', async () => {
-        const nombre = document.getElementById('inputNombreCategoria').value.trim();
+        const nombreInput = document.getElementById('inputNombreCategoria');
+        const nombre = nombreInput?.value?.trim() ?? '';
         const descripcion = document.getElementById('inputDescripcionCategoria').value.trim();
         const color = document.getElementById('inputColorCategoria').value;
         const icono = document.getElementById('inputIconoCategoria').value;
-        
-        if (!nombre) {
-            alert('Por favor, ingresa el nombre de la categoría');
-            document.getElementById('inputNombreCategoria').focus();
+
+        // Validación estricta: evita guardados basura
+        if (!nombre || nombre.length < 2) {
+            alert('⚠️ El nombre de la categoría es obligatorio y debe tener al menos 2 caracteres.');
+            nombreInput?.focus();
+            return;
+        }
+
+        if (nombre.length > 50) {
+            alert('⚠️ El nombre no puede superar los 50 caracteres.');
+            nombreInput?.focus();
             return;
         }
         
@@ -1400,10 +1379,10 @@ if (btnGuardarCategoria) {
             btnGuardarCategoria.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
             
             const nuevaCategoria = {
-                nombre: nombre,
+                nombre: nombre,          // campo explícito — evita undefined por shorthand
                 descripcion: descripcion || '',
-                color: color,
-                icono: icono,
+                color: color || '#3b82f6',
+                icono: icono || 'fa-tag',
                 activa: true,
                 productosCount: 0,
                 created_at: firebase.firestore.FieldValue.serverTimestamp(),
