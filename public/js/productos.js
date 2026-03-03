@@ -632,6 +632,8 @@ async function eliminarProducto(id, nombre) {
             await firebaseDB.collection('proveedores').doc(supplierId).update({
                 total_productos: firebase.firestore.FieldValue.increment(-1)
             });
+            // El contador cambió → invalida caché de proveedores
+            AppCache.invalidarProveedores();
         }
 
         alert(`✅ Producto "${nombre}" eliminado correctamente`);
@@ -1028,6 +1030,8 @@ async function guardarProducto(event) {
                     );
                 }
                 await batch.commit();
+                // El contador total_productos cambió en proveedores → invalida su caché
+                AppCache.invalidarProveedores();
             }
 
             alert('✅ Producto actualizado correctamente');
@@ -1044,6 +1048,8 @@ async function guardarProducto(event) {
                 await firebaseDB.collection('proveedores').doc(productoData.supplier).update({
                     total_productos: firebase.firestore.FieldValue.increment(1)
                 });
+                // El contador cambió → invalida caché de proveedores
+                AppCache.invalidarProveedores();
             }
 
             alert('✅ Producto creado correctamente');

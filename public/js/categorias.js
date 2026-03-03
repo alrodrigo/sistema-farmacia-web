@@ -249,34 +249,33 @@ function renderizarCategorias() {
     emptyState.style.display = 'none';
     
     grid.innerHTML = categorias.map(cat => `
-        <div class="categoria-card ${cat.activa ? '' : 'inactive'}" style="border-left-color: ${cat.color || '#6a5acd'}">
-            <span class="categoria-badge ${cat.activa ? 'active' : 'inactive'}">
-                ${cat.activa ? 'Activa' : 'Inactiva'}
-            </span>
-            
-            <div class="categoria-icon" style="background: ${cat.color || '#6a5acd'}">
-                <i class="fas ${cat.icono || 'fa-tag'}"></i>
-            </div>
-            
-            <div class="categoria-info">
-                <h3>${cat.nombre}</h3>
-                <p>${cat.descripcion || 'Sin descripción'}</p>
-            </div>
-            
-            <div class="categoria-stats">
-                <div class="categoria-stat">
-                    <i class="fas fa-boxes"></i>
-                    <span><strong>${cat.productosCount || 0}</strong> productos</span>
+        <div class="categoria-card ${cat.activa !== false ? '' : 'inactive'}" style="--cat-color: ${cat.color || '#6a5acd'}">
+            <div class="cat-top">
+                <div class="cat-icon">
+                    <i class="fas ${cat.icono || 'fa-tag'}"></i>
                 </div>
+                <span class="cat-badge ${cat.activa !== false ? 'active' : 'inactive'}">
+                    <i class="fas fa-${cat.activa !== false ? 'check' : 'pause'}"></i>
+                    ${cat.activa !== false ? 'Activa' : 'Inactiva'}
+                </span>
             </div>
-            
-            <div class="categoria-actions">
-                <button class="btn-icon edit" onclick="editarCategoria('${cat.id}')" title="Editar">
-                    <i class="fas fa-edit"></i>
-                </button>
-                <button class="btn-icon delete" onclick="confirmarEliminar('${cat.id}', '${cat.nombre}')" title="Eliminar">
-                    <i class="fas fa-trash"></i>
-                </button>
+            <div class="cat-body">
+                <h3>${cat.nombre}</h3>
+                <p>${cat.descripcion || 'Sin descripci&oacute;n'}</p>
+            </div>
+            <div class="cat-footer">
+                <div class="cat-count">
+                    <i class="fas fa-box"></i>
+                    <span>${cat.productosCount || 0} productos</span>
+                </div>
+                <div class="cat-actions">
+                    <button class="cat-btn edit" onclick="editarCategoria('${cat.id}')" title="Editar">
+                        <i class="fas fa-pen"></i>
+                    </button>
+                    <button class="cat-btn delete" onclick="confirmarEliminar('${cat.id}', '${cat.nombre}')" title="Eliminar">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
             </div>
         </div>
     `).join('');
@@ -409,20 +408,21 @@ async function eliminarCategoria(id) {
         // Eliminar categoría
         await db.collection('categorias').doc(id).delete();
         
-        // Actualizar productos que tenían esta categoría
+        // Actualizar productos que tenían esta categoría.
+        // Los productos se guardan con el campo 'category' (no 'categoriaId').
         const productosSnapshot = await db.collection('products')
-            .where('categoriaId', '==', id)
+            .where('category', '==', id)
             .get();
         
         const batch = db.batch();
         productosSnapshot.docs.forEach(doc => {
-            batch.update(doc.ref, {
-                categoriaId: null,
-                categoria: null
-            });
+            batch.update(doc.ref, { category: null });
         });
         
         await batch.commit();
+
+        // Invalidar caché de productos para que todos los módulos vean el campo 'category' actualizado
+        if (window.AppCache) AppCache.invalidarProductos();
         
         // console.log('✅ Categoría eliminada');
         alert('✅ Categoría eliminada correctamente');

@@ -450,12 +450,16 @@ async function guardarProveedor(event) {
             proveedorData.created_at = firebase.firestore.FieldValue.serverTimestamp();
             proveedorData.created_by = currentUser.uid;
             proveedorData.productosCount = 0;
+            proveedorData.total_productos = 0; // Campo que usa el sistema desnormalizado
             
             await firebaseDB.collection('proveedores').add(proveedorData);
             // console.log('✅ Proveedor creado');
             alert('✅ Proveedor creado correctamente');
         }
         
+        // Invalidar caché de proveedores para que dashboard y productos vean los datos frescos
+        if (window.AppCache) AppCache.invalidarProveedores();
+
         cerrarModal();
         await cargarProveedores();
         await cargarEstadisticas();
@@ -496,13 +500,17 @@ async function eliminarProveedor(id) {
         
         const batch = firebaseDB.batch();
         productosSnapshot.docs.forEach(doc => {
-            batch.update(doc.ref, {
-                supplier: null
-            });
+            batch.update(doc.ref, { supplier: null });
         });
         
         await batch.commit();
         
+        // Invalidar ambas cachés: proveedor borrado + productos que perdieron su proveedor
+        if (window.AppCache) {
+            AppCache.invalidarProveedores();
+            AppCache.invalidarProductos();
+        }
+
         // console.log('✅ Proveedor eliminado');
         alert('✅ Proveedor eliminado correctamente');
         
