@@ -193,7 +193,11 @@ async function loadSalesData() {
                         id: doc.id,
                         ...data,
                         // Convertir Timestamp a Date con manejo de errores
-                        fecha: fechaField.toDate ? fechaField.toDate() : new Date(fechaField)
+                        fecha: fechaField.toDate ? fechaField.toDate() : new Date(fechaField),
+                        // Normalizar totales a número para evitar concatenación de strings
+                        total: parseFloat(data.total) || 0,
+                        subtotal: parseFloat(data.subtotal || data.total) || 0,
+                        discount_amount: parseFloat(data.discount_amount) || 0
                     };
                 } catch (error) {
                     // console.warn(`⚠️ Error procesando venta ${doc.id}:`, error);
@@ -253,12 +257,21 @@ async function loadVendors() {
 }
 
 // ==================== FILTROS ====================
+/** Devuelve el turno de una Date según su hora local. */
+function getTurno(date) {
+    const hour = date.getHours();
+    if (hour >= 6 && hour < 14) return 'manana';
+    if (hour >= 14 && hour < 22) return 'tarde';
+    return 'noche'; // 22:00 – 05:59
+}
+
 function applyFilters() {
     // Obtener valores de los inputs (formato: YYYY-MM-DD)
     const fechaInicioStr = document.getElementById('fechaInicio').value;
     const fechaFinStr = document.getElementById('fechaFin').value;
     const paymentMethod = document.getElementById('paymentMethod').value;
     const vendorFilter = document.getElementById('vendorFilter').value;
+    const turnoFilter = document.getElementById('turnoFilter')?.value || 'all';
     
     // Parsear fechas en hora local (sin conversión UTC)
     const [yInicio, mInicio, dInicio] = fechaInicioStr.split('-').map(Number);
@@ -288,12 +301,18 @@ function applyFilters() {
         if (vendorFilter !== 'all') {
             coincideVendedor = sale.seller_id === vendorFilter;
         }
+
+        // Filtro por turno (horario automático)
+        let coincideTurno = true;
+        if (turnoFilter !== 'all') {
+            coincideTurno = getTurno(saleDate) === turnoFilter;
+        }
         
-        if (!enRango || !coincideMetodo || !coincideVendedor) {
+        if (!enRango || !coincideMetodo || !coincideVendedor || !coincideTurno) {
             // console.log(`  ❌ Venta excluida: ${saleDate.toLocaleString('es-BO')} - Método: ${sale.payment_method}`);
         }
         
-        return enRango && coincideMetodo && coincideVendedor;
+        return enRango && coincideMetodo && coincideVendedor && coincideTurno;
     });
 
     // console.log('  ✅ Ventas filtradas:', filteredSales.length);
@@ -326,6 +345,8 @@ function applyQuickFilter(period) {
 function resetFilters() {
     setDefaultDates();
     document.querySelectorAll('.btn-quick').forEach(b => b.classList.remove('active'));
+    const turnoFilter = document.getElementById('turnoFilter');
+    if (turnoFilter) turnoFilter.value = 'all';
     applyFilters();
 }
 
@@ -351,7 +372,7 @@ function updateSummaryCards() {
     document.getElementById('totalVentas').textContent = totalVentas;
 
     // Ingresos totales
-    const ingresosTotales = filteredSales.reduce((sum, sale) => sum + sale.total, 0);
+    const ingresosTotales = filteredSales.reduce((sum, sale) => sum + (parseFloat(sale.total) || 0), 0);
     document.getElementById('ingresosTotales').textContent = `Bs. ${ingresosTotales.toFixed(2)}`;
 
     // Productos vendidos (suma de cantidades - compatibilidad con diferentes nombres)

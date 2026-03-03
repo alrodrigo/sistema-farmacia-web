@@ -332,7 +332,10 @@ async function cargarProductos() {
         // a Firestore cuando la caché es inválida o fue invalidada por una mutación.
         todosLosProductos = await AppCache.getProductos(firebaseDB);
         productosFiltrados = [...todosLosProductos];
-        mostrarProductos();
+        // Usar aplicarFiltros() en vez de mostrarProductos() para que los
+        // filtros activos (categoría, proveedor, stock, búsqueda) no se pierdan
+        // al guardar o editar un producto.
+        aplicarFiltros();
     } catch (error) {
         // console.error('❌ Error al cargar productos:', error);
         throw error;
