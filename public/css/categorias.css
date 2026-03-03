@@ -682,14 +682,35 @@
     }
 }
 
-/* Modo oscuro (preparado para futuro) */
-@media (prefers-color-scheme: dark) {
-    :root {
-        --text-primary: var(--bg-secondary);
-        --text-secondary: var(--text-light);
-        --border-color: #374151;
-    }
+/* Colores explícitos para el encabezado de página y tarjetas de stats
+   — evita que variables heredadas o media queries del OS alteren el texto */
+.content-header h1 {
+    color: #111827 !important;
 }
+
+.content-header h1 i {
+    color: var(--primary-color) !important;
+}
+
+.content-header p {
+    color: #6b7280 !important;
+}
+
+.stat-details h3,
+.stat-info h3 {
+    color: #111827 !important;
+    font-size: 1.75rem;
+    font-weight: 700;
+}
+
+.stat-details p,
+.stat-info p {
+    color: #6b7280 !important;
+}
+
+/* Modo oscuro — eliminado: causaba textos invisibles en fondos claros
+   cuando el OS estaba en dark mode pero los fondos eran blancos explícitos. */
+
 
 /* Tooltips */
 [data-tooltip] {
