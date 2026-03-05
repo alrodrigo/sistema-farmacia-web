@@ -17,7 +17,7 @@ const fs   = require('fs');
 const path = require('path');
 
 // ─── CONFIGURACIÓN ──────────────────────────────────────────
-const VERSION    = '3.18.1';             // ← cambia aquí en cada release
+const VERSION    = '3.18.2';             // ← cambia aquí en cada release
 const PUBLIC_DIR = path.join(__dirname, '..', 'public');
 // ────────────────────────────────────────────────────────────
 

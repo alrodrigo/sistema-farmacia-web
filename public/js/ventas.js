@@ -1056,7 +1056,7 @@ async function procesarVenta() {
       return;
     }
     
-    // MODO PRODUCCIÓN: guardar en Firebase
+    // MODO PRODUCCIÓN: guardar en Firebase con transacción atómica
     // Preparar datos de pago
     const paymentData = {
       payment_method: paymentMethod,
@@ -1095,66 +1095,108 @@ async function procesarVenta() {
       ...paymentData,
       seller_id: currentUser.uid,
       seller_name: currentUser.name || currentUser.nombre || currentUser.email?.split('@')[0] || 'Vendedor',
-      fecha: firebase.firestore.FieldValue.serverTimestamp(), // Nombre en español
-      created_at: firebase.firestore.FieldValue.serverTimestamp(), // Mantener por compatibilidad
+      fecha: firebase.firestore.FieldValue.serverTimestamp(),
+      created_at: firebase.firestore.FieldValue.serverTimestamp(),
       status: 'completed'
     };
-    
-    // Guardar la venta en Firestore
-    const ventaRef = await firebaseDB.collection('sales').add(ventaData);
-    // console.log('✅ Venta guardada:', ventaRef.id);
-    
-    // Actualizar el inventario de cada producto
-    for (const item of carrito) {
-      const productoRef = firebaseDB.collection('products').doc(item.id);
-      const productoDoc = await productoRef.get();
-      
-      if (productoDoc.exists) {
-        const stockActual = productoDoc.data().current_stock;
-        const nuevoStock = stockActual - item.cantidad;
-        
-        await productoRef.update({
-          current_stock: nuevoStock,
-          updated_at: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        
-        // console.log(`📦 Stock actualizado: ${item.name} (${stockActual} → ${nuevoStock})`);
+
+    // ── Transacción atómica: leer → validar → escribir ────────────────────────
+    // Crear la referencia del documento de venta ANTES de entrar a la transacción
+    const nuevaVentaRef = firebaseDB.collection('sales').doc();
+    const productosRef  = carrito.map(item =>
+      firebaseDB.collection('products').doc(item.id)
+    );
+
+    await firebaseDB.runTransaction(async (transaction) => {
+
+      // 1. FASE DE LECTURA — todas las lecturas deben ir antes de cualquier escritura
+      const snapshots = await Promise.all(
+        productosRef.map(ref => transaction.get(ref))
+      );
+
+      // 2. VALIDACIÓN — abortar la transacción si hay stock insuficiente
+      for (let i = 0; i < carrito.length; i++) {
+        const snap = snapshots[i];
+        const item = carrito[i];
+
+        if (!snap.exists) {
+          const err = new Error(
+            `El producto "${item.name}" ya no existe en el sistema.`
+          );
+          err.code = 'STOCK_INSUFICIENTE';
+          throw err;
+        }
+
+        const stockActual = snap.data().current_stock ?? 0;
+        if (stockActual < item.cantidad) {
+          const err = new Error(
+            `Stock insuficiente para "${item.name}": disponible ${stockActual}, solicitado ${item.cantidad}.`
+          );
+          err.code      = 'STOCK_INSUFICIENTE';
+          err.stockData = { nombre: item.name, disponible: stockActual, solicitado: item.cantidad };
+          throw err;
+        }
       }
-    }
-    
-    // Mostrar modal de éxito
-    mostrarModalExito(numeroVentaActual, total);
-    
-    // Incrementar número de venta para la próxima
-    numeroVentaActual++;
-    document.getElementById('saleNumber').textContent = 
-      String(numeroVentaActual).padStart(4, '0');
-    
-    // Actualizar stock en memoria — 0 lecturas extra a Firestore
-    // Los items del carrito ya fueron guardados en guardarItemsParaRecibo()
-    const itemsVendidos = window.ultimaVentaItems || [];
-    itemsVendidos.forEach(itemVendido => {
-      const prod = todosLosProductos.find(p => p.id === itemVendido.id);
-      if (prod) {
-        prod.current_stock = Math.max(0, (prod.current_stock || 0) - itemVendido.cantidad);
+
+      // 3. FASE DE ESCRITURA — solo se ejecuta si todos los stocks son válidos
+      // 3a. Guardar el ticket de venta
+      transaction.set(nuevaVentaRef, ventaData);
+
+      // 3b. Decrementar el stock de cada producto con el valor exacto leído
+      for (let i = 0; i < carrito.length; i++) {
+        const snap     = snapshots[i];
+        const item     = carrito[i];
+        const nuevoStock = (snap.data().current_stock ?? 0) - item.cantidad;
+        transaction.update(productosRef[i], {
+          current_stock: nuevoStock,
+          updated_at:    firebase.firestore.FieldValue.serverTimestamp()
+        });
       }
     });
-    // Sobrescribir sessionStorage con el array ya actualizado
+    // ────────────────────────────────────────────────────────────────────────
+
+    // ── Éxito: actualizar el mundo local sin leer Firebase ──────────────────
+    // 1. Mutar el array en memoria y persistir en sessionStorage
+    carrito.forEach(item => {
+      const prod = todosLosProductos.find(p => p.id === item.id);
+      if (prod) {
+        prod.current_stock = Math.max(0, (prod.current_stock || 0) - item.cantidad);
+      }
+    });
     AppCache.setProductos(todosLosProductos);
-    
-    // IMPORTANTE: Restaurar botón después de completar la venta
+
+    // 2. Refrescar los resultados de búsqueda visibles con el stock actualizado
+    const terminoBusqueda = document.getElementById('searchProductInput')?.value || '';
+    if (terminoBusqueda) {
+      buscarProductos(terminoBusqueda);
+    }
+
+    // 3. Mostrar modal de éxito (limpia el carrito y resetea el formulario internamente)
+    mostrarModalExito(numeroVentaActual, total);
+
+    // 4. Avanzar el contador de venta
+    numeroVentaActual++;
+    document.getElementById('saleNumber').textContent =
+      String(numeroVentaActual).padStart(4, '0');
+
+    // 5. Restaurar botón
     btnProcesar.disabled = false;
     btnProcesar.innerHTML = textoOriginal;
-    
-    // console.log('✅ Venta procesada exitosamente');
-    
+
+    // console.log('✅ Venta procesada exitosamente:', nuevaVentaRef.id);
+
   } catch (error) {
-    // console.error('❌ Error al procesar venta:', error);
-    alert('❌ Error al procesar la venta. Por favor, intenta nuevamente.');
-    
-    // Rehabilitar botón
+    // Rehabilitar botón siempre
     btnProcesar.disabled = false;
     btnProcesar.innerHTML = textoOriginal;
+
+    if (error.code === 'STOCK_INSUFICIENTE') {
+      // ⚠️ NO limpiar el carrito — el cajero debe poder corregir y reintentar
+      alert(`⚠️ Venta rechazada por stock insuficiente\n\n${error.message}\n\nAjusta el carrito y vuelve a intentarlo.`);
+    } else {
+      // console.error('❌ Error al procesar venta:', error);
+      alert('❌ Error al procesar la venta.\nVerifica tu conexión e intenta nuevamente.');
+    }
   }
 }
 
