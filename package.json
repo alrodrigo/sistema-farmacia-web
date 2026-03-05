@@ -9,10 +9,12 @@
     "init": "firebase init",
     "serve": "firebase serve",
     "deploy": "firebase deploy",
-    "deploy:hosting": "firebase deploy --only hosting",
+    "deploy:hosting": "firebase deploy --only hosting --project sistema-farmacia-web",
     "deploy:rules": "firebase deploy --only firestore:rules",
     "logs": "firebase functions:log",
-    "emulators": "firebase emulators:start"
+    "emulators": "firebase emulators:start",
+    "cache": "node scripts/update-cache.js",
+    "release": "node scripts/update-cache.js && firebase deploy --only hosting --project sistema-farmacia-web"
   },
   "keywords": [
     "farmacia",

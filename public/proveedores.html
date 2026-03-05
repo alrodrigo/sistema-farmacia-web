@@ -2,6 +2,10 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <!-- cache-busting-meta -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Proveedores - Sistema Farmacia</title>
     
@@ -16,14 +20,14 @@
     
     <!-- Estilos -->
     <!-- Sistema de Diseño Base -->
-    <link rel="stylesheet" href="css/theme.css">
-    <link rel="stylesheet" href="css/components.css">
-    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/theme.css?v=3.18.1">
+    <link rel="stylesheet" href="css/components.css?v=3.18.1">
+    <link rel="stylesheet" href="css/layout.css?v=3.18.1">
     
-    <link rel="stylesheet" href="css/proveedores.css">
+    <link rel="stylesheet" href="css/proveedores.css?v=3.18.1">
 
     <!-- Responsive (DEBE IR AL FINAL) -->
-    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="css/responsive.css?v=3.18.1">
 </head>
 <body>
     <!-- ==================== NAVBAR SUPERIOR ==================== -->
@@ -262,16 +266,16 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     
     <!-- Configuración de Firebase -->
-    <script src="js/config/firebase.js"></script>
+    <script src="js/config/firebase.js?v=3.18.1"></script>
     
     <!-- Utilidades -->
-    <script src="js/utils/helpers.js"></script>
-    <script src="js/utils/roles.js"></script>
+    <script src="js/utils/helpers.js?v=3.18.1"></script>
+    <script src="js/utils/roles.js?v=3.18.1"></script>
     
     <!-- Script principal -->
-    <script src="js/proveedores.js"></script>
+    <script src="js/proveedores.js?v=3.18.1"></script>
     
     <!-- Service Worker para actualización automática -->
-    <script src="js/sw-register.js"></script>
+    <script src="js/sw-register.js?v=3.18.1"></script>
 </body>
 </html>
