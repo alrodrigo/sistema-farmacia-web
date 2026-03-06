@@ -243,13 +243,13 @@
 }
 
 /* ===== RESTRICCIONES POR ROL ===== */
-/* Ocultar opciones de admin por defecto para evitar parpadeo */
-.nav-item.admin-only {
+/* Ocultar CUALQUIER elemento admin-only por defecto (evita flash de contenido) */
+.admin-only {
     display: none !important;
 }
 
-/* JavaScript agregará clase 'show-admin-options' al body cuando sea admin */
-body.show-admin-options .nav-item.admin-only {
+/* JavaScript agrega 'show-admin-options' al body cuando el usuario es admin */
+body.show-admin-options .admin-only {
     display: flex !important;
 }
 

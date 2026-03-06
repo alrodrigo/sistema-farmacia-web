@@ -17,7 +17,7 @@ const fs   = require('fs');
 const path = require('path');
 
 // ─── CONFIGURACIÓN ──────────────────────────────────────────
-const VERSION    = '3.18.2';             // ← cambia aquí en cada release
+const VERSION    = '4.0.1';             //  cambia aqu� en cada release             // ← cambia aquí en cada release
 const PUBLIC_DIR = path.join(__dirname, '..', 'public');
 // ────────────────────────────────────────────────────────────
 
@@ -176,3 +176,4 @@ escanearDir(PUBLIC_DIR);
 console.log('');
 console.log('✔  Cache busting completado.');
 console.log('');
+

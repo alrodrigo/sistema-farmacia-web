@@ -300,16 +300,14 @@ async function cargarCategoriasCache() {
 // ===== 8.2. CARGAR CACHÉ DE PROVEEDORES =====
 async function cargarProveedoresCache() {
     try {
-        const snapshot = await firebaseDB.collection('proveedores').get();
-        
+        // AppCache: 0 lecturas a Firestore si los datos ya están en sessionStorage
+        const proveedoresArray = await AppCache.getProveedores(firebaseDB);
+
         proveedoresMap = {};
-        snapshot.forEach(doc => {
-            proveedoresMap[doc.id] = {
-                id: doc.id,
-                ...doc.data()
-            };
+        proveedoresArray.forEach(prov => {
+            proveedoresMap[prov.id] = { id: prov.id, ...prov };
         });
-        
+
         // console.log(`✅ ${Object.keys(proveedoresMap).length} proveedores cargados en caché`);
     } catch (error) {
         // console.error('❌ Error al cargar proveedores:', error);
@@ -1480,7 +1478,8 @@ if (btnGuardarProveedor) {
             
             // console.log('✅ Proveedor creado:', docRef.id);
             
-            // Recargar caché de proveedores
+            // Invalidar AppCache y recargar caché de proveedores
+            AppCache.invalidarProveedores();
             await cargarProveedoresCache();
             
             // Recargar select de proveedores

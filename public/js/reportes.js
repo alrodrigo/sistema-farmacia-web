@@ -120,11 +120,11 @@ function initializeEventListeners() {
         });
     }
 
-    // Filtros
-    document.getElementById('btnFiltrar').addEventListener('click', applyFilters);
+    // Filtros — el botón Filtrar vuelve a consultar Firestore con las nuevas fechas
+    document.getElementById('btnFiltrar').addEventListener('click', loadSalesData);
     document.getElementById('btnResetFiltros').addEventListener('click', resetFilters);
 
-    // Filtros rápidos
+    // Filtros rápidos — cambian las fechas y vuelven a consultar Firestore
     document.querySelectorAll('.btn-quick').forEach(btn => {
         btn.addEventListener('click', function() {
             document.querySelectorAll('.btn-quick').forEach(b => b.classList.remove('active'));
@@ -168,12 +168,32 @@ function setDefaultDates() {
 }
 
 // ==================== CARGAR DATOS DE VENTAS ====================
+/**
+ * Consulta Firestore con filtro de rango de fechas (server-side) para minimizar
+ * el número de documentos descargados. Los filtros secundarios (método de pago,
+ * vendedor, turno) se aplican en memoria dentro de applyFilters().
+ */
 async function loadSalesData() {
     showLoading();
-    
+
+    // Leer el rango de fechas actual de los inputs
+    const fechaInicioStr = document.getElementById('fechaInicio').value;
+    const fechaFinStr    = document.getElementById('fechaFin').value;
+    const [yI, mI, dI]  = fechaInicioStr.split('-').map(Number);
+    const [yF, mF, dF]  = fechaFinStr.split('-').map(Number);
+    const startTs = new Date(yI, mI - 1, dI, 0, 0, 0, 0);
+    const endTs   = new Date(yF, mF - 1, dF, 23, 59, 59, 999);
+
     try {
-        // Obtener todas las ventas (sin filtro de vendedor para evitar necesitar índice compuesto)
-        const salesSnapshot = await firebase.firestore().collection('sales').get();
+        // Filtrar por rango en el servidor usando el campo 'fecha' (v3.18+).
+        // Ventas muy antiguas que solo tengan 'created_at' quedan fuera del
+        // rango seleccionado y no se descargan — lo cual es el comportamiento correcto.
+        const salesSnapshot = await firebase.firestore()
+            .collection('sales')
+            .where('fecha', '>=', startTs)
+            .where('fecha', '<=', endTs)
+            .orderBy('fecha', 'desc')
+            .get();
 
         // Filtrar y mapear ventas con manejo de errores
         allSales = salesSnapshot.docs
@@ -206,23 +226,14 @@ async function loadSalesData() {
             })
             .filter(sale => sale !== null); // Eliminar ventas inválidas
         
-        // Si el usuario NO es admin, filtrar solo sus ventas manualmente
+        // Filtrar solo ventas del vendedor si el usuario NO es admin
         if (currentUserData && currentUserData.role !== 'admin') {
             allSales = allSales.filter(sale => sale.seller_id === currentUser.uid);
-            // console.log('👤 Vendedor: filtrando solo ventas propias');
-        } else {
-            // console.log('👤 Admin: mostrando todas las ventas');
         }
-        
-        // Ordenar por fecha
-        allSales.sort((a, b) => b.fecha - a.fecha);
 
-        // console.log(`✅ ${allSales.length} ventas cargadas correctamente`);
-        
-        if (allSales.length === 0) {
-            // console.log('💡 No hay ventas en la base de datos. Crea algunas ventas primero.');
-        }
-        
+        // Firestore ya devuelve los resultados ordenados por 'fecha' desc
+        // console.log(`✅ ${allSales.length} ventas cargadas para el rango seleccionado`);
+
         applyFilters();
         
     } catch (error) {
@@ -339,7 +350,7 @@ function applyQuickFilter(period) {
 
     document.getElementById('fechaInicio').valueAsDate = startDate;
     document.getElementById('fechaFin').valueAsDate = today;
-    applyFilters();
+    loadSalesData(); // Re-consultar Firestore con el nuevo rango
 }
 
 function resetFilters() {
@@ -347,7 +358,7 @@ function resetFilters() {
     document.querySelectorAll('.btn-quick').forEach(b => b.classList.remove('active'));
     const turnoFilter = document.getElementById('turnoFilter');
     if (turnoFilter) turnoFilter.value = 'all';
-    applyFilters();
+    loadSalesData(); // Re-consultar Firestore con fechas por defecto
 }
 
 // ==================== ACTUALIZAR UI ====================
