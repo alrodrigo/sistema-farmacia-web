@@ -960,12 +960,9 @@ function limpiarErrores() {
 // ===== 20. GUARDAR PRODUCTO =====
 async function guardarProducto(event) {
     event.preventDefault();
-    // console.log('💾 Intentando guardar producto...');
     
     // Validar formulario
     if (!validarFormulario()) {
-        // console.log('❌ Formulario inválido');
-        // Encontrar el primer error y mostrarlo en el alert
         const primerError = document.querySelector('.error-message:not(:empty)');
         if (primerError) {
             alert('⚠️ ' + primerError.textContent);
@@ -1004,15 +1001,13 @@ async function guardarProducto(event) {
         };
         
         if (modoEdicion) {
-            // Detectar cambio de proveedor ANTES de escribir
+            // 1. ESCRITURA EN FIREBASE (Cuesta 1 sola escritura)
             const productoAnterior = todosLosProductos.find(p => p.id === productoEditandoId);
             const supplierAnterior = productoAnterior?.supplier || null;
             const supplierNuevo    = productoData.supplier    || null;
 
             await firebaseDB.collection('products').doc(productoEditandoId).update(productoData);
-            // console.log('✅ Producto actualizado:', productoEditandoId);
 
-            // Si cambió el proveedor, actualizar ambos contadores en un batch atómico
             if (supplierAnterior !== supplierNuevo) {
                 const batch = firebaseDB.batch();
                 if (supplierAnterior) {
@@ -1028,41 +1023,49 @@ async function guardarProducto(event) {
                     );
                 }
                 await batch.commit();
-                // El contador total_productos cambió en proveedores → invalida su caché
                 AppCache.invalidarProveedores();
+            }
+
+            // 🚀 2. ACTUALIZACIÓN RAM (Cuesta 0 lecturas)
+            const index = todosLosProductos.findIndex(p => p.id === productoEditandoId);
+            if (index !== -1) {
+                todosLosProductos[index] = { ...todosLosProductos[index], ...productoData };
             }
 
             alert('✅ Producto actualizado correctamente');
         } else {
-            // Crear nuevo producto
+            // 1. ESCRITURA EN FIREBASE (Cuesta 1 sola escritura)
             productoData.created_at = firebase.firestore.FieldValue.serverTimestamp();
             productoData.created_by = currentUser.uid;
 
-            await firebaseDB.collection('products').add(productoData);
-            // console.log('✅ Producto creado');
+            const docRef = await firebaseDB.collection('products').add(productoData);
 
-            // Incrementar contador en el proveedor asignado
             if (productoData.supplier) {
                 await firebaseDB.collection('proveedores').doc(productoData.supplier).update({
                     total_productos: firebase.firestore.FieldValue.increment(1)
                 });
-                // El contador cambió → invalida caché de proveedores
                 AppCache.invalidarProveedores();
             }
+
+            // 🚀 2. ACTUALIZACIÓN RAM (Cuesta 0 lecturas)
+            const nuevoProductoCompleto = { id: docRef.id, ...productoData };
+            todosLosProductos.unshift(nuevoProductoCompleto);
 
             alert('✅ Producto creado correctamente');
         }
         
-        // Cerrar modal e invalidar caché
+        // 3. LIMPIEZA Y RENDERIZADO VISUAL
         cerrarModal();
+        
+        // Destruimos el caché de sessionStorage para que F5 descargue los cambios
         invalidarCacheProductos();
-        await cargarProductos();
+        
+        // 🚀 Redibujar desde RAM sin descargar de Firebase
+        aplicarFiltros();
         
     } catch (error) {
-        // console.error('❌ Error al guardar producto:', error);
         alert('❌ Error al guardar el producto. Verifica tus permisos.');
     } finally {
-        // Rehabilitar botón
         btnGuardar.disabled = false;
         btnGuardar.innerHTML = textoOriginal;
     }
