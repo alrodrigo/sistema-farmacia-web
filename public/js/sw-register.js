@@ -35,7 +35,7 @@
       ">
         <i class="fas fa-sync-alt" style="font-size: 20px; animation: spin 2s linear infinite;"></i>
         <div>
-          <div style="font-weight: 600; font-size: 15px;">✅ Actualizado a v4.0.1</div>
+          <div style="font-weight: 600; font-size: 15px;">✅ Actualizado a v4.0.1773290440</div>
           <div style="font-size: 12px; opacity: 0.9;">Sistema de Tolerancia a Fallos activado</div>
         </div>
       </div>
@@ -75,7 +75,7 @@
 
   // Registrar el Service Worker
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js?v=4.0.0')
+    navigator.serviceWorker.register('/sw.js?v=4.0.1773290440')
       .then((registration) => {
         console.log('✅ Service Worker registrado:', registration.scope);
         

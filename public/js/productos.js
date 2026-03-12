@@ -1196,18 +1196,9 @@ async function cargarCategoriasSelect() {
         selectCategoria.innerHTML = '<option value="">Selecciona una categoría</option>';
         
         if (snapshot.empty) {
-            // console.log('⚠️ No hay categorías, creando categorías por defecto...');
-            
-            // Crear categorías por defecto
-            await crearCategoriasPorDefecto();
-            
-            // Recargar
-            snapshot = await firebaseDB.collection('categorias').get();
-            
-            if (snapshot.empty) {
-                selectCategoria.innerHTML += '<option value="" disabled>No hay categorías disponibles</option>';
-                return;
-            }
+            // console.log('⚠️ No hay categorías disponibles');
+            selectCategoria.innerHTML += '<option value="" disabled>No hay categorías disponibles</option>';
+            return;
         }
         
         // Ordenar alfabéticamente
@@ -1241,32 +1232,9 @@ async function cargarCategoriasSelect() {
     }
 }
 
-// ===== CREAR CATEGORÍAS POR DEFECTO =====
-async function crearCategoriasPorDefecto() {
-    const categoriasDefault = [
-        { nombre: 'Medicamentos', descripcion: 'Medicamentos de venta libre y con receta', color: '#3b82f6', icono: 'fa-pills' },
-        { nombre: 'Vitaminas y Suplementos', descripcion: 'Vitaminas, minerales y suplementos alimenticios', color: '#10b981', icono: 'fa-leaf' },
-        { nombre: 'Cuidado Personal', descripcion: 'Productos de higiene y cuidado personal', color: '#8b5cf6', icono: 'fa-soap' },
-        { nombre: 'Primeros Auxilios', descripcion: 'Vendas, curitas y material médico', color: '#ef4444', icono: 'fa-band-aid' },
-        { nombre: 'Bebé y Maternidad', descripcion: 'Productos para bebés y madres', color: '#f59e0b', icono: 'fa-baby' },
-        { nombre: 'Otros', descripcion: 'Otros productos de farmacia', color: '#6b7280', icono: 'fa-tag' }
-    ];
-    
-    try {
-        for (const cat of categoriasDefault) {
-            await firebaseDB.collection('categorias').add({
-                ...cat,
-                activa: true,
-                productosCount: 0,
-                created_at: firebase.firestore.FieldValue.serverTimestamp(),
-                updated_at: firebase.firestore.FieldValue.serverTimestamp()
-            });
-        }
-        // console.log('✅ Categorías por defecto creadas');
-    } catch (error) {
-        // console.error('❌ Error al crear categorías por defecto:', error);
-    }
-}
+// ===== FUNCIÓN DE CREACIÓN AUTOMÁTICA ELIMINADA =====
+// NOTA: Las categorías ya NO se crean automáticamente.
+// Créalas manualmente desde la sección de Categorías.
 
 // ===== CARGAR PROVEEDORES DESDE FIRESTORE =====
 async function cargarProveedoresSelect() {
@@ -1282,10 +1250,8 @@ async function cargarProveedoresSelect() {
         selectProveedor.innerHTML = '<option value="">Selecciona un laboratorio</option>';
         
         if (snapshot.empty) {
-            // console.log('⚠️ No hay proveedores registrados, creando proveedores por defecto...');
-            await crearProveedoresPorDefecto();
-            // Recargar después de crear
-            await cargarProveedoresSelect();
+            // console.log('⚠️ No hay proveedores disponibles');
+            selectProveedor.innerHTML += '<option value="" disabled>No hay proveedores disponibles</option>';
             return;
         }
         
@@ -1316,29 +1282,9 @@ async function cargarProveedoresSelect() {
     }
 }
 
-// ===== CREAR PROVEEDORES POR DEFECTO =====
-async function crearProveedoresPorDefecto() {
-    const proveedoresDefault = [
-        { nombre: 'Bayer', pais: 'Alemania' },
-        { nombre: 'Pfizer', pais: 'Estados Unidos' },
-        { nombre: 'Novartis', pais: 'Suiza' },
-        { nombre: 'Genomma Lab', pais: 'México' },
-        { nombre: 'Sanofi', pais: 'Francia' },
-        { nombre: 'GSK', pais: 'Reino Unido' }
-    ];
-    
-    try {
-        for (const prov of proveedoresDefault) {
-            await firebaseDB.collection('proveedores').add({
-                ...prov,
-                created_at: firebase.firestore.FieldValue.serverTimestamp()
-            });
-        }
-        // console.log('✅ Proveedores por defecto creados');
-    } catch (error) {
-        // console.error('❌ Error al crear proveedores:', error);
-    }
-}
+// ===== FUNCIÓN DE CREACIÓN AUTOMÁTICA ELIMINADA =====
+// NOTA: Los proveedores ya NO se crean automáticamente.
+// Créalos manualmente desde la sección de Proveedores.
 
 // ===== MODAL RÁPIDO: NUEVA CATEGORÍA =====
 const modalNuevaCategoria = document.getElementById('modalNuevaCategoria');
@@ -1377,6 +1323,22 @@ if (btnGuardarCategoria) {
 
         if (nombre.length > 50) {
             alert('⚠️ El nombre no puede superar los 50 caracteres.');
+            nombreInput?.focus();
+            return;
+        }
+        
+        // Validar duplicados: verificar si ya existe una categoría con ese nombre
+        const snapshot = await firebaseDB.collection('categorias')
+            .where('nombre', '>=', nombre)
+            .where('nombre', '<=', nombre + '\uf8ff')
+            .get();
+        
+        const existente = snapshot.docs.find(doc => 
+            doc.data().nombre.toLowerCase() === nombre.toLowerCase()
+        );
+        
+        if (existente) {
+            alert('⚠️ Ya existe una categoría con ese nombre. Por favor, elige otro nombre.');
             nombreInput?.focus();
             return;
         }
@@ -1460,6 +1422,22 @@ if (btnGuardarProveedor) {
         
         if (!nombre) {
             alert('Por favor, ingresa el nombre del laboratorio');
+            document.getElementById('inputNombreProveedor').focus();
+            return;
+        }
+        
+        // Validar duplicados: verificar si ya existe un proveedor con ese nombre
+        const snapshot = await firebaseDB.collection('proveedores')
+            .where('nombre', '>=', nombre)
+            .where('nombre', '<=', nombre + '\uf8ff')
+            .get();
+        
+        const existente = snapshot.docs.find(doc => 
+            doc.data().nombre.toLowerCase() === nombre.toLowerCase()
+        );
+        
+        if (existente) {
+            alert('⚠️ Ya existe un proveedor con ese nombre. Por favor, elige otro nombre.');
             document.getElementById('inputNombreProveedor').focus();
             return;
         }

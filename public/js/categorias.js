@@ -175,19 +175,6 @@ async function cargarCategorias() {
             ...doc.data()
         }));
         
-        // Si no hay categorías, crear las predefinidas
-        if (categorias.length === 0) {
-            // console.log('⚠️ No hay categorías, creando categorías predefinidas...');
-            await crearCategoriasPredefinidas();
-            // Recargar después de crear
-            const newSnapshot = await db.collection('categorias').get();
-            categorias = newSnapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
-            categorias.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
-        }
-        
         // console.log(`✅ ${categorias.length} categorías cargadas`);
         
         renderizarCategorias();
@@ -207,16 +194,6 @@ async function cargarCategorias() {
                 }));
                 
                 // Si no hay categorías, crear las predefinidas
-                if (categorias.length === 0) {
-                    // console.log('⚠️ No hay categorías, creando categorías predefinidas...');
-                    await crearCategoriasPredefinidas();
-                    const newSnapshot = await db.collection('categorias').get();
-                    categorias = newSnapshot.docs.map(doc => ({
-                        id: doc.id,
-                        ...doc.data()
-                    }));
-                }
-                
                 // Ordenar manualmente en JavaScript
                 categorias.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
                 
@@ -502,42 +479,6 @@ async function cargarEstadisticas() {
     }
 }
 
-// ==================== CREAR CATEGORÍAS PREDEFINIDAS ====================
-async function crearCategoriasPredefinidas() {
-    const predefinidas = [
-        { nombre: 'Medicamentos', descripcion: 'Medicamentos de venta libre y con receta', color: '#3b82f6', icono: 'fa-pills' },
-        { nombre: 'Vitaminas y Suplementos', descripcion: 'Vitaminas, minerales y suplementos alimenticios', color: '#10b981', icono: 'fa-leaf' },
-        { nombre: 'Cuidado Personal', descripcion: 'Productos de higiene y cuidado personal', color: '#8b5cf6', icono: 'fa-soap' },
-        { nombre: 'Primeros Auxilios', descripcion: 'Vendas, curitas y material médico', color: '#ef4444', icono: 'fa-band-aid' },
-        { nombre: 'Bebé y Maternidad', descripcion: 'Productos para bebés y madres', color: '#f59e0b', icono: 'fa-baby' },
-        { nombre: 'Otros', descripcion: 'Otros productos de farmacia', color: '#6b7280', icono: 'fa-tag' }
-    ];
-    
-    try {
-        // console.log('🚀 Creando categorías predefinidas...');
-        
-        for (const cat of predefinidas) {
-            await db.collection('categorias').add({
-                ...cat,
-                activa: true,
-                productosCount: 0,
-                created_at: firebase.firestore.FieldValue.serverTimestamp(),
-                updated_at: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            // console.log(`✅ Categoría creada: ${cat.nombre}`);
-        }
-        
-        // console.log('✅ Todas las categorías predefinidas fueron creadas exitosamente');
-        alert('✅ ¡6 categorías predefinidas creadas con éxito!');
-        
-        await cargarCategorias();
-        await cargarEstadisticas();
-        
-    } catch (error) {
-        // console.error('❌ Error al crear categorías predefinidas:', error);
-        alert('Error al crear categorías predefinidas: ' + error.message);
-    }
-}
-
-// Exponer función para uso desde consola
-window.crearCategoriasPredefinidas = crearCategoriasPredefinidas;
+// ==================== FUNCIÓN DE CREACIÓN MANUAL ELIMINADA ====================
+// NOTA: Las categorías predefinidas ya NO se crean automáticamente.
+// Si necesitas categorías iniciales, créalas manualmente desde la interfaz.
