@@ -294,7 +294,6 @@ function procesarStockBajo(productosArray, proveedoresMap) {
         mostrarTablaStockBajo(productosStockBajo);
     }
 }
-
 // ===== 9b. PROCESAR PRÓXIMOS A VENCER (en memoria, sin Firebase) =====
 /**
  * Recibe los datos ya descargados y filtra en memoria.
@@ -308,19 +307,23 @@ function procesarProximosVencer(productosArray, proveedoresMap) {
     const fechaLimite = new Date(hoy);
     fechaLimite.setDate(fechaLimite.getDate() + 30);
 
+    // 🚀 Helper Anti-Caché: Transforma cualquier tipo de fecha a Date real
+    const obtenerFechaReal = (valorFecha) => {
+        if (!valorFecha) return null;
+        if (typeof valorFecha.toDate === 'function') return valorFecha.toDate();
+        if (valorFecha.seconds) return new Date(valorFecha.seconds * 1000);
+        return new Date(valorFecha);
+    };
+
     const productosProximosVencer = productosArray
         .filter(producto => {
-            if (!producto.expiration_date) return false;
-            const fechaVencimiento = producto.expiration_date.toDate
-                ? producto.expiration_date.toDate()
-                : new Date(producto.expiration_date);
+            const fechaVencimiento = obtenerFechaReal(producto.expiration_date);
+            if (!fechaVencimiento || isNaN(fechaVencimiento.getTime())) return false;
+            
             return fechaVencimiento <= fechaLimite;
         })
         .map(producto => {
-            const fechaVencimiento = producto.expiration_date.toDate
-                ? producto.expiration_date.toDate()
-                : new Date(producto.expiration_date);
-
+            const fechaVencimiento = obtenerFechaReal(producto.expiration_date);
             const diasRestantes = Math.ceil((fechaVencimiento - hoy) / (1000 * 60 * 60 * 24));
 
             let nombreLaboratorio = 'Sin laboratorio';
@@ -344,9 +347,12 @@ function procesarProximosVencer(productosArray, proveedoresMap) {
 
     if (productosProximosVencer.length > 0) {
         mostrarTablaProductosProximosVencer(productosProximosVencer);
+    } else {
+        // Si no hay productos por vencer, ocultar la sección
+        const section = document.getElementById('expiringSection');
+        if (section) section.style.display = 'none';
     }
 }
-
 
 
 /**

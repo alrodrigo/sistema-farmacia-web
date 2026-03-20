@@ -269,7 +269,7 @@ async function cargarDatosIniciales() {
         
     } catch (error) {
         // console.error('❌ Error al cargar datos:', error);
-        mostrarError('Error al cargar los datos. Por favor, recarga la página.');
+        mostrarErrorTabla('Error al cargar los datos. Por favor, recarga la página.');
     }
 }
 
@@ -650,6 +650,64 @@ async function eliminarProducto(id, nombre) {
 let modoEdicion = false;
 let productoEditandoId = null;
 
+async function cargarSelectsProducto() {
+    await Promise.all([
+        cargarCategoriasSelect(),
+        cargarProveedoresSelect()
+    ]);
+}
+
+function formatearFechaVencimientoProducto(valorFecha) {
+    if (!valorFecha) {
+        return '';
+    }
+
+    let fechaReal;
+
+    if (typeof valorFecha.toDate === 'function') {
+        fechaReal = valorFecha.toDate();
+    } else if (valorFecha.seconds) {
+        fechaReal = new Date(valorFecha.seconds * 1000);
+    } else {
+        fechaReal = new Date(valorFecha);
+    }
+
+    if (isNaN(fechaReal.getTime())) {
+        return '';
+    }
+
+    const año = fechaReal.getFullYear();
+    const mes = String(fechaReal.getMonth() + 1).padStart(2, '0');
+    const dia = String(fechaReal.getDate()).padStart(2, '0');
+
+    return `${año}-${mes}-${dia}`;
+}
+
+function cargarProductoEnFormulario(producto) {
+    document.getElementById('inputNombre').value = producto.name || '';
+    document.getElementById('inputSKU').value = producto.sku || '';
+    document.getElementById('inputCategoria').value = producto.category || '';
+    document.getElementById('inputProveedor').value = producto.supplier || '';
+    document.getElementById('inputCosto').value = producto.cost || '';
+    document.getElementById('inputPrecio').value = producto.price || '';
+    document.getElementById('inputPrecioCaja').value = producto.price_per_box || '';
+    document.getElementById('inputStockActual').value = producto.current_stock || 0;
+    document.getElementById('inputStockMinimo').value = producto.min_stock || 0;
+    document.getElementById('inputFechaVencimiento').value = formatearFechaVencimientoProducto(producto.expiration_date);
+    document.getElementById('inputDescripcion').value = producto.description || '';
+
+    calcularMargen();
+}
+
+function establecerModoSoloLecturaFormulario(esSoloLectura) {
+    const inputs = document.querySelectorAll('#productoForm input, #productoForm select, #productoForm textarea');
+    inputs.forEach(input => {
+        input.disabled = esSoloLectura;
+    });
+
+    document.getElementById('btnGuardar').style.display = esSoloLectura ? 'none' : 'block';
+}
+
 async function abrirModalNuevo() {
     // console.log('📝 Abriendo modal para nuevo producto');
     
@@ -663,19 +721,17 @@ async function abrirModalNuevo() {
     // Limpiar formulario
     document.getElementById('productoForm').reset();
     limpiarErrores();
+    establecerModoSoloLecturaFormulario(false);
     
     // Cargar categorías y proveedores (ESPERAR a que terminen)
-    await Promise.all([
-        cargarCategoriasSelect(),
-        cargarProveedoresSelect()
-    ]);
+    await cargarSelectsProducto();
     
     // Mostrar modal
     document.getElementById('productoModal').classList.add('active');
     document.body.style.overflow = 'hidden';
 }
 
-function abrirModalVer(producto) {
+async function abrirModalVer(producto) {
     // console.log('👁️ Abriendo modal para ver producto:', producto.name);
     
     modoEdicion = false;
@@ -683,45 +739,12 @@ function abrirModalVer(producto) {
     
     // Cambiar título del modal
     document.getElementById('modalTitleText').textContent = 'Ver Producto';
+    document.getElementById('btnGuardarText').textContent = 'Guardar Producto';
+    establecerModoSoloLecturaFormulario(true);
     
     // Cargar categorías y proveedores primero
-    Promise.all([
-        cargarCategoriasSelect(),
-        cargarProveedoresSelect()
-    ]).then(() => {
-        // Llenar formulario con datos del producto
-        document.getElementById('inputNombre').value = producto.name || '';
-        document.getElementById('inputSKU').value = producto.sku || '';
-        document.getElementById('inputCategoria').value = producto.category || '';
-        document.getElementById('inputProveedor').value = producto.supplier || '';
-        document.getElementById('inputCosto').value = producto.cost || '';
-        document.getElementById('inputPrecio').value = producto.price || '';
-        document.getElementById('inputPrecioCaja').value = producto.price_per_box || '';
-        document.getElementById('inputStockActual').value = producto.current_stock || 0;
-        document.getElementById('inputStockMinimo').value = producto.min_stock || 0;
-        
-        // Cargar fecha de vencimiento si existe
-        if (producto.expiration_date) {
-            const fecha = producto.expiration_date.toDate ? producto.expiration_date.toDate() : new Date(producto.expiration_date);
-            document.getElementById('inputFechaVencimiento').value = fecha.toISOString().split('T')[0];
-        } else {
-            document.getElementById('inputFechaVencimiento').value = '';
-        }
-        
-        document.getElementById('inputDescripcion').value = producto.description || '';
-        
-        // Calcular margen
-        calcularMargen();
-        
-        // Deshabilitar TODOS los campos (modo solo lectura)
-        const inputs = document.querySelectorAll('#productoForm input, #productoForm select, #productoForm textarea');
-        inputs.forEach(input => {
-            input.disabled = true;
-        });
-        
-        // Ocultar botón de guardar
-        document.getElementById('btnGuardar').style.display = 'none';
-    });
+    await cargarSelectsProducto();
+    cargarProductoEnFormulario(producto);
     
     limpiarErrores();
     
@@ -730,7 +753,7 @@ function abrirModalVer(producto) {
     document.body.style.overflow = 'hidden';
 }
 
-function abrirModalEditar(producto) {
+async function abrirModalEditar(producto) {
     // console.log('✏️ Abriendo modal para editar producto:', producto.name);
     
     modoEdicion = true;
@@ -739,36 +762,11 @@ function abrirModalEditar(producto) {
     // Cambiar título del modal
     document.getElementById('modalTitleText').textContent = 'Editar Producto';
     document.getElementById('btnGuardarText').textContent = 'Actualizar Producto';
+    establecerModoSoloLecturaFormulario(false);
     
     // Cargar categorías y proveedores primero
-    Promise.all([
-        cargarCategoriasSelect(),
-        cargarProveedoresSelect()
-    ]).then(() => {
-        // Llenar formulario con datos del producto
-        document.getElementById('inputNombre').value = producto.name || '';
-        document.getElementById('inputSKU').value = producto.sku || '';
-        document.getElementById('inputCategoria').value = producto.category || '';
-        document.getElementById('inputProveedor').value = producto.supplier || '';
-        document.getElementById('inputCosto').value = producto.cost || '';
-        document.getElementById('inputPrecio').value = producto.price || '';
-        document.getElementById('inputPrecioCaja').value = producto.price_per_box || '';
-        document.getElementById('inputStockActual').value = producto.current_stock || 0;
-        document.getElementById('inputStockMinimo').value = producto.min_stock || 0;
-        
-        // Cargar fecha de vencimiento si existe
-        if (producto.expiration_date) {
-            const fecha = producto.expiration_date.toDate ? producto.expiration_date.toDate() : new Date(producto.expiration_date);
-            document.getElementById('inputFechaVencimiento').value = fecha.toISOString().split('T')[0];
-        } else {
-            document.getElementById('inputFechaVencimiento').value = '';
-        }
-        
-        document.getElementById('inputDescripcion').value = producto.description || '';
-        
-        // Calcular margen
-        calcularMargen();
-    });
+    await cargarSelectsProducto();
+    cargarProductoEnFormulario(producto);
     
     limpiarErrores();
     
@@ -782,15 +780,7 @@ function cerrarModal() {
     
     document.getElementById('productoModal').classList.remove('active');
     document.body.style.overflow = 'auto';
-    
-    // Rehabilitar todos los campos
-    const inputs = document.querySelectorAll('#productoForm input, #productoForm select, #productoForm textarea');
-    inputs.forEach(input => {
-        input.disabled = false;
-    });
-    
-    // Mostrar botón de guardar
-    document.getElementById('btnGuardar').style.display = 'block';
+    establecerModoSoloLecturaFormulario(false);
     
     // Limpiar después de la animación
     setTimeout(() => {
@@ -1096,7 +1086,7 @@ function calcularMargen() {
 }
 
 // ===== 22. FUNCIONES AUXILIARES =====
-function mostrarError(mensaje) {
+function mostrarErrorTabla(mensaje) {
     const tbody = document.getElementById('productosTableBody');
     if (tbody) {
         tbody.innerHTML = `
@@ -1525,7 +1515,4 @@ function mostrarExito(mensaje) {
         setTimeout(() => notif.remove(), 300);
     }, 3000);
 }
-
-// console.log('✅ Productos.js completamente cargado');
-// console.log('🔄 Versión: 2025-11-14-16:50 - DEBUG ACTIVADO');
 
