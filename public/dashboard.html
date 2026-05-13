@@ -15,15 +15,15 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Sistema de Diseño Base -->
-    <link rel="stylesheet" href="css/theme.css?v=4.0.1774016565">
-    <link rel="stylesheet" href="css/components.css?v=4.0.1774016565">
-    <link rel="stylesheet" href="css/layout.css?v=4.0.1774016565">
+    <link rel="stylesheet" href="css/theme.css?v=4.0.1778693357">
+    <link rel="stylesheet" href="css/components.css?v=4.0.1778693357">
+    <link rel="stylesheet" href="css/layout.css?v=4.0.1778693357">
     
     <!-- CSS del Dashboard -->
-    <link rel="stylesheet" href="css/dashboard.css?v=4.0.1774016565">
+    <link rel="stylesheet" href="css/dashboard.css?v=4.0.1778693357">
     
     <!-- Responsive (DEBE IR AL FINAL) -->
-    <link rel="stylesheet" href="css/responsive.css?v=4.0.1774016565">
+    <link rel="stylesheet" href="css/responsive.css?v=4.0.1778693357">
 </head>
 <body>
     <!-- ==================== NAVBAR SUPERIOR ==================== -->
@@ -108,18 +108,7 @@
                     </div>
                 </div>
 
-                <!-- Tarjeta 2: Productos con Stock Bajo -->
-                <div class="stat-card">
-                    <div class="stat-icon" style="background: #fef3c7;">
-                        <i class="fas fa-exclamation-triangle" style="color: #f59e0b;"></i>
-                    </div>
-                    <div class="stat-details">
-                        <h3 id="stockBajo">0</h3>
-                        <p>Stock Bajo</p>
-                    </div>
-                </div>
-
-                <!-- Tarjeta 3: Ventas del Día (Solo Admin) -->
+                <!-- Tarjeta 2: Ventas del Día (Solo Admin) -->
                 <div class="stat-card admin-only" id="cardVentasHoy">
                     <div class="stat-icon" style="background: #d1fae5;">
                         <i class="fas fa-shopping-cart" style="color: #10b981;"></i>
@@ -130,7 +119,7 @@
                     </div>
                 </div>
 
-                <!-- Tarjeta 4: Total Ingresos del Día (Solo Admin) -->
+                <!-- Tarjeta 3: Total Ingresos del Día (Solo Admin) -->
                 <div class="stat-card admin-only" id="cardIngresosHoy">
                     <div class="stat-icon" style="background: #dbeafe;">
                         <i class="fas fa-dollar-sign" style="color: #3b82f6;"></i>
@@ -139,6 +128,47 @@
                         <h3 id="ingresosHoy">Bs. 0</h3>
                         <p>Ingresos Hoy</p>
                     </div>
+                </div>
+            </div>
+
+            <!-- ⚠️ SECCIÓN: Productos con Stock Bajo -->
+            <div class="stock-bajo-section" id="stockBajoSection" style="display: none;">
+                <div class="section-header" style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 15px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <h2>
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Productos con Stock Bajo
+                        </h2>
+                        <span class="badge-warning" id="badgeStockBajo">0</span>
+                    </div>
+                    
+                    <!-- Nuevos Controles: Filtro y Exportar -->
+                    <div class="table-controls" style="display: flex; gap: 10px; align-items: center;">
+                        <select id="filtroLabStockBajo" onchange="filtrarStockBajo()" style="padding: 8px; border-radius: 6px; border: 1px solid #ddd; outline: none; font-family: 'Poppins', sans-serif;">
+                            <option value="TODOS">Todos los Laboratorios</option>
+                        </select>
+                        <button class="btn-primary" onclick="exportarStockBajoExcel()" style="padding: 8px 15px; display: flex; align-items: center; gap: 8px; background-color: #10b981; border: none; color: white; border-radius: 6px; cursor: pointer; font-family: 'Poppins', sans-serif; font-weight: 500;">
+                            <i class="fas fa-file-excel"></i> Exportar Excel
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="stock-bajo-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th>Laboratorio</th>
+                                <th>Stock Actual</th>
+                                <th>Stock Mínimo</th>
+                                <th>Faltante</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="stockBajoTableBody">
+                            <!-- Se llena con JavaScript -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
@@ -171,35 +201,6 @@
                 </div>
             </div>
 
-            <!-- ⚠️ SECCIÓN: Productos con Stock Bajo -->
-            <div class="stock-bajo-section" id="stockBajoSection" style="display: none;">
-                <div class="section-header">
-                    <h2>
-                        <i class="fas fa-exclamation-triangle"></i>
-                        Productos con Stock Bajo
-                    </h2>
-                    <span class="badge-warning" id="badgeStockBajo">0</span>
-                </div>
-                
-                <div class="stock-bajo-table">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Producto</th>
-                                <th>Laboratorio</th>
-                                <th>Stock Actual</th>
-                                <th>Stock Mínimo</th>
-                                <th>Faltante</th>
-                                <th>Acción</th>
-                            </tr>
-                        </thead>
-                        <tbody id="stockBajoTableBody">
-                            <!-- Se llena con JavaScript -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
             <!-- Acciones rápidas -->
             <div class="quick-actions">
                 <h2>Acciones Rápidas</h2>
@@ -225,7 +226,8 @@
 
         </main>
     </div>
-
+    <!-- Librería para exportar a Excel (SheetJS) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -233,16 +235,16 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 
     <!-- Configuración de Firebase -->
-    <script src="js/config/firebase.js?v=4.0.1774016565"></script>
+    <script src="js/config/firebase.js?v=4.0.1778693357"></script>
 
     <!-- Utilidades -->
-    <script src="js/utils/helpers.js?v=4.0.1774016565"></script>
-    <script src="js/utils/roles.js?v=4.0.1774016565"></script>
+    <script src="js/utils/helpers.js?v=4.0.1778693357"></script>
+    <script src="js/utils/roles.js?v=4.0.1778693357"></script>
 
     <!-- Scripts del Dashboard -->
-    <script src="js/dashboard.js?v=4.0.1774016565"></script>
+    <script src="js/dashboard.js?v=4.0.1778693357"></script>
     
     <!-- Service Worker para actualización automática -->
-    <script src="js/sw-register.js?v=4.0.1774016565"></script>
+    <script src="js/sw-register.js?v=4.0.1778693357"></script>
 </body>
 </html>

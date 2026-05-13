@@ -12,6 +12,7 @@ const firebaseStorage = window.firebaseStorage;
 
 // ===== 2. VARIABLES GLOBALES =====
 let currentUser = null;  // Guardará los datos del usuario actual
+let stockBajoGlobal = []; // Guarda la lista original de stock bajo para los filtros
 
 // ===== 3. CUANDO LA PÁGINA CARGA =====
 document.addEventListener('DOMContentLoaded', async function() {
@@ -258,7 +259,8 @@ async function inicializarDashboardData() {
 
     } catch (error) {
         // console.error('❌ Error al inicializar datos del dashboard:', error);
-        document.getElementById('stockBajo').textContent = '-';
+        const badge = document.getElementById('badgeStockBajo');
+        if (badge) badge.textContent = '0';
     }
 }
 
@@ -269,7 +271,7 @@ async function inicializarDashboardData() {
  * @param {Object} proveedoresMap - Mapa id→nombre de proveedores
  */
 function procesarStockBajo(productosArray, proveedoresMap) {
-    const productosStockBajo = productosArray
+    stockBajoGlobal = productosArray
         .filter(producto => producto.current_stock < producto.min_stock)
         .map(producto => {
             let nombreLaboratorio = 'Sin laboratorio';
@@ -288,10 +290,12 @@ function procesarStockBajo(productosArray, proveedoresMap) {
             };
         });
 
-    document.getElementById('stockBajo').textContent = productosStockBajo.length;
+    const badge = document.getElementById('badgeStockBajo');
+    if (badge) badge.textContent = stockBajoGlobal.length;
 
-    if (productosStockBajo.length > 0) {
-        mostrarTablaStockBajo(productosStockBajo);
+    if (stockBajoGlobal.length > 0) {
+        llenarFiltroLaboratorios(stockBajoGlobal); // Llenamos el select desplegable
+        mostrarTablaStockBajo(stockBajoGlobal);    // Mostramos la tabla completa por defecto
     }
 }
 // ===== 9b. PROCESAR PRÓXIMOS A VENCER (en memoria, sin Firebase) =====
@@ -583,6 +587,72 @@ function actualizarMenuPorRol() {
     // El menú se maneja completamente desde helpers.js con aplicarRestriccionesMenu()
     // y CSS con la clase 'admin-only'. No se necesita lógica adicional aquí.
     // console.log('✓ Restricciones de menú manejadas por helpers.js');
+}
+// ===== FUNCIONES NUEVAS: FILTRO Y EXPORTACIÓN A EXCEL =====
+
+function llenarFiltroLaboratorios(productos) {
+    const select = document.getElementById('filtroLabStockBajo');
+    if (!select) return;
+
+    // Extraer laboratorios únicos y ordenarlos alfabéticamente
+    const laboratorios = [...new Set(productos.map(p => p.supplier))].sort();
+    
+    // Limpiar y reconstruir opciones
+    select.innerHTML = '<option value="TODOS">Todos los Laboratorios</option>';
+    laboratorios.forEach(lab => {
+        const option = document.createElement('option');
+        option.value = lab;
+        option.textContent = lab;
+        select.appendChild(option);
+    });
+}
+
+function filtrarStockBajo() {
+    const labSeleccionado = document.getElementById('filtroLabStockBajo').value;
+    
+    if (labSeleccionado === 'TODOS') {
+        mostrarTablaStockBajo(stockBajoGlobal);
+        document.getElementById('badgeStockBajo').textContent = stockBajoGlobal.length;
+    } else {
+        const filtrados = stockBajoGlobal.filter(p => p.supplier === labSeleccionado);
+        mostrarTablaStockBajo(filtrados);
+        document.getElementById('badgeStockBajo').textContent = filtrados.length;
+    }
+}
+
+function exportarStockBajoExcel() {
+    // 1. Obtener qué datos estamos viendo (Todos o filtrados)
+    const labSeleccionado = document.getElementById('filtroLabStockBajo').value;
+    const datosAExportar = labSeleccionado === 'TODOS' 
+        ? stockBajoGlobal 
+        : stockBajoGlobal.filter(p => p.supplier === labSeleccionado);
+
+    if (datosAExportar.length === 0) {
+        alert('No hay datos para exportar.');
+        return;
+    }
+
+    // 2. Formatear los datos para que el Excel sea útil para el laboratorio
+    const datosLimpios = datosAExportar.map(p => ({
+        "Producto": p.name,
+        "Laboratorio": p.supplier,
+        "Stock Actual": p.currentStock,
+        "Stock Mínimo": p.minStock,
+        "Cantidad a Pedir (Faltante)": p.faltante
+    }));
+
+    // 3. Crear el libro de Excel usando SheetJS
+    const hoja = XLSX.utils.json_to_sheet(datosLimpios);
+    const libro = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(libro, hoja, "Pedido de Stock");
+
+    // 4. Descargar el archivo con un nombre inteligente
+    const fecha = new Date().toISOString().split('T')[0];
+    const nombreArchivo = labSeleccionado === 'TODOS' 
+        ? `Pedido_General_${fecha}.xlsx` 
+        : `Pedido_${labSeleccionado}_${fecha}.xlsx`;
+    
+    XLSX.writeFile(libro, nombreArchivo);
 }
 
 // ===== 12. LOG FINAL =====
