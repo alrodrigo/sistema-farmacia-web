@@ -1,484 +1,118 @@
-// ==================== CATEGORIAS.JS ====================
+// public/js/categorias.js (El Controlador)
+import { CategoriaService } from './services/categoria.service.js';
+import { CategoriaUI } from './ui/categoria.ui.js';
 
-// console.log('📦 Categorias.js cargado');
+let categoriasGlobal = [];
+const auth = window.firebaseAuth;
+const db = window.firebaseDB;
 
-// Variables globales
-let currentUser = null;
-let categorias = [];
-let editingCategoryId = null;
-
-// Referencias Firebase (db y auth ya están declarados en firebase.js)
-// const db = firebase.firestore(); // Ya declarado globalmente
-// const auth = firebase.auth(); // Ya declarado globalmente
-
-// ==================== INICIALIZACIÓN ====================
-document.addEventListener('DOMContentLoaded', async function() {
-    // console.log('📄 DOM cargado, iniciando gestión de categorías...');
-    
-    // Verificar autenticación y rol
-    await verificarAutenticacion();
-    
-    // Configurar eventos
-    configurarEventos();
-    
-    // Cargar categorías
-    await cargarCategorias();
-    
-    // Cargar estadísticas
-    await cargarEstadisticas();
-});
-
-// ==================== AUTENTICACIÓN ====================
-async function verificarAutenticacion() {
-    return new Promise((resolve) => {
-        auth.onAuthStateChanged(async (user) => {
-            if (user) {
-                // console.log('✅ Usuario autenticado:', user.email);
-                
-                // Obtener datos del usuario
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Verificamos la sesión y protegemos la ruta antes de cargar nada
+    auth.onAuthStateChanged(async (user) => {
+        if (user) {
+            try {
                 const userDoc = await db.collection('users').doc(user.uid).get();
-                
                 if (userDoc.exists) {
-                    currentUser = {
-                        uid: user.uid,
-                        email: user.email,
-                        ...userDoc.data()
-                    };
-                    
-                    // Mostrar nombre y rol
-                    const displayName = getUserDisplayName(currentUser);
-                    document.getElementById('userName').textContent = displayName;
-                    
-                    const userRoleElement = document.getElementById('userRole');
-                    if (userRoleElement) {
-                        const role = currentUser.role || 'empleado';
-                        const roleText = role === 'admin' ? 'Administrador' : 'Empleado';
-                        userRoleElement.textContent = roleText;
-                    }
-                    
-                    // Verificar si es admin
-                    const role = currentUser.role || 'empleado';
-                    if (role !== 'admin') {
+                    const userData = userDoc.data();
+
+                    // Expulsar si no es administrador
+                    if (userData.role !== 'admin') {
                         alert('⚠️ Solo administradores pueden gestionar categorías');
                         window.location.href = 'dashboard.html';
                         return;
                     }
-                    
-                    resolve(true);
-                } else {
-                    // console.error('❌ Usuario no encontrado en Firestore');
-                    window.location.href = 'index.html';
-                }
-            } else {
-                // console.log('❌ No hay usuario autenticado');
-                window.location.href = 'index.html';
-            }
-        });
-    });
-}
 
-// ==================== CONFIGURAR EVENTOS ====================
-function configurarEventos() {
-    // console.log('🔘 Configurando eventos...');
-    
-    // Botón nueva categoría
-    document.getElementById('btnNuevaCategoria').addEventListener('click', abrirModalNueva);
-    
-    // Cerrar modal
-    document.getElementById('btnCloseModal').addEventListener('click', cerrarModal);
-    document.getElementById('btnCancelar').addEventListener('click', cerrarModal);
-    
-    // Cerrar modal al hacer clic fuera
-    document.getElementById('modalCategoria').addEventListener('click', function(e) {
-        if (e.target === this) {
-            cerrarModal();
+                    // Actualizar el Navbar (quitamos el "Cargando...")
+                    document.getElementById('userName').textContent = userData.nombre;
+                    document.getElementById('userRole').textContent = 'Administrador';
+
+                    // 2. Sesión válida: Inicializamos el módulo de categorías
+                    setupEventListeners();
+                    await refreshData();
+                } else {
+                    window.location.href = 'index.html'; // No existe en base de datos
+                }
+            } catch (error) {
+                console.error("Error validando usuario", error);
+            }
+        } else {
+            window.location.href = 'index.html'; // No hay sesión activa
         }
     });
-    
-    // Formulario
-    document.getElementById('formCategoria').addEventListener('submit', guardarCategoria);
-    
-    // Selector de color
-    document.getElementById('colorCategoria').addEventListener('input', function(e) {
+});
+function setupEventListeners() {
+    document.getElementById('btnNuevaCategoria').addEventListener('click', () => CategoriaUI.openModal());
+    document.getElementById('btnCloseModal').addEventListener('click', CategoriaUI.closeModal);
+    document.getElementById('btnCancelar').addEventListener('click', CategoriaUI.closeModal);
+
+    document.getElementById('colorCategoria').addEventListener('input', (e) => {
         document.getElementById('colorHex').textContent = e.target.value;
     });
-    
-    // Logout (opcional - el navbar ya no tiene este botón visible)
-    const btnLogout = document.getElementById('btnLogout');
-    if (btnLogout) {
-        btnLogout.addEventListener('click', async () => {
-            try {
-                await auth.signOut();
-                window.location.href = 'index.html';
-            } catch (error) {
-                // console.error('Error al cerrar sesión:', error);
-            }
-        });
-    }
-    
-    // Logout desde user menu (nuevo diseño)
-    const userMenu = document.querySelector('.user-menu');
-    if (userMenu) {
-        userMenu.addEventListener('click', () => {
-            // Aquí podrías agregar un dropdown con la opción de logout
-            // Por ahora, hacer click en el usuario cierra sesión
-            if (confirm('¿Deseas cerrar sesión?')) {
-                auth.signOut().then(() => {
-                    window.location.href = 'index.html';
-                });
-            }
-        });
-    }
-    
-    // Toggle sidebar
-    const menuToggle = document.getElementById('menuToggle');
-    const sidebar = document.getElementById('sidebar');
-    
-    if (menuToggle && sidebar) {
-        menuToggle.addEventListener('click', function(e) {
-            e.stopPropagation();
-            sidebar.classList.toggle('active');
-        });
-        
-        // Cerrar sidebar al hacer clic fuera (solo en móvil)
-        document.addEventListener('click', function(e) {
-            if (window.innerWidth <= 768) {
-                const isClickInsideSidebar = sidebar.contains(e.target);
-                const isClickOnToggle = menuToggle.contains(e.target);
-                
-                if (!isClickInsideSidebar && !isClickOnToggle && sidebar.classList.contains('active')) {
-                    sidebar.classList.remove('active');
-                }
-            }
-        });
-        
-        // Cerrar sidebar automáticamente al cambiar a desktop
-        window.addEventListener('resize', function() {
-            if (window.innerWidth > 768) {
-                sidebar.classList.remove('active');
-            }
-        });
-    }
+
+    document.getElementById('formCategoria').addEventListener('submit', handleSave);
 }
 
-// ==================== CARGAR CATEGORÍAS ====================
-async function cargarCategorias() {
+async function refreshData() {
     try {
-        // console.log('📦 Cargando categorías...');
-        
-        const snapshot = await db.collection('categorias')
-            .orderBy('nombre', 'asc')
-            .get();
-        
-        categorias = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }));
-        
-        // console.log(`✅ ${categorias.length} categorías cargadas`);
-        
-        renderizarCategorias();
-        
+        categoriasGlobal = await CategoriaService.getAll();
+        CategoriaUI.renderGrid(categoriasGlobal, handleEdit, handleDelete);
+
+        // Sincronizamos estadísticas de forma asíncrona sin bloquear la UI
+        const stats = await CategoriaService.syncCounters(categoriasGlobal);
+        categoriasGlobal = stats.categoriasActualizadas;
+
+        const activas = categoriasGlobal.filter(c => c.activa !== false).length;
+        CategoriaUI.updateStats(categoriasGlobal.length, activas, stats.totalProductos);
+
+        // Refrescamos la vista final con los contadores correctos
+        CategoriaUI.renderGrid(categoriasGlobal, handleEdit, handleDelete);
     } catch (error) {
-        // console.error('❌ Error al cargar categorías:', error);
-        // console.error('Detalles del error:', error.message);
-        
-        // Si el error es por falta de índice o colección vacía, intentar sin orderBy
-        if (error.code === 'failed-precondition' || error.message.includes('index')) {
-            // console.log('⚠️ Intentando cargar sin ordenar...');
-            try {
-                const snapshot = await db.collection('categorias').get();
-                categorias = snapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                }));
-                
-                // Si no hay categorías, crear las predefinidas
-                // Ordenar manualmente en JavaScript
-                categorias.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
-                
-                // console.log(`✅ ${categorias.length} categorías cargadas (sin índice)`);
-                renderizarCategorias();
-                return;
-            } catch (retryError) {
-                // console.error('❌ Error en reintento:', retryError);
-            }
-        }
-        
-        // Si la colección está vacía, mostrar estado vacío
-        categorias = [];
-        renderizarCategorias();
+        console.error("Error cargando el módulo de categorías", error);
     }
 }
 
-// ==================== RENDERIZAR CATEGORÍAS ====================
-function renderizarCategorias() {
-    const grid = document.getElementById('categoriasGrid');
-    const emptyState = document.getElementById('emptyState');
-    
-    if (categorias.length === 0) {
-        grid.style.display = 'none';
-        emptyState.style.display = 'block';
+async function handleSave(e) {
+    e.preventDefault();
+    const data = CategoriaUI.getFormData();
+    if (!data) return; // Falló la validación
+
+    // Prevenir duplicados
+    const existe = categoriasGlobal.find(c => c.nombre.toLowerCase() === data.nombre.toLowerCase() && c.id !== data.id);
+    if (existe) {
+        alert('Ya existe una categoría con ese nombre');
         return;
     }
-    
-    grid.style.display = 'grid';
-    emptyState.style.display = 'none';
-    
-    grid.innerHTML = categorias.map(cat => `
-        <div class="categoria-card ${cat.activa !== false ? '' : 'inactive'}" style="--cat-color: ${cat.color || '#6a5acd'}">
-            <div class="cat-top">
-                <div class="cat-icon">
-                    <i class="fas ${cat.icono || 'fa-tag'}"></i>
-                </div>
-                <span class="cat-badge ${cat.activa !== false ? 'active' : 'inactive'}">
-                    <i class="fas fa-${cat.activa !== false ? 'check' : 'pause'}"></i>
-                    ${cat.activa !== false ? 'Activa' : 'Inactiva'}
-                </span>
-            </div>
-            <div class="cat-body">
-                <h3>${cat.nombre}</h3>
-                <p>${cat.descripcion || 'Sin descripci&oacute;n'}</p>
-            </div>
-            <div class="cat-footer">
-                <div class="cat-count">
-                    <i class="fas fa-box"></i>
-                    <span>${cat.productosCount || 0} productos</span>
-                </div>
-                <div class="cat-actions">
-                    <button class="cat-btn edit" onclick="editarCategoria('${cat.id}')" title="Editar">
-                        <i class="fas fa-pen"></i>
-                    </button>
-                    <button class="cat-btn delete" onclick="confirmarEliminar('${cat.id}', '${cat.nombre}')" title="Eliminar">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-    `).join('');
-}
 
-// ==================== ABRIR MODAL NUEVA ====================
-function abrirModalNueva() {
-    editingCategoryId = null;
-    document.getElementById('modalTitle').innerHTML = '<i class="fas fa-tag"></i> Nueva Categoría';
-    document.getElementById('formCategoria').reset();
-    document.getElementById('categoriaId').value = '';
-    document.getElementById('colorCategoria').value = '#6a5acd';
-    document.getElementById('colorHex').textContent = '#6a5acd';
-    document.getElementById('activaCategoria').checked = true;
-    document.getElementById('modalCategoria').classList.add('active');
-}
-
-// ==================== EDITAR CATEGORÍA ====================
-async function editarCategoria(id) {
     try {
-        editingCategoryId = id;
-        const categoria = categorias.find(c => c.id === id);
-        
-        if (!categoria) {
-            alert('Categoría no encontrada');
-            return;
-        }
-        
-        // Llenar formulario
-        document.getElementById('modalTitle').innerHTML = '<i class="fas fa-edit"></i> Editar Categoría';
-        document.getElementById('categoriaId').value = id;
-        document.getElementById('nombreCategoria').value = categoria.nombre;
-        document.getElementById('descripcionCategoria').value = categoria.descripcion || '';
-        document.getElementById('colorCategoria').value = categoria.color || '#6a5acd';
-        document.getElementById('colorHex').textContent = categoria.color || '#6a5acd';
-        document.getElementById('iconoCategoria').value = categoria.icono || 'fa-tag';
-        document.getElementById('activaCategoria').checked = categoria.activa !== false;
-        
-        // Abrir modal
-        document.getElementById('modalCategoria').classList.add('active');
-        
-    } catch (error) {
-        // console.error('Error al cargar categoría:', error);
-        alert('Error al cargar la categoría');
-    }
-}
-
-// ==================== GUARDAR CATEGORÍA ====================
-async function guardarCategoria(e) {
-    e.preventDefault();
-    
-    try {
-        const nombreInput = document.getElementById('nombreCategoria');
-        const nombre = nombreInput?.value?.trim() ?? '';
-        const descripcion = document.getElementById('descripcionCategoria').value.trim();
-        const color = document.getElementById('colorCategoria').value;
-        const icono = document.getElementById('iconoCategoria').value;
-        const activa = document.getElementById('activaCategoria').checked;
-
-        // Validación estricta: evita guardados basura
-        if (!nombre || nombre.length < 2) {
-            alert('⚠️ El nombre de la categoría es obligatorio y debe tener al menos 2 caracteres.');
-            nombreInput?.focus();
-            return;
-        }
-
-        if (nombre.length > 50) {
-            alert('⚠️ El nombre no puede superar los 50 caracteres.');
-            nombreInput?.focus();
-            return;
-        }
-        
-        // Verificar si ya existe una categoría con ese nombre (excepto si es la misma que estamos editando)
-        const existente = categorias.find(c => 
-            c.nombre.toLowerCase() === nombre.toLowerCase() && 
-            c.id !== editingCategoryId
-        );
-        
-        if (existente) {
-            alert('Ya existe una categoría con ese nombre');
-            return;
-        }
-        
-        const categoriaData = {
-            nombre: nombre,          // campo explícito — evita undefined por shorthand
-            descripcion: descripcion || '',
-            color: color || '#3b82f6',
-            icono: icono || 'fa-tag',
-            activa: activa,
-            updated_at: firebase.firestore.FieldValue.serverTimestamp()
-        };
-        
-        if (editingCategoryId) {
-            // Actualizar
-            await db.collection('categorias').doc(editingCategoryId).update(categoriaData);
-            // console.log('✅ Categoría actualizada');
-            alert('✅ Categoría actualizada correctamente');
+        if (data.id) {
+            const { id, ...updateData } = data;
+            await CategoriaService.update(id, updateData);
+            alert('✅ Categoría actualizada');
         } else {
-            // Crear nueva
-            categoriaData.created_at = firebase.firestore.FieldValue.serverTimestamp();
-            categoriaData.productosCount = 0;
-            
-            await db.collection('categorias').add(categoriaData);
-            // console.log('✅ Categoría creada');
-            alert('✅ Categoría creada correctamente');
+            const { id, ...createData } = data;
+            await CategoriaService.create(createData);
+            alert('✅ Categoría creada');
         }
-        
-        cerrarModal();
-        await cargarCategorias();
-        await cargarEstadisticas();
-        
+        CategoriaUI.closeModal();
+        await refreshData();
     } catch (error) {
-        // console.error('Error al guardar categoría:', error);
         alert('Error al guardar la categoría');
     }
 }
 
-// ==================== CONFIRMAR ELIMINAR ====================
-function confirmarEliminar(id, nombre) {
-    const confirmacion = confirm(`¿Estás seguro de eliminar la categoría "${nombre}"?\n\nLos productos con esta categoría quedarán sin categoría asignada.`);
-    
-    if (confirmacion) {
-        eliminarCategoria(id);
-    }
+function handleEdit(id) {
+    const categoria = categoriasGlobal.find(c => c.id === id);
+    if (categoria) CategoriaUI.openModal(categoria);
 }
 
-// ==================== ELIMINAR CATEGORÍA ====================
-async function eliminarCategoria(id) {
+async function handleDelete(id, nombre) {
+    if (!confirm(`¿Eliminar definitivamente "${nombre}"?\nSus productos quedarán sin categoría.`)) return;
+
     try {
-        // Eliminar categoría
-        await db.collection('categorias').doc(id).delete();
-        
-        // Actualizar productos que tenían esta categoría.
-        // Los productos se guardan con el campo 'category' (no 'categoriaId').
-        const productosSnapshot = await db.collection('products')
-            .where('category', '==', id)
-            .get();
-        
-        const batch = db.batch();
-        productosSnapshot.docs.forEach(doc => {
-            batch.update(doc.ref, { category: null });
-        });
-        
-        await batch.commit();
-
-        // Invalidar caché de productos para que todos los módulos vean el campo 'category' actualizado
-        if (window.AppCache) AppCache.invalidarProductos();
-        
-        // console.log('✅ Categoría eliminada');
-        alert('✅ Categoría eliminada correctamente');
-        
-        await cargarCategorias();
-        await cargarEstadisticas();
-        
+        await CategoriaService.delete(id);
+        alert('✅ Categoría eliminada');
+        await refreshData();
     } catch (error) {
-        // console.error('Error al eliminar categoría:', error);
-        alert('Error al eliminar la categoría');
+        alert('Error al eliminar');
     }
 }
-
-// ==================== CERRAR MODAL ====================
-function cerrarModal() {
-    document.getElementById('modalCategoria').classList.remove('active');
-    document.getElementById('formCategoria').reset();
-    editingCategoryId = null;
-}
-
-// ==================== CARGAR ESTADÍSTICAS ====================
-async function cargarEstadisticas() {
-    try {
-        // Total de categorías
-        const totalCategorias = categorias.length;
-        document.getElementById('totalCategorias').textContent = totalCategorias;
-        
-        // Categorías activas
-        const categoriasActivas = categorias.filter(c => c.activa !== false).length;
-        document.getElementById('categoriasActivas').textContent = categoriasActivas;
-        
-        // Total de productos
-        const productosSnapshot = await db.collection('products').get();
-        const totalProductos = productosSnapshot.size;
-        document.getElementById('totalProductos').textContent = totalProductos;
-        
-        // Actualizar contador de productos por categoría
-        const productosPorCategoria = {};
-        productosSnapshot.docs.forEach(doc => {
-            const data = doc.data();
-            // Usar 'category' porque así se guarda en productos.js
-            const catId = data.category || data.categoriaId;
-            if (catId) {
-                productosPorCategoria[catId] = (productosPorCategoria[catId] || 0) + 1;
-            }
-        });
-        
-        // Actualizar contador en memoria PRIMERO (para mostrar inmediatamente)
-        categorias.forEach(cat => {
-            cat.productosCount = productosPorCategoria[cat.id] || 0;
-        });
-        
-        // Re-renderizar categorías con los conteos actualizados
-        renderizarCategorias();
-        
-        // Actualizar en Firestore en segundo plano
-        const batch = db.batch();
-        Object.keys(productosPorCategoria).forEach(catId => {
-            const ref = db.collection('categorias').doc(catId);
-            batch.update(ref, { productosCount: productosPorCategoria[catId] });
-        });
-        
-        // También actualizar las categorías sin productos a 0
-        categorias.forEach(cat => {
-            if (!productosPorCategoria[cat.id]) {
-                const ref = db.collection('categorias').doc(cat.id);
-                batch.update(ref, { productosCount: 0 });
-            }
-        });
-        
-        await batch.commit();
-        
-        // console.log('📊 Estadísticas actualizadas');
-        
-    } catch (error) {
-        // console.error('Error al cargar estadísticas:', error);
-    }
-}
-
-// ==================== FUNCIÓN DE CREACIÓN MANUAL ELIMINADA ====================
-// NOTA: Las categorías predefinidas ya NO se crean automáticamente.
-// Si necesitas categorías iniciales, créalas manualmente desde la interfaz.

@@ -1,35 +1,32 @@
-// Configuración de Firebase
+// ==================== CONFIGURACIÓN FIREBASE (DEV) ====================
+
+// Tu configuración del proyecto servisalud-dev
 const firebaseConfig = {
-  apiKey: "AIzaSyD7Li27bUVpcPv412xashHQqGpQnHa-17k",
-  authDomain: "sistema-farmacia-web.firebaseapp.com",
-  projectId: "sistema-farmacia-web",
-  storageBucket: "sistema-farmacia-web.firebasestorage.app",
-  messagingSenderId: "789396395435",
-  appId: "1:789396395435:web:6857ba18bbf9ce1b672eee",
-  measurementId: "G-V78KYB29R7"
+  apiKey: "AIzaSyA5vahJBomeIVcGQNWFiM9PpPTdzReaJM4",
+  authDomain: "servisalud-dev.firebaseapp.com",
+  projectId: "servisalud-dev",
+  storageBucket: "servisalud-dev.firebasestorage.app",
+  messagingSenderId: "958591889656",
+  appId: "1:958591889656:web:9ef6c704e85673e73e0b0d"
 };
 
-// Inicializar Firebase
-firebase.initializeApp(firebaseConfig);
+// Inicializar Firebase (usando la versión compat que ya carga tu HTML)
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+} else {
+  firebase.app();
+}
 
-// Servicios de Firebase que usaremos
+// Servicios de Firebase
 const auth = firebase.auth();
 const db = firebase.firestore();
-// Storage comentado hasta que se necesite (requiere SDK adicional)
-// const storage = firebase.storage();
 
-// Configurar idioma español para errores de autenticación
+// Configuración de idioma y persistencia
 auth.languageCode = 'es';
+auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(() => { });
 
-// Configurar persistencia de sesión
-auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
-  .catch((error) => {
-    // console.error('Error al configurar persistencia:', error);
-  });
-
-// Exportar servicios para usar en otros archivos
+// Exportar globalmente para que nuestros servicios y módulos los consuman
 window.firebaseAuth = auth;
 window.firebaseDB = db;
-// window.firebaseStorage = storage;
 
-// console.log('🔥 Firebase inicializado correctamente');
+console.log('🔥 Firebase inicializado correctamente en el búnker: servisalud-dev');
