@@ -1,526 +1,172 @@
-// ==================== PROVEEDORES.JS ====================
+// public/js/proveedores.js
+import { ProveedorService } from './services/proveedor.service.js';
+import { ProveedorUI } from './ui/proveedor.ui.js';
 
-// console.log('🚛 Proveedores.js cargado');
-
-// ===== REFERENCIAS A FIREBASE =====
-const firebaseAuth = window.firebaseAuth;
-const firebaseDB = window.firebaseDB;
-
-// ===== VARIABLES GLOBALES =====
+let proveedoresGlobal = [];
 let currentUser = null;
-let proveedores = [];
-let proveedoresFiltrados = [];
-let proveedorEditandoId = null;
+const auth = window.firebaseAuth;
+const db = window.firebaseDB;
 
-// ===== INICIALIZACIÓN =====
-document.addEventListener('DOMContentLoaded', async function() {
-    // console.log('📄 DOM cargado, iniciando gestión de proveedores...');
-    
-    await verificarAutenticacion();
-    configurarEventos();
-    await cargarProveedores();
-    await cargarEstadisticas();
-});
+document.addEventListener('DOMContentLoaded', () => {
+    auth.onAuthStateChanged(async (user) => {
+        if (user) {
+            try {
+                const userDoc = await db.collection('users').doc(user.uid).get();
+                if (userDoc.exists) {
+                    currentUser = { uid: user.uid, ...userDoc.data() };
 
-// ==================== AUTENTICACIÓN ====================
-async function verificarAutenticacion() {
-    // console.log('🔐 Verificando autenticación...');
-    
-    return new Promise((resolve) => {
-        firebaseAuth.onAuthStateChanged(async (user) => {
-            if (user) {
-                // console.log('✅ Usuario autenticado:', user.email);
-                
-                try {
-                    const userDoc = await firebaseDB.collection('users').doc(user.uid).get();
-                    
-                    if (userDoc.exists) {
-                        currentUser = {
-                            uid: user.uid,
-                            email: user.email,
-                            ...userDoc.data()
-                        };
-                        
-                        mostrarNombreUsuario();
-                        
-                        // Solo admin puede gestionar proveedores
-                        const role = currentUser.role || 'empleado';
-                        if (role !== 'admin') {
-                            alert('⚠️ Solo administradores pueden gestionar proveedores');
-                            window.location.href = 'dashboard.html';
-                            return;
-                        }
-                        
-                        resolve(true);
-                    } else {
-                        // console.error('❌ Usuario no encontrado en Firestore');
-                        window.location.href = 'index.html';
+                    if (currentUser.role !== 'admin') {
+                        alert('⚠️ Solo administradores pueden gestionar proveedores');
+                        window.location.href = 'dashboard.html';
+                        return;
                     }
-                } catch (error) {
-                    // console.error('❌ Error al obtener datos del usuario:', error);
+
+                    document.getElementById('userName').textContent = currentUser.name || user.email;
+                    document.getElementById('userRole').textContent = 'Administrador';
+
+                    setupEventListeners();
+                    await refreshData();
+                } else {
                     window.location.href = 'index.html';
                 }
-            } else {
-                // console.log('❌ No hay usuario autenticado');
-                window.location.href = 'index.html';
+            } catch (error) {
+                console.error("Error validando usuario", error);
             }
-        });
-    });
-}
-
-function mostrarNombreUsuario() {
-    const userName = document.getElementById('userName');
-    const userRoleElement = document.getElementById('userRole');
-    
-    if (userName && currentUser) {
-        // Intentar múltiples campos en orden de preferencia
-        const displayName = currentUser.nombre || 
-                          currentUser.name || 
-                          currentUser.first_name || 
-                          currentUser.displayName ||
-                          currentUser.email?.split('@')[0] || 
-                          'Usuario';
-        userName.textContent = displayName;
-    }
-    
-    if (userRoleElement && currentUser) {
-        const role = currentUser.role || 'empleado';
-        const roleText = role === 'admin' ? 'Administrador' : 'Empleado';
-        userRoleElement.textContent = roleText;
-    }
-}
-
-function logout() {
-    if (confirm('¿Seguro que deseas cerrar sesión?')) {
-        firebaseAuth.signOut().then(() => {
+        } else {
             window.location.href = 'index.html';
-        });
-    }
-}
+        }
+    });
+});
 
-// ==================== EVENTOS ====================
-function configurarEventos() {
-    // console.log('🔘 Configurando eventos...');
-    
-    // Búsqueda
-    document.getElementById('searchInput').addEventListener('input', filtrarProveedores);
-    
-    // Filtros
-    document.getElementById('filtroEstado').addEventListener('change', filtrarProveedores);
-    document.getElementById('filtroPais').addEventListener('change', filtrarProveedores);
-    
-    // Toggle menú móvil
+function setupEventListeners() {
+    document.getElementById('searchInput').addEventListener('input', applyFilters);
+    document.getElementById('filtroEstado').addEventListener('change', applyFilters);
+    document.getElementById('filtroPais').addEventListener('change', applyFilters);
+    document.getElementById('formProveedor').addEventListener('submit', handleSave);
+
+    // Sidebar toggle (si existe en el HTML actual)
     const menuToggle = document.getElementById('menuToggle');
     const sidebar = document.querySelector('.sidebar');
-    
     if (menuToggle && sidebar) {
-        menuToggle.addEventListener('click', function(e) {
+        menuToggle.addEventListener('click', e => {
             e.stopPropagation();
             sidebar.classList.toggle('active');
         });
-        
-        // Cerrar sidebar al hacer click fuera (solo en móviles)
-        document.addEventListener('click', function(e) {
-            if (window.innerWidth <= 768) {
-                const isClickInsideSidebar = sidebar.contains(e.target);
-                const isClickOnToggle = menuToggle.contains(e.target);
-                
-                if (!isClickInsideSidebar && !isClickOnToggle && sidebar.classList.contains('active')) {
-                    sidebar.classList.remove('active');
-                }
-            }
-        });
     }
+
+    // Exponer funciones globales para los onclick del HTML inyectado
+    window.abrirModalNuevo = () => ProveedorUI.openModal();
+    window.cerrarModal = () => ProveedorUI.closeModal();
+    window.editarProveedor = (id) => {
+        const prov = proveedoresGlobal.find(p => p.id === id);
+        if (prov) ProveedorUI.openModal(prov);
+    };
+    window.confirmarEliminar = (id, nombre) => handleDelete(id, nombre);
 }
 
-// ==================== CARGAR PROVEEDORES ====================
-async function cargarProveedores() {
-    // console.log('📦 Cargando proveedores...');
-    
+async function refreshData() {
     try {
-        const snapshot = await firebaseDB.collection('proveedores')
-            .orderBy('nombre', 'asc')
-            .get();
-        
-        proveedores = [];
-        snapshot.forEach(doc => {
-            proveedores.push({
-                id: doc.id,
-                ...doc.data()
-            });
-        });
-        
-        // console.log(`✅ ${proveedores.length} proveedores cargados`);
-        
-        proveedoresFiltrados = [...proveedores];
-        renderizarProveedores();
-        cargarFiltros();
-        
+        proveedoresGlobal = await ProveedorService.getAll();
+        ProveedorUI.renderFilters(proveedoresGlobal);
+        ProveedorUI.renderStats(proveedoresGlobal);
+        applyFilters();
     } catch (error) {
-        // console.error('❌ Error al cargar proveedores:', error);
-        alert('Error al cargar proveedores');
+        console.error("Error cargando proveedores:", error);
+        alert("Hubo un problema al cargar los proveedores.");
     }
 }
 
-// ==================== RENDERIZAR PROVEEDORES ====================
-function renderizarProveedores() {
-    const grid = document.getElementById('proveedoresGrid');
-    const emptyState = document.getElementById('emptyState');
-    
-    if (proveedoresFiltrados.length === 0) {
-        grid.innerHTML = '';
-        emptyState.style.display = 'block';
-        return;
-    }
-    
-    emptyState.style.display = 'none';
-    
-    grid.innerHTML = proveedoresFiltrados.map(prov => `
-        <div class="proveedor-card ${prov.activo === false ? 'inactive' : ''}">
-            <span class="proveedor-badge ${prov.activo === false ? 'inactive' : 'active'}">
-                ${prov.activo === false ? 'Inactivo' : 'Activo'}
-            </span>
-            
-            <div class="proveedor-header">
-                <div class="proveedor-icon">
-                    <i class="fas fa-truck"></i>
-                </div>
-                <div class="proveedor-info">
-                    <h3>${prov.nombre}</h3>
-                    ${prov.pais ? `<div class="pais"><i class="fas fa-globe"></i> ${prov.pais}</div>` : ''}
-                </div>
-            </div>
-            
-            ${prov.telefono || prov.email || prov.direccion || prov.sitioWeb ? `
-                <div class="proveedor-details">
-                    ${prov.telefono ? `
-                        <div class="proveedor-detail">
-                            <i class="fas fa-phone"></i>
-                            <span>${prov.telefono}</span>
-                        </div>
-                    ` : ''}
-                    ${prov.email ? `
-                        <div class="proveedor-detail">
-                            <i class="fas fa-envelope"></i>
-                            <a href="mailto:${prov.email}">${prov.email}</a>
-                        </div>
-                    ` : ''}
-                    ${prov.direccion ? `
-                        <div class="proveedor-detail">
-                            <i class="fas fa-map-marker-alt"></i>
-                            <span>${prov.direccion}</span>
-                        </div>
-                    ` : ''}
-                    ${prov.sitioWeb ? `
-                        <div class="proveedor-detail">
-                            <i class="fas fa-link"></i>
-                            <a href="${prov.sitioWeb}" target="_blank">Sitio web</a>
-                        </div>
-                    ` : ''}
-                </div>
-            ` : ''}
-            
-            <div class="proveedor-stats">
-                <div class="proveedor-stat">
-                    <strong>${prov.productosCount || 0}</strong>
-                    <span>Productos</span>
-                </div>
-            </div>
-            
-            <div class="proveedor-actions">
-                <button class="btn-edit" onclick="editarProveedor('${prov.id}')">
-                    <i class="fas fa-edit"></i> Editar
-                </button>
-                <button class="btn-delete" onclick="confirmarEliminar('${prov.id}', '${prov.nombre}')">
-                    <i class="fas fa-trash"></i> Eliminar
-                </button>
-            </div>
-        </div>
-    `).join('');
-}
-
-// ==================== FILTRAR PROVEEDORES ====================
-function filtrarProveedores() {
+function applyFilters() {
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
     const estadoFiltro = document.getElementById('filtroEstado').value;
     const paisFiltro = document.getElementById('filtroPais').value;
-    
-    proveedoresFiltrados = proveedores.filter(prov => {
-        // Filtro de búsqueda
+
+    const filtrados = proveedoresGlobal.filter(prov => {
         const matchSearch = prov.nombre.toLowerCase().includes(searchTerm) ||
-                           (prov.pais && prov.pais.toLowerCase().includes(searchTerm)) ||
-                           (prov.email && prov.email.toLowerCase().includes(searchTerm));
-        
-        // Filtro de estado
+            (prov.pais && prov.pais.toLowerCase().includes(searchTerm)) ||
+            (prov.email && prov.email.toLowerCase().includes(searchTerm));
+
         const matchEstado = estadoFiltro === 'todos' ||
-                           (estadoFiltro === 'activo' && prov.activo !== false) ||
-                           (estadoFiltro === 'inactivo' && prov.activo === false);
-        
-        // Filtro de país
+            (estadoFiltro === 'activo' && prov.activo !== false) ||
+            (estadoFiltro === 'inactivo' && prov.activo === false);
+
         const matchPais = paisFiltro === 'todos' || prov.pais === paisFiltro;
-        
+
         return matchSearch && matchEstado && matchPais;
     });
-    
-    renderizarProveedores();
+
+    ProveedorUI.renderGrid(filtrados);
 }
 
-// ==================== CARGAR FILTROS ====================
-function cargarFiltros() {
-    // Obtener países únicos
-    const paises = [...new Set(proveedores.map(p => p.pais).filter(p => p))];
-    
-    const selectPais = document.getElementById('filtroPais');
-    selectPais.innerHTML = '<option value="todos">Todos los países</option>';
-    
-    paises.sort().forEach(pais => {
-        selectPais.innerHTML += `<option value="${pais}">${pais}</option>`;
-    });
-}
+async function handleSave(e) {
+    e.preventDefault();
 
-// ==================== ESTADÍSTICAS ====================
-function cargarEstadisticas() {
-    try {
-        // Total proveedores — en memoria, 0 lecturas Firestore
-        document.getElementById('totalProveedores').textContent = proveedores.length;
-
-        // Proveedores activos — en memoria
-        const proveedoresActivos = proveedores.filter(p => p.activo !== false).length;
-        document.getElementById('proveedoresActivos').textContent = proveedoresActivos;
-
-        // Países únicos — en memoria
-        const paisesUnicos = [...new Set(proveedores.map(p => p.pais).filter(p => p))].length;
-        document.getElementById('paisesUnicos').textContent = paisesUnicos;
-
-        // Productos asociados: suma de total_productos de cada doc proveedor (0 lecturas extra)
-        const totalProductos = proveedores.reduce((sum, p) => sum + (p.total_productos || 0), 0);
-        document.getElementById('productosAsociados').textContent = totalProductos;
-
-        // Actualizar badge de cada tarjeta desde el campo total_productos del doc
-        proveedores.forEach(prov => {
-            prov.productosCount = prov.total_productos || 0;
-        });
-
-        renderizarProveedores();
-
-        // console.log('📊 Estadísticas actualizadas (0 lecturas Firestore)');
-
-    } catch (error) {
-        // console.error('Error al cargar estadísticas:', error);
-    }
-}
-
-// ==================== MODAL ====================
-function abrirModalNuevo() {
-    proveedorEditandoId = null;
-    document.getElementById('modalTitle').innerHTML = '<i class="fas fa-truck"></i> Nuevo Proveedor';
-    document.getElementById('formProveedor').reset();
-    document.getElementById('proveedorId').value = '';
-    document.getElementById('inputActivo').checked = true;
-    document.getElementById('modalProveedor').classList.add('active');
-}
-
-function editarProveedor(id) {
-    const proveedor = proveedores.find(p => p.id === id);
-    if (!proveedor) return;
-    
-    proveedorEditandoId = id;
-    document.getElementById('modalTitle').innerHTML = '<i class="fas fa-edit"></i> Editar Proveedor';
-    document.getElementById('proveedorId').value = id;
-    document.getElementById('inputNombre').value = proveedor.nombre || '';
-    document.getElementById('inputPais').value = proveedor.pais || '';
-    document.getElementById('inputTelefono').value = proveedor.telefono || '';
-    document.getElementById('inputEmail').value = proveedor.email || '';
-    document.getElementById('inputDireccion').value = proveedor.direccion || '';
-    document.getElementById('inputSitioWeb').value = proveedor.sitioWeb || '';
-    document.getElementById('inputNotas').value = proveedor.notas || '';
-    document.getElementById('inputActivo').checked = proveedor.activo !== false;
-    
-    document.getElementById('modalProveedor').classList.add('active');
-}
-
-function cerrarModal() {
-    document.getElementById('modalProveedor').classList.remove('active');
-    document.getElementById('formProveedor').reset();
-    proveedorEditandoId = null;
-}
-
-// Exponer funciones al scope global para onclick
-window.abrirModalNuevo = abrirModalNuevo;
-window.editarProveedor = editarProveedor;
-window.cerrarModal = cerrarModal;
-window.confirmarEliminar = confirmarEliminar;
-
-// ==================== GUARDAR PROVEEDOR ====================
-async function guardarProveedor(event) {
-    event.preventDefault();
-    
-    // ===== VALIDACIONES =====
+    const id = document.getElementById('proveedorId').value;
     const nombre = document.getElementById('inputNombre').value.trim();
     const email = document.getElementById('inputEmail').value.trim();
     const telefono = document.getElementById('inputTelefono').value.trim();
     const sitioWeb = document.getElementById('inputSitioWeb').value.trim();
-    
-    // Validar nombre (obligatorio)
-    if (!nombre) {
-        alert('⚠️ El nombre del proveedor es obligatorio');
-        document.getElementById('inputNombre').focus();
-        return;
+
+    // Validaciones
+    if (nombre.length < 2 || nombre.length > 100) {
+        return alert('⚠️ El nombre debe tener entre 2 y 100 caracteres');
     }
-    
-    if (nombre.length < 2) {
-        alert('⚠️ El nombre debe tener al menos 2 caracteres');
-        document.getElementById('inputNombre').focus();
-        return;
-    }
-    
-    if (nombre.length > 100) {
-        alert('⚠️ El nombre no debe exceder 100 caracteres');
-        document.getElementById('inputNombre').focus();
-        return;
-    }
-    
-    // Validar nombre duplicado
-    const nombreDuplicado = proveedores.find(p => 
-        p.nombre.toLowerCase() === nombre.toLowerCase() && p.id !== proveedorEditandoId
-    );
-    if (nombreDuplicado) {
-        alert('⚠️ Ya existe un proveedor con este nombre');
-        document.getElementById('inputNombre').focus();
-        return;
-    }
-    
-    // Validar email (opcional pero si existe debe ser válido)
-    if (email) {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            alert('⚠️ El email no tiene un formato válido');
-            document.getElementById('inputEmail').focus();
-            return;
-        }
-    }
-    
-    // Validar teléfono (opcional pero si existe debe tener formato)
+
+    const nombreDuplicado = proveedoresGlobal.find(p => p.nombre.toLowerCase() === nombre.toLowerCase() && p.id !== id);
+    if (nombreDuplicado) return alert('⚠️ Ya existe un proveedor con este nombre');
+
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return alert('⚠️ Email inválido');
+
     if (telefono) {
-        const telefonoLimpio = telefono.replace(/[\s\-\(\)]/g, '');
-        if (telefonoLimpio.length < 7 || telefonoLimpio.length > 15) {
-            alert('⚠️ El teléfono debe tener entre 7 y 15 dígitos');
-            document.getElementById('inputTelefono').focus();
-            return;
-        }
+        const telLimpio = telefono.replace(/[\s\-\(\)]/g, '');
+        if (telLimpio.length < 7 || telLimpio.length > 15) return alert('⚠️ El teléfono debe tener entre 7 y 15 dígitos');
     }
-    
-    // Validar sitio web (opcional pero si existe debe tener formato)
+
     if (sitioWeb) {
-        try {
-            new URL(sitioWeb);
-        } catch (e) {
-            alert('⚠️ La URL del sitio web no es válida\nEjemplo: https://www.ejemplo.com');
-            document.getElementById('inputSitioWeb').focus();
-            return;
-        }
+        try { new URL(sitioWeb); }
+        catch (e) { return alert('⚠️ URL inválida (Ej: https://www.ejemplo.com)'); }
     }
-    
-    const btnGuardar = document.getElementById('btnGuardar');
-    const textoOriginal = btnGuardar.innerHTML;
-    btnGuardar.disabled = true;
-    btnGuardar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
-    
-    try {
-        const proveedorData = {
-            nombre: nombre,
-            pais: document.getElementById('inputPais').value.trim() || null,
-            telefono: telefono || null,
-            email: email || null,
-            direccion: document.getElementById('inputDireccion').value.trim() || null,
-            sitioWeb: sitioWeb || null,
-            notas: document.getElementById('inputNotas').value.trim() || null,
-            activo: document.getElementById('inputActivo').checked,
-            updated_at: firebase.firestore.FieldValue.serverTimestamp(),
-            updated_by: currentUser.uid
-        };
-        
-        if (proveedorEditandoId) {
-            // Actualizar proveedor existente
-            await firebaseDB.collection('proveedores').doc(proveedorEditandoId).update(proveedorData);
-            // console.log('✅ Proveedor actualizado');
-            alert('✅ Proveedor actualizado correctamente');
-        } else {
-            // Crear nuevo proveedor
-            proveedorData.created_at = firebase.firestore.FieldValue.serverTimestamp();
-            proveedorData.created_by = currentUser.uid;
-            proveedorData.productosCount = 0;
-            proveedorData.total_productos = 0; // Campo que usa el sistema desnormalizado
-            
-            await firebaseDB.collection('proveedores').add(proveedorData);
-            // console.log('✅ Proveedor creado');
-            alert('✅ Proveedor creado correctamente');
-        }
-        
-        // Invalidar caché de proveedores para que dashboard y productos vean los datos frescos
-        if (window.AppCache) AppCache.invalidarProveedores();
 
-        cerrarModal();
-        await cargarProveedores();
-        await cargarEstadisticas();
-        
+    const data = {
+        nombre,
+        pais: document.getElementById('inputPais').value.trim() || null,
+        telefono: telefono || null,
+        email: email || null,
+        direccion: document.getElementById('inputDireccion').value.trim() || null,
+        sitioWeb: sitioWeb || null,
+        notas: document.getElementById('inputNotas').value.trim() || null,
+        activo: document.getElementById('inputActivo').checked
+    };
+
+    try {
+        ProveedorUI.setLoading(true);
+        await ProveedorService.save(id, data, currentUser.uid);
+        alert(id ? '✅ Proveedor actualizado' : '✅ Proveedor creado');
+        ProveedorUI.closeModal();
+        await refreshData();
     } catch (error) {
-        // console.error('Error al guardar proveedor:', error);
-        alert('❌ Error al guardar el proveedor. Verifica tu conexión.');
+        console.error("Error guardando:", error);
+        alert("❌ Error al guardar el proveedor.");
     } finally {
-        btnGuardar.disabled = false;
-        btnGuardar.innerHTML = textoOriginal;
+        ProveedorUI.setLoading(false);
     }
 }
 
-// ==================== ELIMINAR PROVEEDOR ====================
-function confirmarEliminar(id, nombre) {
-    const proveedor = proveedores.find(p => p.id === id);
-    const productosCount = proveedor?.productosCount || 0;
-    
-    let mensaje = `¿Estás seguro de eliminar el proveedor "${nombre}"?`;
-    if (productosCount > 0) {
-        mensaje += `\n\n⚠️ Este proveedor tiene ${productosCount} producto(s) asociado(s).\nLos productos quedarán sin proveedor asignado.`;
+async function handleDelete(id, nombre) {
+    const prov = proveedoresGlobal.find(p => p.id === id);
+    let msg = `¿Seguro que deseas eliminar "${nombre}"?`;
+    if (prov && (prov.total_productos > 0 || prov.productosCount > 0)) {
+        msg += `\n\n⚠️ Tiene productos asociados que quedarán sin proveedor.`;
     }
-    
-    if (confirm(mensaje)) {
-        eliminarProveedor(id);
-    }
-}
 
-async function eliminarProveedor(id) {
-    try {
-        // Eliminar proveedor
-        await firebaseDB.collection('proveedores').doc(id).delete();
-        
-        // Actualizar productos que tenían este proveedor
-        const productosSnapshot = await firebaseDB.collection('products')
-            .where('supplier', '==', id)
-            .get();
-        
-        const batch = firebaseDB.batch();
-        productosSnapshot.docs.forEach(doc => {
-            batch.update(doc.ref, { supplier: null });
-        });
-        
-        await batch.commit();
-        
-        // Invalidar ambas cachés: proveedor borrado + productos que perdieron su proveedor
-        if (window.AppCache) {
-            AppCache.invalidarProveedores();
-            AppCache.invalidarProductos();
+    if (confirm(msg)) {
+        try {
+            await ProveedorService.delete(id);
+            alert('✅ Proveedor eliminado');
+            await refreshData();
+        } catch (error) {
+            console.error("Error eliminando:", error);
+            alert("❌ Error al eliminar proveedor.");
         }
-
-        // console.log('✅ Proveedor eliminado');
-        alert('✅ Proveedor eliminado correctamente');
-        
-        await cargarProveedores();
-        await cargarEstadisticas();
-        
-    } catch (error) {
-        // console.error('Error al eliminar proveedor:', error);
-        alert('Error al eliminar el proveedor');
     }
 }
-
-// console.log('✅ Proveedores.js completamente cargado');
