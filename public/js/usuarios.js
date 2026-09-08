@@ -1,15 +1,7 @@
-// =====================================================
-// ARCHIVO: usuarios.js
-// PROPÓSITO: Lógica de la página de gestión de usuarios
-// =====================================================
+// public/js/usuarios.js
+import { UsuarioService } from './services/usuario.service.js';
+import { UsuarioUI } from './ui/usuario.ui.js';
 
-// console.log('👥 Usuarios.js cargado');
-
-// ===== 1. REFERENCIAS A FIREBASE =====
-const firebaseAuth = window.firebaseAuth;
-const firebaseDB = window.firebaseDB;
-
-// ===== 2. VARIABLES GLOBALES =====
 let currentUser = null;
 let todosLosUsuarios = [];
 let usuariosFiltrados = [];
@@ -18,1009 +10,338 @@ const usuariosPorPagina = 10;
 let modoEdicion = false;
 let usuarioEditandoId = null;
 
-// ===== 3. CUANDO LA PÁGINA CARGA =====
-document.addEventListener('DOMContentLoaded', async function() {
-    // console.log('📄 DOM cargado, iniciando página de usuarios...');
-    
-    // Verificar autenticación
-    await verificarAutenticacion();
-    
-    // Configurar eventos
-    configurarEventos();
-    
-    // Cargar usuarios
-    await cargarUsuarios();
-});
+const auth = window.firebaseAuth;
+const db = window.firebaseDB;
 
-// ===== 4. VERIFICAR AUTENTICACIÓN =====
-async function verificarAutenticacion() {
-    // console.log('🔐 Verificando autenticación...');
-    
-    return new Promise((resolve) => {
-        firebaseAuth.onAuthStateChanged(async (user) => {
-            if (user) {
-                // console.log('✅ Usuario autenticado:', user.email);
-                
-                try {
-                    const userDoc = await firebaseDB.collection('users').doc(user.uid).get();
-                    
-                    if (userDoc.exists) {
-                        currentUser = {
-                            uid: user.uid,
-                            email: user.email,
-                            ...userDoc.data()
-                        };
-                        
-                        // Empleados pueden ver la página en modo solo lectura
-                        if (currentUser.role === 'empleado') {
-                            // console.log('👁️ Acceso de empleado en modo solo lectura');
-                        }
-                        
-                        // Mostrar nombre del usuario
-                        mostrarNombreUsuario();
-                        
-                        // Actualizar menú según rol
-                        actualizarMenuPorRol();
-                        
-                        // Aplicar restricciones de menú (helpers.js)
-                        if (typeof aplicarRestriccionesMenu === 'function') {
-                            aplicarRestriccionesMenu(currentUser);
-                        }
-                        
-                        resolve();
-                    } else {
-                        // console.error('❌ Usuario no encontrado en Firestore');
-                        window.location.href = 'index.html';
+document.addEventListener('DOMContentLoaded', async () => {
+    auth.onAuthStateChanged(async (user) => {
+        if (user) {
+            try {
+                const userDoc = await db.collection('users').doc(user.uid).get();
+                if (userDoc.exists) {
+                    currentUser = { uid: user.uid, email: user.email, ...userDoc.data() };
+
+                    const displayName = currentUser.nombre || currentUser.name || currentUser.first_name || currentUser.email?.split('@')[0] || 'Usuario';
+                    const userNameEl = document.getElementById('userName');
+                    const userRoleEl = document.getElementById('userRole');
+
+                    if (userNameEl) userNameEl.textContent = displayName;
+                    if (userRoleEl) userRoleEl.textContent = currentUser.role === 'admin' ? 'Administrador' : 'Empleado';
+
+                    UsuarioUI.updateMenuRole(currentUser.role);
+
+                    if (typeof window.aplicarRestriccionesMenu === 'function') {
+                        window.aplicarRestriccionesMenu(currentUser);
                     }
-                } catch (error) {
-                    // console.error('❌ Error al obtener datos del usuario:', error);
+
+                    setupEventListeners();
+                    await cargarUsuarios();
+                } else {
                     window.location.href = 'index.html';
                 }
-            } else {
-                // console.log('❌ No hay usuario autenticado');
+            } catch (error) {
+                console.error('Error al validar usuario:', error);
                 window.location.href = 'index.html';
             }
-        });
-    });
-}
-
-// ===== 5. MOSTRAR NOMBRE DEL USUARIO Y ROL =====
-function mostrarNombreUsuario() {
-    const userName = document.getElementById('userName');
-    const userRoleElement = document.getElementById('userRole');
-    
-    if (userName && currentUser) {
-        const displayName = getUserDisplayName(currentUser);
-        userName.textContent = displayName;
-        // console.log('👤 Usuario mostrado:', displayName);
-    }
-    
-    if (userRoleElement && currentUser) {
-        const role = currentUser.role || 'empleado';
-        const roleText = role === 'admin' ? 'Administrador' : 'Empleado';
-        userRoleElement.textContent = roleText;
-    }
-}
-
-// ===== 6. ACTUALIZAR MENÚ POR ROL =====
-function actualizarMenuPorRol() {
-    const role = currentUser?.role;
-    // console.log('🔐 Actualizando menú para rol:', role);
-    
-    // El menú se maneja desde helpers.js y CSS (clase admin-only)
-    
-    // Actualizar mensaje informativo según el rol
-    const infoMessage = document.querySelector('.info-message span');
-    if (infoMessage) {
-        if (role === 'admin') {
-            infoMessage.textContent = 'Los usuarios se crean desde Firebase Console. Aquí puedes editar roles y permisos.';
         } else {
-            infoMessage.innerHTML = '<strong>Modo solo lectura:</strong> Solo los administradores pueden editar usuarios.';
+            window.location.href = 'index.html';
         }
-    }
-}
+    });
+});
 
-// ===== 7. CONFIGURAR EVENTOS =====
-function configurarEventos() {
-    // console.log('🔘 Configurando eventos...');
-    
-    // Botón nuevo usuario (DESHABILITADO)
-    // Los usuarios se deben crear desde Firebase Console (Authentication)
-    // porque requiere configuración de email/password en el backend
-    // Este botón está oculto en el HTML
+function setupEventListeners() {
     const btnNuevoUsuario = document.getElementById('btnNuevoUsuario');
     if (btnNuevoUsuario) {
-        btnNuevoUsuario.addEventListener('click', () => {
-            // Redirigir a la página de crear usuarios
-            window.location.href = 'crear-usuarios.html';
-        });
+        btnNuevoUsuario.addEventListener('click', () => { window.location.href = 'crear-usuarios.html'; });
     }
-    
-    // Cerrar modal usuario
+
     const btnCerrarModal = document.getElementById('btnCerrarModal');
     const btnCancelar = document.getElementById('btnCancelar');
-    
-    if (btnCerrarModal) btnCerrarModal.addEventListener('click', cerrarModal);
-    if (btnCancelar) btnCancelar.addEventListener('click', cerrarModal);
-    
-    // Cerrar modal al hacer click fuera
+    if (btnCerrarModal) btnCerrarModal.addEventListener('click', () => UsuarioUI.closeUserModal());
+    if (btnCancelar) btnCancelar.addEventListener('click', () => UsuarioUI.closeUserModal());
+
     const modal = document.getElementById('usuarioModal');
     if (modal) {
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) cerrarModal();
-        });
+        modal.addEventListener('click', (e) => { if (e.target === modal) UsuarioUI.closeUserModal(); });
     }
-    
-    // Formulario de usuario
+
     const usuarioForm = document.getElementById('usuarioForm');
-    if (usuarioForm) {
-        usuarioForm.addEventListener('submit', guardarUsuario);
-    }
-    
-    // Cambiar de rol - mostrar permisos
+    if (usuarioForm) usuarioForm.addEventListener('submit', guardarUsuario);
+
     const inputRol = document.getElementById('inputRol');
     if (inputRol) {
-        inputRol.addEventListener('change', mostrarPermisosRol);
-    }
-    
-    // Toggle password visibility
-    const btnTogglePassword = document.getElementById('btnTogglePassword');
-    if (btnTogglePassword) {
-        btnTogglePassword.addEventListener('click', togglePasswordVisibility);
-    }
-    
-    // Modal de contraseña
-    const btnCerrarPasswordModal = document.getElementById('btnCerrarPasswordModal');
-    const btnCancelarPassword = document.getElementById('btnCancelarPassword');
-    
-    if (btnCerrarPasswordModal) btnCerrarPasswordModal.addEventListener('click', cerrarPasswordModal);
-    if (btnCancelarPassword) btnCancelarPassword.addEventListener('click', cerrarPasswordModal);
-    
-    const passwordModal = document.getElementById('passwordModal');
-    if (passwordModal) {
-        passwordModal.addEventListener('click', (e) => {
-            if (e.target === passwordModal) cerrarPasswordModal();
+        inputRol.addEventListener('change', () => {
+            UsuarioUI.renderRolePermissions(inputRol.value);
         });
     }
-    
+
+    const btnTogglePassword = document.getElementById('btnTogglePassword');
+    if (btnTogglePassword) {
+        btnTogglePassword.addEventListener('click', () => {
+            const passwordInput = document.getElementById('inputPassword');
+            const icon = btnTogglePassword.querySelector('i');
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        });
+    }
+
+    const btnCerrarPasswordModal = document.getElementById('btnCerrarPasswordModal');
+    const btnCancelarPassword = document.getElementById('btnCancelarPassword');
+    if (btnCerrarPasswordModal) btnCerrarPasswordModal.addEventListener('click', () => UsuarioUI.closePasswordModal());
+    if (btnCancelarPassword) btnCancelarPassword.addEventListener('click', () => UsuarioUI.closePasswordModal());
+
+    const passwordModal = document.getElementById('passwordModal');
+    if (passwordModal) {
+        passwordModal.addEventListener('click', (e) => { if (e.target === passwordModal) UsuarioUI.closePasswordModal(); });
+    }
+
     const passwordForm = document.getElementById('passwordForm');
-    if (passwordForm) {
-        passwordForm.addEventListener('submit', cambiarPassword);
-    }
-    
-    // Búsqueda en tiempo real
+    if (passwordForm) passwordForm.addEventListener('submit', cambiarPassword);
+
     const searchInput = document.getElementById('searchInput');
-    if (searchInput) {
-        searchInput.addEventListener('input', aplicarFiltros);
-    }
-    
-    // Filtro de rol
+    if (searchInput) searchInput.addEventListener('input', aplicarFiltros);
+
     const filterRol = document.getElementById('filterRol');
-    if (filterRol) {
-        filterRol.addEventListener('change', aplicarFiltros);
-    }
-    
-    // Paginación
+    if (filterRol) filterRol.addEventListener('change', aplicarFiltros);
+
     const btnPrevPage = document.getElementById('btnPrevPage');
     const btnNextPage = document.getElementById('btnNextPage');
-    
     if (btnPrevPage) {
         btnPrevPage.addEventListener('click', () => {
             if (paginaActual > 1) {
                 paginaActual--;
-                mostrarUsuarios();
+                actualizarVistaTabla();
             }
         });
     }
-    
     if (btnNextPage) {
         btnNextPage.addEventListener('click', () => {
             const totalPaginas = Math.ceil(usuariosFiltrados.length / usuariosPorPagina);
             if (paginaActual < totalPaginas) {
                 paginaActual++;
-                mostrarUsuarios();
+                actualizarVistaTabla();
             }
         });
     }
-    
-    // Toggle sidebar (menú hamburguesa)
-    const menuToggle = document.getElementById('menuToggle');
-    const sidebar = document.getElementById('sidebar');
-    
-    if (menuToggle && sidebar) {
-        menuToggle.addEventListener('click', function(e) {
-            e.stopPropagation();
-            sidebar.classList.toggle('active');
-        });
-        
-        // Cerrar sidebar al hacer clic fuera (solo en móvil)
-        document.addEventListener('click', function(e) {
-            if (window.innerWidth <= 768) {
-                const isClickInsideSidebar = sidebar.contains(e.target);
-                const isClickOnToggle = menuToggle.contains(e.target);
-                
-                if (!isClickInsideSidebar && !isClickOnToggle && sidebar.classList.contains('active')) {
-                    sidebar.classList.remove('active');
-                }
-            }
-        });
-        
-        // Cerrar sidebar automáticamente al cambiar a desktop
-        window.addEventListener('resize', function() {
-            if (window.innerWidth > 768) {
-                sidebar.classList.remove('active');
-            }
-        });
-    }
+
+    // Exponer funciones globales requeridas por el renderizado de HTML de la tabla
+    window.editarUsuario = (id) => editarUsuarioHandler(id);
+    window.abrirModalPassword = (id) => abrirModalPasswordHandler(id);
+    window.eliminarUsuario = (id, nombre) => eliminarUsuarioHandler(id, nombre);
+    window.abrirModalNuevo = () => {
+        modoEdicion = false;
+        usuarioEditandoId = null;
+        UsuarioUI.openUserModal(false);
+    };
 }
 
-// ===== 8. CARGAR USUARIOS =====
 async function cargarUsuarios() {
-    // console.log('👥 Cargando usuarios desde Firestore...');
-    
     try {
-        const snapshot = await firebaseDB.collection('users').get();
-        
-        todosLosUsuarios = [];
-        snapshot.forEach(doc => {
-            todosLosUsuarios.push({
-                id: doc.id,
-                ...doc.data()
-            });
-        });
-        
-        // Ordenar por nombre
-        todosLosUsuarios.sort((a, b) => {
-            const nameA = (a.name || a.email).toLowerCase();
-            const nameB = (b.name || b.email).toLowerCase();
-            return nameA.localeCompare(nameB);
-        });
-        
-        // Inicialmente, usuarios filtrados = todos los usuarios
+        todosLosUsuarios = await UsuarioService.getAll();
         usuariosFiltrados = [...todosLosUsuarios];
-        
-        // console.log(`✅ ${todosLosUsuarios.length} usuarios cargados`);
-        
-        // Mostrar en la tabla
-        mostrarUsuarios();
-        
-        // Actualizar estadísticas
-        actualizarEstadisticas();
-        
+        actualizarVistaTabla();
+        UsuarioUI.renderStats(todosLosUsuarios);
     } catch (error) {
-        // console.error('❌ Error al cargar usuarios:', error);
+        console.error('Error al cargar usuarios:', error);
         alert('Error al cargar usuarios. Por favor, recarga la página.');
     }
 }
 
-// ===== 9. MOSTRAR USUARIOS EN LA TABLA =====
-function mostrarUsuarios() {
-    const tbody = document.getElementById('usuariosTableBody');
-    
-    if (!tbody) return;
-    
-    // Calcular usuarios de la página actual
-    const inicio = (paginaActual - 1) * usuariosPorPagina;
-    const fin = inicio + usuariosPorPagina;
-    const usuariosActuales = usuariosFiltrados.slice(inicio, fin);
-    
-    // Si no hay usuarios
-    if (usuariosActuales.length === 0) {
-        tbody.innerHTML = `
-            <tr class="empty-state">
-                <td colspan="7">
-                    <div class="empty-state">
-                        <i class="fas fa-users-slash"></i>
-                        <h3>No se encontraron usuarios</h3>
-                        <p>Intenta ajustar los filtros o crea un nuevo usuario</p>
-                    </div>
-                </td>
-            </tr>
-        `;
-        return;
-    }
-    
-    // Generar filas de la tabla
-    tbody.innerHTML = usuariosActuales.map(usuario => {
-        const fechaRegistro = usuario.created_at ? 
-            formatDate(usuario.created_at.toDate()) : 'N/A';
-        
-        const ultimoAcceso = usuario.last_login ? 
-            formatDate(usuario.last_login.toDate()) : 'Nunca';
-        
-        const isCurrentUser = usuario.id === currentUser.uid;
-        const deleteDisabled = isCurrentUser ? 'disabled' : '';
-        
-        // Solo admin puede ver botones de acción
-        const isAdmin = currentUser.role === 'admin';
-        const botonesAccion = isAdmin ? `
-            <div class="action-buttons">
-                <button class="btn-action btn-edit" onclick="editarUsuario('${usuario.id}')" title="Editar">
-                    <i class="fas fa-edit"></i>
-                </button>
-                <button class="btn-action btn-password" onclick="abrirModalPassword('${usuario.id}')" title="Cambiar contraseña">
-                    <i class="fas fa-key"></i>
-                </button>
-                <button class="btn-action btn-delete" onclick="eliminarUsuario('${usuario.id}', '${usuario.name || usuario.email}')" title="Eliminar" ${deleteDisabled}>
-                    <i class="fas fa-trash"></i>
-                </button>
-            </div>
-        ` : `<span class="text-muted">Solo lectura</span>`;
-        
-        return `
-        <tr data-id="${usuario.id}">
-            <td>
-                <div class="user-name">
-                    <i class="fas fa-user-circle"></i>
-                    ${usuario.nombre || usuario.name || usuario.first_name || usuario.email?.split('@')[0] || 'Sin nombre'}
-                    ${isCurrentUser ? '<span class="badge-estado activo">(Tú)</span>' : ''}
-                </div>
-            </td>
-            <td>
-                <div class="user-email">${usuario.email}</div>
-            </td>
-            <td>
-                <span class="badge-rol ${usuario.role}">
-                    <i class="fas fa-${usuario.role === 'admin' ? 'user-shield' : 'user-tag'}"></i>
-                    ${usuario.role === 'admin' ? 'Administrador' : 'Empleado'}
-                </span>
-            </td>
-            <td>${fechaRegistro}</td>
-            <td>${ultimoAcceso}</td>
-            <td>
-                <span class="badge-estado activo">
-                    <i class="fas fa-circle"></i>
-                    Activo
-                </span>
-            </td>
-            <td class="text-center">
-                ${botonesAccion}
-            </td>
-        </tr>
-        `;
-    }).join('');
-    
-    // Actualizar paginación
-    actualizarPaginacion();
-    
-    // console.log(`📋 Mostrando ${usuariosActuales.length} usuarios (página ${paginaActual})`);
+function actualizarVistaTabla() {
+    UsuarioUI.renderTable(usuariosFiltrados, paginaActual, usuariosPorPagina, currentUser.uid, currentUser.role);
+    UsuarioUI.renderPagination(paginaActual, usuariosFiltrados.length, usuariosPorPagina);
 }
 
-// ===== 10. ACTUALIZAR ESTADÍSTICAS =====
-function actualizarEstadisticas() {
-    document.getElementById('totalUsuarios').textContent = todosLosUsuarios.length;
-    
-    const admins = todosLosUsuarios.filter(u => u.role === 'admin').length;
-    document.getElementById('totalAdmins').textContent = admins;
-    
-    const empleados = todosLosUsuarios.filter(u => u.role === 'empleado').length;
-    document.getElementById('totalEmpleados').textContent = empleados;
-    
-    // Activostoday - usuarios con last_login hoy
-    const hoy = new Date();
-    hoy.setHours(0, 0, 0, 0);
-    const activosHoy = todosLosUsuarios.filter(u => {
-        if (!u.last_login) return false;
-        const loginDate = u.last_login.toDate();
-        loginDate.setHours(0, 0, 0, 0);
-        return loginDate.getTime() === hoy.getTime();
-    }).length;
-    document.getElementById('activosHoy').textContent = activosHoy;
-}
-
-// ===== 11. APLICAR FILTROS =====
 function aplicarFiltros() {
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
     const filterRol = document.getElementById('filterRol').value;
-    
+
     usuariosFiltrados = todosLosUsuarios.filter(usuario => {
-        // Filtro de búsqueda
-        const coincideBusqueda = !searchTerm || 
+        const coincideBusqueda = !searchTerm ||
             (usuario.name && usuario.name.toLowerCase().includes(searchTerm)) ||
             usuario.email.toLowerCase().includes(searchTerm);
-        
-        // Filtro de rol
+
         const coincideRol = !filterRol || usuario.role === filterRol;
-        
         return coincideBusqueda && coincideRol;
     });
-    
-    // Reiniciar a página 1
+
     paginaActual = 1;
-    mostrarUsuarios();
+    actualizarVistaTabla();
 }
 
-// ===== 12. ACTUALIZAR PAGINACIÓN =====
-function actualizarPaginacion() {
-    const totalPaginas = Math.ceil(usuariosFiltrados.length / usuariosPorPagina);
-    
-    document.getElementById('paginationInfo').textContent = 
-        `Página ${paginaActual} de ${totalPaginas || 1}`;
-    
-    document.getElementById('btnPrevPage').disabled = paginaActual === 1;
-    document.getElementById('btnNextPage').disabled = paginaActual === totalPaginas || totalPaginas === 0;
-}
-
-// ===== 13. ABRIR MODAL NUEVO =====
-function abrirModalNuevo() {
-    // console.log('📝 Abriendo modal para nuevo usuario');
-    
-    modoEdicion = false;
-    usuarioEditandoId = null;
-    
-    // Cambiar título
-    document.getElementById('modalTitleText').innerHTML = 
-        '<i class="fas fa-user-plus"></i> Nuevo Usuario';
-    document.getElementById('btnGuardarText').textContent = 'Crear Usuario';
-    
-    // Limpiar formulario
-    document.getElementById('usuarioForm').reset();
-    limpiarErrores();
-    
-    // Habilitar campo de email (solo se bloquea en modo edición)
-    const inputEmail = document.getElementById('inputEmail');
-    inputEmail.readOnly = false;
-    inputEmail.disabled = false;
-    inputEmail.style.backgroundColor = '';
-    inputEmail.style.cursor = '';
-    inputEmail.title = '';
-    
-    // Mostrar advertencia de creación deshabilitada
-    const alertCreacion = document.getElementById('alertCreacionUsuario');
-    if (alertCreacion) {
-        alertCreacion.style.display = 'flex';
-    }
-    
-    // Mostrar sección de password
-    document.getElementById('seccionPassword').style.display = 'block';
-    document.getElementById('inputPassword').required = true;
-    document.getElementById('inputConfirmPassword').required = true;
-    
-    // Limpiar info de rol
-    document.getElementById('infoRol').innerHTML = `
-        <i class="fas fa-info-circle"></i>
-        <div>
-            <strong>Selecciona un rol para ver los permisos</strong>
-        </div>
-    `;
-    
-    // Mostrar modal
-    document.getElementById('usuarioModal').classList.add('active');
-    document.body.style.overflow = 'hidden';
-}
-
-// ===== 14. EDITAR USUARIO =====
-async function editarUsuario(id) {
-    // console.log('✏️ Editando usuario:', id);
-    
-    // Verificar permisos de admin
-    if (currentUser.role !== 'admin') {
-        alert('⚠️ Solo los administradores pueden editar usuarios');
-        return;
-    }
-    
-    const usuario = todosLosUsuarios.find(u => u.id === id);
-    if (!usuario) {
-        alert('Usuario no encontrado');
-        return;
-    }
-    
-    modoEdicion = true;
-    usuarioEditandoId = id;
-    
-    // Cambiar título
-    document.getElementById('modalTitleText').innerHTML = 
-        '<i class="fas fa-user-edit"></i> Editar Usuario';
-    document.getElementById('btnGuardarText').textContent = 'Actualizar Usuario';
-    
-    // Ocultar advertencia de creación (solo visible en modo nuevo)
-    const alertCreacion = document.getElementById('alertCreacionUsuario');
-    if (alertCreacion) {
-        alertCreacion.style.display = 'none';
-    }
-    
-    // Ocultar sección de password
-    document.getElementById('seccionPassword').style.display = 'none';
-    document.getElementById('inputPassword').required = false;
-    document.getElementById('inputConfirmPassword').required = false;
-    
-    // Llenar formulario
-    document.getElementById('inputNombre').value = usuario.nombre || usuario.name || usuario.first_name || '';
-    const inputEmail = document.getElementById('inputEmail');
-    inputEmail.value = usuario.email || '';
-    // Bloquear email en edición (no se puede cambiar en Firebase Authentication sin backend)
-    inputEmail.readOnly = true;
-    inputEmail.style.backgroundColor = '#f5f5f5';
-    inputEmail.style.cursor = 'not-allowed';
-    inputEmail.title = 'El email no se puede modificar por seguridad';
-    
-    document.getElementById('inputRol').value = usuario.role || '';
-    
-    // Mostrar permisos del rol
-    mostrarPermisosRol();
-    
-    limpiarErrores();
-    
-    // Mostrar modal
-    document.getElementById('usuarioModal').classList.add('active');
-    document.body.style.overflow = 'hidden';
-}
-
-// ===== 15. CERRAR MODAL =====
-function cerrarModal() {
-    // console.log('❌ Cerrando modal');
-    document.getElementById('usuarioModal').classList.remove('active');
-    document.body.style.overflow = 'auto';
-}
-
-// ===== 16. GUARDAR USUARIO =====
 async function guardarUsuario(event) {
     event.preventDefault();
-    // console.log('💾 Intentando guardar usuario...');
-    
-    // Validar formulario
-    if (!validarFormulario()) {
-        // console.log('❌ Formulario inválido');
-        return;
-    }
-    
-    const btnGuardar = document.getElementById('btnGuardar');
-    const textoOriginal = btnGuardar.innerHTML;
-    btnGuardar.disabled = true;
-    btnGuardar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
-    
+    if (!validarFormulario()) return;
+
+    UsuarioUI.setLoading('btnGuardar', true, 'Guardando...', '<i class="fas fa-save"></i> Guardar');
+
     try {
         const nombre = document.getElementById('inputNombre').value.trim();
         const email = document.getElementById('inputEmail').value.trim().toLowerCase();
         const rol = document.getElementById('inputRol').value;
-        
+
         if (modoEdicion) {
-            // Actualizar usuario existente en Firestore
-            // Nota: El email NO se puede cambiar por seguridad de Firebase Authentication
-            await firebaseDB.collection('users').doc(usuarioEditandoId).update({
+            await UsuarioService.update(usuarioEditandoId, {
                 nombre: nombre,
                 name: nombre,
-                role: rol,
-                updated_at: firebase.firestore.FieldValue.serverTimestamp()
+                role: rol
             });
-            
-            // console.log('✅ Usuario actualizado:', usuarioEditandoId);
             alert('✅ Usuario actualizado correctamente');
-            
+            UsuarioUI.closeUserModal();
+            await cargarUsuarios();
         } else {
-            // Crear nuevo usuario
             const password = document.getElementById('inputPassword').value;
-            
-            // Nota: La creación de usuarios desde el cliente está deshabilitada por seguridad
-            // Los usuarios deben ser creados por el administrador del sistema
-            
-            alert(`📋 SOLICITUD DE NUEVO USUARIO\n\n` +
-                  `Para crear este usuario, contacta al administrador del sistema con los siguientes datos:\n\n` +
-                  `👤 Nombre: ${nombre}\n` +
-                  `📧 Email: ${email}\n` +
-                  `🔑 Contraseña: ${password}\n` +
-                  `👔 Rol: ${rol === 'admin' ? 'Administrador' : 'Empleado'}\n\n` +
-                  `El administrador creará el usuario y te notificará cuando esté listo.`);
-            
-            // console.log('💡 Solicitud de creación de usuario:', { email, nombre, rol });
-            
-            // Cerrar modal sin recargar
-            cerrarModal();
-            return;
+            alert(`📋 SOLICITUD DE NUEVO USUARIO\n\nContacta al administrador con:\n👤 ${nombre}\n📧 ${email}\n🔑 ${password}\n👔 ${rol}`);
+            UsuarioUI.closeUserModal();
         }
-        
-        // Cerrar modal y recargar usuarios
-        cerrarModal();
-        await cargarUsuarios();
-        
     } catch (error) {
-        // console.error('❌ Error al guardar usuario:', error);
-        
-        let errorMessage = 'Error al guardar el usuario.';
-        
-        if (error.code === 'auth/email-already-in-use') {
-            errorMessage = 'Este correo ya está registrado';
-            document.getElementById('errorEmail').textContent = errorMessage;
-        } else if (error.code === 'auth/invalid-email') {
-            errorMessage = 'Correo electrónico inválido';
-            document.getElementById('errorEmail').textContent = errorMessage;
-        } else if (error.code === 'auth/weak-password') {
-            errorMessage = 'La contraseña es muy débil';
-            document.getElementById('errorPassword').textContent = errorMessage;
-        }
-        
-        alert('❌ ' + errorMessage);
-        
+        console.error('Error al guardar:', error);
+        alert('❌ Error al guardar el usuario.');
     } finally {
-        btnGuardar.disabled = false;
-        btnGuardar.innerHTML = textoOriginal;
+        UsuarioUI.setLoading('btnGuardar', false, '', '<i class="fas fa-save"></i> Guardar');
     }
 }
 
-// ===== 17. VALIDAR FORMULARIO =====
 function validarFormulario() {
-    limpiarErrores();
+    UsuarioUI.clearErrors();
     let esValido = true;
-    
-    // Validar nombre
+
     const nombre = document.getElementById('inputNombre').value.trim();
-    if (!nombre) {
-        document.getElementById('errorNombre').textContent = 'El nombre es requerido';
-        document.getElementById('inputNombre').focus();
-        esValido = false;
-    } else if (nombre.length < 3) {
-        document.getElementById('errorNombre').textContent = 'El nombre debe tener al menos 3 caracteres';
-        esValido = false;
-    } else if (nombre.length > 100) {
-        document.getElementById('errorNombre').textContent = 'El nombre no debe exceder 100 caracteres';
-        esValido = false;
-    } else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(nombre)) {
-        document.getElementById('errorNombre').textContent = 'El nombre solo debe contener letras';
+    if (!nombre || nombre.length < 3 || nombre.length > 100 || !/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(nombre)) {
+        document.getElementById('errorNombre').textContent = 'Nombre inválido (mínimo 3 letras, solo texto)';
         esValido = false;
     }
-    
-    // Validar email (solo en modo nuevo, en edición no se puede cambiar)
+
     if (!modoEdicion) {
         const email = document.getElementById('inputEmail').value.trim();
-        if (!email) {
-            document.getElementById('errorEmail').textContent = 'El email es requerido';
-            if (esValido) document.getElementById('inputEmail').focus();
-            esValido = false;
-        } else if (!validarEmail(email)) {
-            document.getElementById('errorEmail').textContent = 'Email inválido (ejemplo: usuario@dominio.com)';
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            document.getElementById('errorEmail').textContent = 'Email requerido o inválido';
             esValido = false;
         }
-    }
-    
-    // Validar password (solo si es nuevo usuario)
-    if (!modoEdicion) {
+
         const password = document.getElementById('inputPassword').value;
         const confirmPassword = document.getElementById('inputConfirmPassword').value;
-        
-        if (!password) {
-            document.getElementById('errorPassword').textContent = 'La contraseña es requerida';
-            if (esValido) document.getElementById('inputPassword').focus();
-            esValido = false;
-        } else if (password.length < 6) {
-            document.getElementById('errorPassword').textContent = 'La contraseña debe tener mínimo 6 caracteres';
-            esValido = false;
-        } else if (password.length > 50) {
-            document.getElementById('errorPassword').textContent = 'La contraseña no debe exceder 50 caracteres';
-            esValido = false;
-        } else if (!/[a-zA-Z]/.test(password)) {
-            document.getElementById('errorPassword').textContent = 'La contraseña debe contener al menos una letra';
-            esValido = false;
-        } else if (!/[0-9]/.test(password)) {
-            document.getElementById('errorPassword').textContent = 'La contraseña debe contener al menos un número';
+        if (!password || password.length < 6 || !/[a-zA-Z]/.test(password) || !/[0-9]/.test(password)) {
+            document.getElementById('errorPassword').textContent = 'Mínimo 6 caracteres, al menos una letra y un número';
             esValido = false;
         }
-        
-        if (!confirmPassword) {
-            document.getElementById('errorConfirmPassword').textContent = 'Confirma la contraseña';
-            esValido = false;
-        } else if (password !== confirmPassword) {
-            document.getElementById('errorConfirmPassword').textContent = 'Las contraseñas no coinciden';
+        if (password !== confirmPassword) {
+            document.getElementById('errorConfirmNewPassword').textContent = 'Las contraseñas no coinciden';
             esValido = false;
         }
     }
-    
-    // Validar rol
+
     const rol = document.getElementById('inputRol').value;
-    if (!rol) {
-        document.getElementById('errorRol').textContent = 'Debes seleccionar un rol';
-        if (esValido) document.getElementById('inputRol').focus();
-        esValido = false;
-    } else if (rol !== 'admin' && rol !== 'empleado') {
-        document.getElementById('errorRol').textContent = 'Rol inválido';
+    if (!rol || (rol !== 'admin' && rol !== 'empleado')) {
+        document.getElementById('errorRol').textContent = 'Selecciona un rol válido';
         esValido = false;
     }
-    
+
     return esValido;
 }
 
-// ===== 18. VALIDAR EMAIL =====
-function validarEmail(email) {
-    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return re.test(email);
-}
-
-// ===== 19. LIMPIAR ERRORES =====
-function limpiarErrores() {
-    const errorSpans = document.querySelectorAll('.error-message');
-    errorSpans.forEach(span => span.textContent = '');
-}
-
-// ===== 20. MOSTRAR PERMISOS DEL ROL =====
-function mostrarPermisosRol() {
-    const rol = document.getElementById('inputRol').value;
-    const infoRol = document.getElementById('infoRol');
-    
-    if (rol === 'admin') {
-        infoRol.innerHTML = `
-            <i class="fas fa-user-shield"></i>
-            <div>
-                <strong>Permisos de Administrador</strong>
-                <p>Acceso completo al sistema:</p>
-                <ul>
-                    <li>Gestionar productos y categorías</li>
-                    <li>Realizar y consultar ventas</li>
-                    <li>Ver reportes y exportar datos</li>
-                    <li>Administrar usuarios del sistema</li>
-                </ul>
-            </div>
-        `;
-    } else if (rol === 'empleado') {
-        infoRol.innerHTML = `
-            <i class="fas fa-user-tag"></i>
-            <div>
-                <strong>Permisos de Empleado</strong>
-                <p>Acceso limitado al sistema:</p>
-                <ul>
-                    <li>Realizar ventas</li>
-                    <li>Consultar productos</li>
-                    <li>Ver reportes de ventas</li>
-                    <li>No puede modificar productos ni usuarios</li>
-                </ul>
-            </div>
-        `;
-        infoRol.classList.remove('warning');
-    } else {
-        infoRol.innerHTML = `
-            <i class="fas fa-info-circle"></i>
-            <div>
-                <strong>Selecciona un rol para ver los permisos</strong>
-            </div>
-        `;
+function editarUsuarioHandler(id) {
+    if (currentUser.role !== 'admin') {
+        alert('⚠️ Solo los administradores pueden editar usuarios');
+        return;
     }
+    const usuario = todosLosUsuarios.find(u => u.id === id);
+    if (!usuario) return alert('Usuario no encontrado');
+
+    modoEdicion = true;
+    usuarioEditandoId = id;
+    UsuarioUI.openUserModal(true, usuario);
 }
 
-// ===== 21. TOGGLE PASSWORD VISIBILITY =====
-function togglePasswordVisibility() {
-    const passwordInput = document.getElementById('inputPassword');
-    const btnToggle = document.getElementById('btnTogglePassword');
-    const icon = btnToggle.querySelector('i');
-    
-    if (passwordInput.type === 'password') {
-        passwordInput.type = 'text';
-        icon.classList.remove('fa-eye');
-        icon.classList.add('fa-eye-slash');
-    } else {
-        passwordInput.type = 'password';
-        icon.classList.remove('fa-eye-slash');
-        icon.classList.add('fa-eye');
-    }
-}
-
-// ===== 22. ABRIR MODAL CAMBIAR CONTRASEÑA =====
-function abrirModalPassword(id) {
-    // console.log('🔑 Abriendo modal de contraseña para usuario:', id);
-    
-    // Verificar permisos de admin
+function abrirModalPasswordHandler(id) {
     if (currentUser.role !== 'admin') {
         alert('⚠️ Solo los administradores pueden cambiar contraseñas');
         return;
     }
-    
     usuarioEditandoId = id;
-    
-    // Limpiar formulario
-    document.getElementById('passwordForm').reset();
-    limpiarErroresPassword();
-    
-    // Mostrar modal
-    document.getElementById('passwordModal').classList.add('active');
+    UsuarioUI.openPasswordModal();
 }
 
-// ===== 23. CERRAR MODAL PASSWORD =====
-function cerrarPasswordModal() {
-    // console.log('❌ Cerrando modal de contraseña');
-    document.getElementById('passwordModal').classList.remove('active');
-    usuarioEditandoId = null;
-}
-
-// ===== 24. CAMBIAR CONTRASEÑA =====
 async function cambiarPassword(event) {
     event.preventDefault();
-    // console.log('🔑 Cambiando contraseña...');
-    
     const newPassword = document.getElementById('inputNewPassword').value;
     const confirmPassword = document.getElementById('inputConfirmNewPassword').value;
-    
-    // Limpiar errores
-    limpiarErroresPassword();
-    
-    // Validar
+    UsuarioUI.clearPasswordErrors();
+
     if (newPassword.length < 6) {
         document.getElementById('errorNewPassword').textContent = 'Mínimo 6 caracteres';
         return;
     }
-    
     if (newPassword !== confirmPassword) {
         document.getElementById('errorConfirmNewPassword').textContent = 'Las contraseñas no coinciden';
         return;
     }
-    
-    const btnGuardar = document.getElementById('btnGuardarPassword');
-    const textoOriginal = btnGuardar.innerHTML;
-    btnGuardar.disabled = true;
-    btnGuardar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cambiando...';
-    
+
+    UsuarioUI.setLoading('btnGuardarPassword', true, 'Cambiando...', 'Cambiar');
+
     try {
-        // Obtener el usuario actual de Firebase Authentication
-        const user = firebaseAuth.currentUser;
-        
-        if (!user) {
-            alert('❌ Debes estar autenticado para cambiar la contraseña');
-            return;
-        }
-        
-        // Verificar si está cambiando su propia contraseña
+        const user = auth.currentUser;
         if (user.uid === usuarioEditandoId) {
-            // Cambiar su propia contraseña - requiere re-autenticación reciente
             try {
-                await user.updatePassword(newPassword);
-                
-                // Actualizar timestamp en Firestore
-                await firebaseDB.collection('users').doc(usuarioEditandoId).update({
-                    password_updated_at: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                
-                // console.log('✅ Tu contraseña ha sido actualizada');
+                await UsuarioService.updateOwnPassword(newPassword);
                 alert('✅ Tu contraseña ha sido actualizada correctamente');
-                
-                cerrarPasswordModal();
-                
+                UsuarioUI.closePasswordModal();
             } catch (updateError) {
-                // Si requiere re-autenticación
                 if (updateError.code === 'auth/requires-recent-login') {
-                    // console.log('⚠️ Se requiere re-autenticación reciente');
-                    
-                    // Solicitar contraseña actual
                     const passwordActual = prompt('🔐 Por seguridad, ingresa tu contraseña actual:');
-                    
-                    if (!passwordActual) {
-                        alert('❌ Operación cancelada');
-                        return;
-                    }
-                    
-                    try {
-                        // Re-autenticar
-                        const credential = firebase.auth.EmailAuthProvider.credential(
-                            user.email,
-                            passwordActual
-                        );
-                        await user.reauthenticateWithCredential(credential);
-                        
-                        // console.log('✅ Re-autenticación exitosa');
-                        
-                        // Intentar cambiar contraseña nuevamente
-                        await user.updatePassword(newPassword);
-                        
-                        // Actualizar timestamp en Firestore
-                        await firebaseDB.collection('users').doc(usuarioEditandoId).update({
-                            password_updated_at: firebase.firestore.FieldValue.serverTimestamp()
-                        });
-                        
-                        // console.log('✅ Tu contraseña ha sido actualizada');
-                        alert('✅ Tu contraseña ha sido actualizada correctamente');
-                        
-                        cerrarPasswordModal();
-                        
-                    } catch (reauthError) {
-                        // console.error('❌ Error en re-autenticación:', reauthError);
-                        
-                        if (reauthError.code === 'auth/wrong-password') {
-                            alert('❌ Contraseña actual incorrecta');
-                        } else {
-                            alert('❌ Error al verificar tu identidad. Intenta cerrar sesión e iniciar sesión nuevamente.');
-                        }
-                    }
+                    if (!passwordActual) return;
+                    await UsuarioService.reauthenticateAndChangePassword(passwordActual, newPassword);
+                    alert('✅ Tu contraseña ha sido actualizada correctamente');
+                    UsuarioUI.closePasswordModal();
                 } else {
                     throw updateError;
                 }
             }
-            
         } else {
-            // Admin cambiando contraseña de otro usuario
             const usuarioACambiar = todosLosUsuarios.find(u => u.id === usuarioEditandoId);
-            const nombreUsuario = usuarioACambiar ? usuarioACambiar.name || usuarioACambiar.email : 'el usuario';
-            const emailUsuario = usuarioACambiar.email;
-            
-            const confirmar = confirm(`📧 ENVIAR ENLACE DE RECUPERACIÓN\n\n` +
-                  `Para cambiar la contraseña de ${nombreUsuario}, el sistema enviará un correo electrónico de recuperación.\n\n` +
-                  `El usuario recibirá un enlace en su correo para crear una nueva contraseña de forma segura.\n\n` +
-                  `¿Deseas enviar el correo de recuperación?`);
-            
+            if (!usuarioACambiar) return;
+            const confirmar = confirm(`¿Deseas enviar el correo de recuperación a ${usuarioACambiar.email}?`);
             if (!confirmar) {
-                cerrarPasswordModal();
+                UsuarioUI.closePasswordModal();
                 return;
             }
-            
-            // Enviar correo de recuperación
-            await firebaseAuth.sendPasswordResetEmail(emailUsuario);
-            
-            // console.log('✅ Correo de recuperación enviado a:', emailUsuario);
-            alert(`✅ Correo de recuperación enviado a:\n${emailUsuario}\n\nEl usuario debe revisar su bandeja de entrada.`);
-            
-            cerrarPasswordModal();
+            await UsuarioService.sendPasswordResetEmail(usuarioACambiar.email);
+            alert(`✅ Correo de recuperación enviado a:\n${usuarioACambiar.email}`);
+            UsuarioUI.closePasswordModal();
         }
-        
     } catch (error) {
-        // console.error('❌ Error al cambiar contraseña:', error);
-        
-        let errorMessage = 'Error al cambiar la contraseña';
-        
-        if (error.code === 'auth/weak-password') {
-            errorMessage = 'La contraseña es muy débil';
-        } else if (error.code === 'auth/network-request-failed') {
-            errorMessage = 'Error de conexión. Verifica tu internet.';
-        }
-        
-        alert('❌ ' + errorMessage);
-        
+        console.error('Error al cambiar contraseña:', error);
+        alert('❌ Error al cambiar la contraseña.');
     } finally {
-        btnGuardar.disabled = false;
-        btnGuardar.innerHTML = textoOriginal;
+        UsuarioUI.setLoading('btnGuardarPassword', false, '', 'Cambiar Contraseña');
     }
 }
 
-// ===== 25. LIMPIAR ERRORES PASSWORD =====
-function limpiarErroresPassword() {
-    document.getElementById('errorNewPassword').textContent = '';
-    document.getElementById('errorConfirmNewPassword').textContent = '';
-}
-
-// ===== 26. ELIMINAR USUARIO =====
-async function eliminarUsuario(id, nombre) {
-    // console.log('🗑️ Intentando eliminar usuario:', id, nombre);
-    
-    // Verificar permisos de admin
+async function eliminarUsuarioHandler(id, nombre) {
     if (currentUser.role !== 'admin') {
         alert('⚠️ Solo los administradores pueden eliminar usuarios');
         return;
     }
-    
-    // No permitir eliminar al usuario actual
     if (id === currentUser.uid) {
         alert('⚠️ No puedes eliminar tu propia cuenta');
         return;
     }
-    
-    const confirmar = confirm(`¿Estás seguro de eliminar al usuario:\n\n"${nombre}"?\n\n⚠️ Esta acción no se puede deshacer.`);
-    
-    if (!confirmar) {
-        return;
-    }
-    
-    try {
-        // Eliminar de Firestore
-        await firebaseDB.collection('users').doc(id).delete();
-        // console.log('✅ Usuario eliminado de Firestore:', id);
-        
-        alert(`✅ Usuario "${nombre}" eliminado correctamente.\n\n⚠️ Nota: La cuenta de Authentication debe eliminarse manualmente desde la consola de Firebase.`);
-        
-        // Recargar usuarios
-        await cargarUsuarios();
-        
-    } catch (error) {
-        // console.error('❌ Error al eliminar usuario:', error);
-        alert('❌ Error al eliminar el usuario. Verifica tus permisos.');
+
+    if (confirm(`¿Estás seguro de eliminar al usuario:\n\n"${nombre}"?\n\n⚠️ Esta acción no se puede deshacer.`)) {
+        try {
+            await UsuarioService.delete(id);
+            alert(`✅ Usuario "${nombre}" eliminado correctamente.`);
+            await cargarUsuarios();
+        } catch (error) {
+            console.error('Error al eliminar:', error);
+            alert('❌ Error al eliminar el usuario.');
+        }
     }
 }
-
-// ===== 27. FORMAT DATE =====
-function formatDate(date) {
-    if (!date) return 'N/A';
-    
-    const options = { 
-        year: 'numeric', 
-        month: 'short', 
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-    };
-    
-    return date.toLocaleDateString('es-ES', options);
-}
-
-// console.log('✅ Usuarios.js completamente cargado');

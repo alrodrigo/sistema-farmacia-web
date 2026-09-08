@@ -12,4 +12,5 @@
   - *Opción B (Contadores Atómicos):* Incrementar o decrementar el contador en tiempo real con `FieldValue.increment()` desde `productos.js` al crear, editar o eliminar productos.
 
 -[ ] **Buscador en categorias, en proveedores, filtros**
+-[ ] **Reformar la estructura de usuarios tanto para las opciones o para la creacion**
 
