@@ -126,23 +126,24 @@
   color: white;
   border: none;
   border-radius: var(--radius-md);
-  font-size: 20px;
+  font-size: 18px;
   cursor: pointer;
   transition: var(--transition-smooth);
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 58px;
+  width: 54px;
   height: 52px;
   padding: 0;
   box-shadow: 0 4px 12px rgba(13, 60, 97, 0.25);
   user-select: none;
+  position: relative;
 }
 
 .btn-search:hover {
   background: var(--primary-light);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
   box-shadow: 0 6px 18px rgba(13, 60, 97, 0.35);
 }
 
@@ -150,18 +151,22 @@
   transform: scale(0.96);
 }
 
+/* Forzar que el icono no sea afectado por estilos absolutos de search-box */
+.search-box .btn-search i,
 .btn-search i {
+  position: static !important;
+  transform: none !important;
+  top: auto !important;
+  left: auto !important;
+  color: #ffffff !important;
+  font-size: 18px !important;
+  pointer-events: auto !important;
   margin: 0;
   padding: 0;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   line-height: 1;
-}
-
-.btn-search:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
 }
 
 .search-tips {
