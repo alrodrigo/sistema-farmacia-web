@@ -111,32 +111,43 @@
   border: 2px solid var(--border-color);
   border-radius: 10px;
   font-size: 16px;
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--font-family);
   transition: all 0.3s ease;
 }
 
 .search-box input:focus {
   outline: none;
-  border-color: var(--primary-color, #667eea);
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(13, 60, 97, 0.12);
 }
 
 .btn-search {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
   color: white;
   border: none;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   font-size: 20px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: var(--transition-smooth);
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 64px;
-  height: 54px;
+  width: 58px;
+  height: 52px;
   padding: 0;
-  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(13, 60, 97, 0.25);
+  user-select: none;
+}
+
+.btn-search:hover {
+  background: var(--primary-light);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(13, 60, 97, 0.35);
+}
+
+.btn-search:active {
+  transform: scale(0.96);
 }
 
 .btn-search i {
@@ -739,43 +750,52 @@
 .btn-cancel,
 .btn-process {
   flex: 1;
-  padding: 16px 20px;
+  padding: 14px 20px;
   border: none;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: var(--transition-smooth);
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--font-family);
+  user-select: none;
 }
 
 .btn-cancel {
-  background: var(--bg-secondary);
-  color: #374151;
+  background: #ffffff;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
 }
 
 .btn-cancel:hover {
-  background: var(--border-light);
-  transform: translateY(-2px);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  transform: translateY(-1px);
+}
+
+.btn-cancel:active,
+.btn-process:active:not(:disabled) {
+  transform: scale(0.98);
 }
 
 .btn-process {
   background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   color: white;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
 }
 
 .btn-process:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(16, 185, 129, 0.35);
 }
 
 .btn-process:disabled {
-  background: var(--text-light);
+  background: #e2e8f0;
+  color: #94a3b8;
   cursor: not-allowed;
   transform: none;
   box-shadow: none;

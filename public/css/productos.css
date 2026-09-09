@@ -13,9 +13,34 @@
     border-bottom: 2px solid var(--border-color);
 }
 
-/* Variación con gradiente para botón de productos */
+/* Botón de nuevo producto */
+#btnNuevoProducto,
 .content-header .btn-primary {
-    background: linear-gradient(135deg, var(--primary-color) 0%, #764ba2 100%);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.4rem;
+    background: var(--primary-color);
+    color: #ffffff !important;
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(13, 60, 97, 0.2);
+    transition: var(--transition-smooth);
+}
+
+#btnNuevoProducto:hover,
+.content-header .btn-primary:hover {
+    background: var(--primary-light);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(13, 60, 97, 0.3);
+}
+
+#btnNuevoProducto:active,
+.content-header .btn-primary:active {
+    transform: scale(0.98);
 }
 
 .search-box {
@@ -767,7 +792,7 @@
     border: 2px solid var(--border-color);
     border-radius: 8px;
     font-size: 15px;
-    font-family: 'Poppins', sans-serif;
+    font-family: var(--font-family);
     transition: all 0.3s ease;
     background: white;
 }
@@ -775,7 +800,7 @@
 .form-control:focus {
     outline: none;
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    box-shadow: 0 0 0 3px rgba(13, 60, 97, 0.12);
 }
 
 .form-control::placeholder {
@@ -832,28 +857,38 @@ textarea.form-control {
     align-items: center;
     gap: 8px;
     transition: all 0.3s ease;
-    font-family: 'Poppins', sans-serif;
+    font-family: var(--font-family);
+    border-radius: var(--radius-md);
+    user-select: none;
 }
 
 .btn-secondary {
-    background: var(--border-color);
-    color: var(--text-primary);
+    background: #ffffff;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
 }
 
 .btn-secondary:hover {
-    background: #d0d0d0;
-    transform: translateY(-2px);
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    transform: translateY(-1px);
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, var(--primary-color) 0%, #764ba2 100%);
+    background: var(--primary-color);
     color: white;
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 4px 12px rgba(13, 60, 97, 0.25);
 }
 
 .btn-primary:hover {
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-    transform: translateY(-2px);
+    background: var(--primary-light);
+    box-shadow: 0 6px 18px rgba(13, 60, 97, 0.35);
+    transform: translateY(-1px);
+}
+
+.btn-primary:active,
+.btn-secondary:active {
+    transform: scale(0.98);
 }
 
 .btn:disabled {

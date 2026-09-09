@@ -322,7 +322,14 @@ body.show-admin-options .admin-only {
 }
 
 .content-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 2rem;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid var(--border-soft);
 }
 
 .content-header h1 {

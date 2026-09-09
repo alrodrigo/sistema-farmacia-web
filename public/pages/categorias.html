@@ -15,15 +15,15 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- Sistema de Diseño Base -->
-    <link rel="stylesheet" href="../css/theme.css?v=4.0.1788985719">
-    <link rel="stylesheet" href="../css/components.css?v=4.0.1788985719">
-    <link rel="stylesheet" href="../css/layout.css?v=4.0.1788985719">
+    <link rel="stylesheet" href="../css/theme.css?v=4.0.1788986539">
+    <link rel="stylesheet" href="../css/components.css?v=4.0.1788986539">
+    <link rel="stylesheet" href="../css/layout.css?v=4.0.1788986539">
 
     <!-- CSS -->
-    <link rel="stylesheet" href="../css/categorias.css?v=4.0.1788985719">
+    <link rel="stylesheet" href="../css/categorias.css?v=4.0.1788986539">
 
     <!-- Responsive (DEBE IR AL FINAL) -->
-    <link rel="stylesheet" href="../css/responsive.css?v=4.0.1788985719">
+    <link rel="stylesheet" href="../css/responsive.css?v=4.0.1788986539">
 </head>
 
 <body>
@@ -44,7 +44,7 @@
                     <h1><i class="fas fa-tags"></i> Gestión de Categorías</h1>
                     <p>Organiza tus productos por categorías</p>
                 </div>
-                <button class="btn-primary" id="btnNuevaCategoria">
+                <button class="btn btn-primary" id="btnNuevaCategoria">
                     <i class="fas fa-plus"></i>
                     <span>Nueva Categoría</span>
                 </button>
@@ -91,11 +91,11 @@
                 <i class="fas fa-tags"></i>
                 <h3>No hay categorías</h3>
                 <p>Comienza creando tu primera categoría para organizar tus productos</p>
-                <button class="btn-primary" onclick="document.getElementById('btnNuevaCategoria').click()">
+                <button class="btn btn-primary" onclick="document.getElementById('btnNuevaCategoria').click()">
                     <i class="fas fa-plus"></i>
                     <span>Crear Primera Categoría</span>
                 </button>
-                <button class="btn-secondary" onclick="crearCategoriasPredefinidas()" style="margin-left: 10px;">
+                <button class="btn btn-secondary" onclick="crearCategoriasPredefinidas()" style="margin-left: 10px;">
                     <i class="fas fa-magic"></i>
                     <span>Crear Categorías Predefinidas</span>
                 </button>
@@ -185,11 +185,11 @@
                 <input type="hidden" id="categoriaId" name="categoriaId">
 
                 <div class="modal-actions">
-                    <button type="button" class="btn-secondary" id="btnCancelar">
+                    <button type="button" class="btn btn-secondary" id="btnCancelar">
                         <i class="fas fa-times"></i>
                         Cancelar
                     </button>
-                    <button type="submit" class="btn-primary" id="btnGuardar">
+                    <button type="submit" class="btn btn-primary" id="btnGuardar">
                         <i class="fas fa-save"></i>
                         Guardar Categoría
                     </button>
@@ -204,15 +204,15 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
     <!-- Configuración e inicialización del proyecto dev -->
-    <script src="../js/config/firebase.js?v=4.0.1788985719"></script>
-    <script src="../js/utils/helpers.js?v=4.0.1788985719"></script>
-    <script src="../js/utils/roles.js?v=4.0.1788985719"></script>
+    <script src="../js/config/firebase.js?v=4.0.1788986539"></script>
+    <script src="../js/utils/helpers.js?v=4.0.1788986539"></script>
+    <script src="../js/utils/roles.js?v=4.0.1788986539"></script>
 
     <!-- Controlador Modular de Categorías -->
-    <script type="module" src="../js/controllers/categorias.js?v=4.0.1788985719"></script>
+    <script type="module" src="../js/controllers/categorias.js?v=4.0.1788986539"></script>
 
     <!-- Service Worker -->
-    <script src="../js/sw-register.js?v=4.0.1788985719"></script>
+    <script src="../js/sw-register.js?v=4.0.1788986539"></script>
 </body>
 
 </html>

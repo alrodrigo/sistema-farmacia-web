@@ -3,8 +3,18 @@
    Botones, Inputs, Tablas, Badges, Modales
    ========================================================= */
 
-/* ===== BOTONES ===== */
-.btn {
+/* ===== BOTONES BASE ===== */
+.btn,
+.btn-primary,
+.btn-secondary,
+.btn-success,
+.btn-danger,
+.btn-warning,
+.btn-outline,
+.content-header button:not(.menu-toggle):not(.btn-icon),
+.page-actions button:not(.btn-icon),
+.modal-actions button:not(.modal-close),
+.modal-footer button:not(.modal-close) {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -13,7 +23,8 @@
     font-family: var(--font-family);
     font-size: var(--font-sm);
     font-weight: 600;
-    border: none;
+    border: 1px solid transparent;
+    outline: none;
     border-radius: var(--radius-md);
     cursor: pointer;
     transition: var(--transition-smooth);
@@ -21,65 +32,110 @@
     white-space: nowrap;
     box-shadow: var(--shadow-xs);
     user-select: none;
+    line-height: 1.4;
+    vertical-align: middle;
 }
 
-.btn:hover {
+.btn:hover,
+.btn-primary:hover,
+.btn-secondary:hover,
+.btn-success:hover,
+.btn-danger:hover,
+.btn-warning:hover,
+.btn-outline:hover,
+.content-header button:not(.menu-toggle):not(.btn-icon):hover,
+.page-actions button:not(.btn-icon):hover,
+.modal-actions button:not(.modal-close):hover,
+.modal-footer button:not(.modal-close):hover {
     transform: translateY(-1px);
     box-shadow: var(--shadow-md);
 }
 
-.btn:active {
+.btn:active,
+.btn-primary:active,
+.btn-secondary:active,
+.btn-success:active,
+.btn-danger:active,
+.btn-warning:active,
+.btn-outline:active,
+.content-header button:not(.menu-toggle):not(.btn-icon):active,
+.page-actions button:not(.btn-icon):active,
+.modal-actions button:not(.modal-close):active,
+.modal-footer button:not(.modal-close):active {
     transform: scale(0.98);
 }
 
 /* Botón primario */
-.btn-primary {
+.btn-primary,
+.content-header button.btn-primary,
+.modal-actions button.btn-primary,
+.modal-footer button.btn-primary {
     background: var(--primary-color);
-    color: var(--text-white);
+    color: var(--text-white) !important;
+    border-color: var(--primary-color);
 }
 
-.btn-primary:hover {
+.btn-primary:hover,
+.content-header button.btn-primary:hover,
+.modal-actions button.btn-primary:hover,
+.modal-footer button.btn-primary:hover {
     background: var(--primary-light);
+    border-color: var(--primary-light);
 }
 
 /* Botón secundario */
-.btn-secondary {
-    background: var(--secondary-color);
-    color: var(--text-white);
+.btn-secondary,
+.content-header button.btn-secondary,
+.modal-actions button.btn-secondary,
+.modal-footer button.btn-secondary {
+    background: #ffffff;
+    color: var(--text-secondary) !important;
+    border: 1px solid var(--border-color);
 }
 
-.btn-secondary:hover {
-    background: var(--secondary-dark);
+.btn-secondary:hover,
+.content-header button.btn-secondary:hover,
+.modal-actions button.btn-secondary:hover,
+.modal-footer button.btn-secondary:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary) !important;
+    border-color: var(--border-dark);
 }
 
 /* Botón de éxito */
 .btn-success {
     background: var(--success-color);
-    color: var(--text-white);
+    color: var(--text-white) !important;
+    border-color: var(--success-color);
 }
 
 .btn-success:hover {
     background: var(--success-dark);
+    border-color: var(--success-dark);
 }
 
 /* Botón de peligro */
 .btn-danger {
     background: var(--error-color);
-    color: var(--text-white);
+    color: var(--text-white) !important;
+    border-color: var(--error-color);
 }
 
 .btn-danger:hover {
     background: var(--error-dark);
+    border-color: var(--error-dark);
 }
 
 /* Botón de advertencia */
 .btn-warning {
     background: var(--warning-color);
-    color: var(--text-white);
+    color: var(--text-white) !important;
+    border-color: var(--warning-color);
 }
 
 .btn-warning:hover {
     background: var(--warning-dark);
+    border-color: var(--warning-dark);
 }
 
 /* Botón outline */

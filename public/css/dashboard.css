@@ -197,7 +197,12 @@
     border-radius: 12px;
     cursor: pointer;
     transition: all 0.3s ease;
-    font-family: 'Poppins', sans-serif;
+    font-family: var(--font-family);
+    user-select: none;
+}
+
+.action-btn:active {
+    transform: scale(0.98);
 }
 
 .action-btn i {
