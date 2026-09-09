@@ -1,31 +1,31 @@
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Punto de Venta - Sistema Farmacia</title>
 
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Punto de Venta - Sistema Farmacia</title>
-    
-    <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="favicon.svg">
-    
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Sistema de Diseño Base -->
-    <link rel="stylesheet" href="css/theme.css?v=4.0.1778693357">
-    <link rel="stylesheet" href="css/components.css?v=4.0.1778693357">
-    <link rel="stylesheet" href="css/layout.css?v=4.0.1778693357">
-    
-    <!-- CSS -->
-    <link rel="stylesheet" href="css/ventas.css?v=4.0.1778693357">
-    <link rel="stylesheet" href="css/print.css?v=4.0.1778693357">
-    
-    <!-- Responsive (DEBE IR AL FINAL) -->
-    <link rel="stylesheet" href="css/responsive.css?v=4.0.1778693357">
+<!-- Favicon -->
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<!-- Sistema de Diseño Base -->
+<link rel="stylesheet" href="css/theme.css?v=4.0.1778693357">
+<link rel="stylesheet" href="css/components.css?v=4.0.1778693357">
+<link rel="stylesheet" href="css/layout.css?v=4.0.1778693357">
+
+<!-- CSS -->
+<link rel="stylesheet" href="css/ventas.css?v=4.0.1778693357">
+<link rel="stylesheet" href="css/print.css?v=4.0.1778693357">
+
+<!-- Responsive (DEBE IR AL FINAL) -->
+<link rel="stylesheet" href="css/responsive.css?v=4.0.1778693357">
 </head>
+
 <body>
     <!-- ==================== NAVBAR SUPERIOR ==================== -->
     <nav class="navbar">
@@ -38,7 +38,7 @@
                 <span class="logo-text">ServiSalud</span>
             </div>
         </div>
-        
+
         <div class="navbar-right">
             <div class="user-menu">
                 <div class="user-avatar">
@@ -54,7 +54,7 @@
 
     <!-- ==================== CONTENEDOR PRINCIPAL ==================== -->
     <div class="main-container">
-        
+
         <!-- ==================== SIDEBAR (Menú lateral) ==================== -->
         <aside class="sidebar" id="sidebar">
             <nav class="sidebar-nav">
@@ -105,20 +105,16 @@
 
             <!-- Layout de 2 columnas: Búsqueda + Carrito -->
             <div class="pos-layout">
-                
+
                 <!-- ===== COLUMNA IZQUIERDA: Búsqueda de productos ===== -->
                 <div class="pos-left">
-                    
+
                     <!-- Búsqueda -->
                     <div class="search-section">
                         <h3>Buscar Producto</h3>
                         <div class="search-box">
-                            <input 
-                                type="text" 
-                                id="searchProductInput" 
-                                placeholder="Buscar por nombre, SKU o descripción..."
-                                autofocus
-                            >
+                            <input type="text" id="searchProductInput"
+                                placeholder="Buscar por nombre, SKU o descripción..." autofocus>
                             <button class="btn-search" id="btnSearch">
                                 <i class="fas fa-search"></i>
                             </button>
@@ -134,7 +130,7 @@
                             <h3><i class="fas fa-box-open"></i> Productos Disponibles</h3>
                             <span class="results-count" id="resultsCount">0 productos</span>
                         </div>
-                        
+
                         <div class="results-container" id="searchResults">
                             <!-- Mensaje inicial -->
                             <div class="empty-results">
@@ -147,7 +143,7 @@
 
                 <!-- ===== COLUMNA DERECHA: Carrito y total ===== -->
                 <div class="pos-right">
-                    
+
                     <!-- Carrito de compra -->
                     <div class="cart-section">
                         <div class="cart-header">
@@ -180,7 +176,7 @@
                                 <span>Subtotal:</span>
                                 <strong id="subtotal">Bs. 0.00</strong>
                             </div>
-                            
+
                             <!-- Descuento -->
                             <div class="discount-section">
                                 <label>
@@ -194,17 +190,17 @@
                                     </select>
                                 </div>
                             </div>
-                            
+
                             <div class="summary-row" id="discountRow" style="display: none;">
                                 <span>Descuento:</span>
                                 <strong id="discountAmount" class="text-success">- Bs. 0.00</strong>
                             </div>
-                            
+
                             <div class="summary-row total-row">
                                 <span>TOTAL A PAGAR:</span>
                                 <strong id="total">Bs. 0.00</strong>
                             </div>
-                            
+
                             <!-- Método de pago -->
                             <div class="payment-section">
                                 <label for="paymentMethod">
@@ -216,7 +212,7 @@
                                     <option value="transfer">Transferencia</option>
                                 </select>
                             </div>
-                            
+
                             <!-- Monto recibido (solo para efectivo) -->
                             <div class="amount-section" id="amountSection">
                                 <label for="amountReceived">
@@ -224,7 +220,7 @@
                                 </label>
                                 <input type="number" id="amountReceived" placeholder="0.00" min="0" step="0.01">
                             </div>
-                            
+
                             <!-- Cambio -->
                             <div class="summary-row change-row" id="changeRow" style="display: none;">
                                 <span>Cambio:</span>
@@ -324,9 +320,10 @@
     <script src="js/utils/roles.js?v=4.0.1778693357"></script>
 
     <!-- Scripts de Ventas -->
-    <script src="js/ventas.js?v=4.0.1778693357"></script>
-    
+    <script type="module" src="js/ventas.js?v=4.0.1778693357"></script>
+
     <!-- Service Worker para actualización automática -->
     <script src="js/sw-register.js?v=4.0.1778693357"></script>
 </body>
+
 </html>
