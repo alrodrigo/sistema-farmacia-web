@@ -352,6 +352,11 @@ body.show-admin-options .admin-only {
     margin: 0;
 }
 
+.content-header > h1 + p {
+    flex-basis: 100%;
+    margin-top: -0.75rem;
+}
+
 /* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
     .navbar {
