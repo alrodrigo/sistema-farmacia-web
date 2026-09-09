@@ -208,21 +208,22 @@
     min-height: 100px;
 }
 
-/* Input con icono */
+/* Input con icono a la izquierda */
 .input-with-icon {
     position: relative;
 }
 
-.input-with-icon input {
-    padding-left: 2.75rem;
-}
-
-.input-with-icon i {
+.input-with-icon > i:first-child {
     position: absolute;
     left: 1rem;
     top: 50%;
     transform: translateY(-50%);
     color: var(--text-light);
+    pointer-events: none;
+}
+
+.input-with-icon > i:first-child + input {
+    padding-left: 2.75rem;
 }
 
 /* ===== TARJETAS (CARDS) ===== */

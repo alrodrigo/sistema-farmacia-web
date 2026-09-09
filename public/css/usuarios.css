@@ -767,32 +767,58 @@ select.form-control {
     color: var(--primary-color);
 }
 
-/* ===== INPUT CON ICONO ===== */
+/* ===== INPUT CON ICONO / PASSWORD TOGGLE ===== */
 .input-with-icon {
     position: relative;
     display: flex;
     align-items: center;
+    width: 100%;
 }
 
 .input-with-icon .form-control {
-    padding-right: 3rem;
+    padding-left: 0.95rem !important; /* Mismo padding horizontal que Confirmar Contraseña */
+    padding-right: 2.75rem !important; /* Espacio para el boton del ojo */
+}
+
+/* Ocultar el icono nativo de Edge/IE para que no se superponga */
+.input-with-icon input[type="password"]::-ms-reveal,
+.input-with-icon input[type="password"]::-ms-clear {
+    display: none;
 }
 
 .btn-icon-small {
     position: absolute;
-    right: 0.75rem;
-    background: none;
+    right: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
     border: none;
-    color: var(--text-light);
+    color: #64748b;
     cursor: pointer;
-    padding: 0.5rem;
-    border-radius: 4px;
-    transition: all 0.2s;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    z-index: 2;
 }
 
 .btn-icon-small:hover {
-    color: var(--primary-color);
-    background: rgba(79, 70, 229, 0.1);
+    color: var(--primary-color, #0D3C61);
+    background: #f1f5f9;
+}
+
+.btn-icon-small i {
+    position: static !important;
+    transform: none !important;
+    top: auto !important;
+    left: auto !important;
+    color: inherit !important;
+    font-size: 14px !important;
+    pointer-events: auto !important;
 }
 
 /* ===== ERROR MESSAGES ===== */
