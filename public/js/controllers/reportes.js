@@ -1,58 +1,42 @@
-// public/js/reportes.js
-import { ReportesService } from './services/reportes.service.js';
-import { ReportesUI } from './ui/reportes.ui.js';
+// public/js/controllers/reportes.js
+import { ReportesService } from '../services/reportes.service.js';
+import { ReportesUI } from '../ui/reportes.ui.js';
+import { AuthGuard } from '../middleware/auth.guard.js';
+import { Toast } from '../utils/toast.js';
+import { ConfirmDialog } from '../utils/confirm.js';
 
 let currentUser = null;
 let currentUserData = null;
 let allSales = [];
 let filteredSales = [];
 
-const auth = window.firebaseAuth;
-const db = window.firebaseDB;
-
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     ReportesUI.setFechasPorDefecto();
 
-    auth.onAuthStateChanged(async (user) => {
-        if (user) {
-            currentUser = user;
-            try {
-                const userDoc = await db.collection('users').doc(user.uid).get();
-                if (userDoc.exists) {
-                    currentUserData = { uid: user.uid, ...userDoc.data() };
+    try {
+        currentUserData = await AuthGuard.protect();
+        currentUser = currentUserData;
 
-                    const userName = currentUserData.name || currentUserData.nombre || currentUserData.email?.split('@')[0] || 'Usuario';
-                    const roleText = currentUserData.role === 'admin' ? 'Administrador' : 'Empleado';
-                    ReportesUI.actualizarUsuario(userName, roleText);
-
-                    if (typeof window.aplicarRestriccionesMenu === 'function') {
-                        window.aplicarRestriccionesMenu(currentUserData);
-                    }
-
-                    setupEventListeners();
-                    const vendedores = await ReportesService.getVendedores();
-                    ReportesUI.llenarSelectVendedores(vendedores);
-                    await cargarVentas();
-                } else {
-                    auth.signOut().then(() => window.location.href = 'index.html');
-                }
-            } catch (error) {
-                auth.signOut().then(() => window.location.href = 'index.html');
-            }
-        } else {
-            window.location.href = 'index.html';
-        }
-    });
+        setupEventListeners();
+        const vendedores = await ReportesService.getVendedores();
+        ReportesUI.llenarSelectVendedores(vendedores);
+        await cargarVentas();
+    } catch (error) {
+        console.warn("Ejecución detenida por AuthGuard:", error);
+    }
 });
 
 function setupEventListeners() {
+    document.getElementById('btnLogout')?.addEventListener('click', () => AuthGuard.logout());
+
     document.getElementById('menuToggle')?.addEventListener('click', (e) => {
         e.stopPropagation();
         document.getElementById('sidebar')?.classList.toggle('active');
     });
 
-    document.querySelector('.user-menu')?.addEventListener('click', () => {
-        if (confirm('¿Deseas cerrar sesión?')) auth.signOut().then(() => window.location.href = 'index.html');
+    document.querySelector('.user-menu')?.addEventListener('click', async () => {
+        const salir = await ConfirmDialog.show('Cerrar Sesión', '¿Estás seguro de que deseas salir del sistema?', 'warning', 'Cerrar Sesión');
+        if (salir) AuthGuard.logout();
     });
 
     document.getElementById('btnFiltrar')?.addEventListener('click', cargarVentas);
@@ -227,7 +211,14 @@ function imprimirTicketRespaldo(sale, saleNumber) {
 }
 
 function exportarAExcel() {
-    if (filteredSales.length === 0 || typeof XLSX === 'undefined') return alert('No hay datos o falta librería XLSX.');
+    if (filteredSales.length === 0) {
+        Toast.warning('No hay datos para exportar.');
+        return;
+    }
+    if (typeof XLSX === 'undefined') {
+        Toast.warning('La librería para exportar Excel no está cargada.');
+        return;
+    }
 
     const excelData = filteredSales.map((sale, index) => {
         const totalItems = sale.items.reduce((sum, item) => sum + (item.quantity || item.cantidad || 0), 0);
@@ -244,10 +235,18 @@ function exportarAExcel() {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(excelData), 'Ventas Detalladas');
     XLSX.writeFile(wb, `Reporte_Ventas_${document.getElementById('fechaInicio').value}_a_${document.getElementById('fechaFin').value}.xlsx`);
+    Toast.success('Reporte Excel generado correctamente');
 }
 
 function exportarAPDF() {
-    if (filteredSales.length === 0 || !window.jspdf) return alert('No hay datos o falta librería jsPDF.');
+    if (filteredSales.length === 0) {
+        Toast.warning('No hay datos para exportar.');
+        return;
+    }
+    if (!window.jspdf) {
+        Toast.warning('La librería para exportar PDF no está cargada.');
+        return;
+    }
 
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();

@@ -35,8 +35,8 @@ export const UsuarioUI = {
                     <button class="btn-action btn-edit" onclick="window.editarUsuario('${usuario.id}')" title="Editar">
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button class="btn-action btn-password" onclick="window.abrirModalPassword('${usuario.id}')" title="Cambiar contraseña">
-                        <i class="fas fa-key"></i>
+                    <button class="btn-action btn-password" onclick="window.enviarCorreoRecuperacion('${usuario.email}')" title="Enviar correo de recuperación">
+                        <i class="fas fa-envelope"></i>
                     </button>
                     <button class="btn-action btn-delete" onclick="window.eliminarUsuario('${usuario.id}', '${usuario.name || usuario.email}')" title="Eliminar" ${deleteDisabled}>
                         <i class="fas fa-trash"></i>
@@ -103,7 +103,7 @@ export const UsuarioUI = {
         const infoMessage = document.querySelector('.info-message span');
         if (infoMessage) {
             if (role === 'admin') {
-                infoMessage.textContent = 'Los usuarios se crean desde Firebase Console. Aquí puedes editar roles y permisos.';
+                infoMessage.textContent = 'Administra los usuarios del sistema, sus roles y accesos.';
             } else {
                 infoMessage.innerHTML = '<strong>Modo solo lectura:</strong> Solo los administradores pueden editar usuarios.';
             }
@@ -158,14 +158,12 @@ export const UsuarioUI = {
 
         const titleText = document.getElementById('modalTitleText');
         const btnText = document.getElementById('btnGuardarText');
-        const alertCreacion = document.getElementById('alertCreacionUsuario');
         const seccionPassword = document.getElementById('seccionPassword');
         const inputEmail = document.getElementById('inputEmail');
 
         if (modoEdicion) {
             titleText.innerHTML = '<i class="fas fa-user-edit"></i> Editar Usuario';
             btnText.textContent = 'Actualizar Usuario';
-            if (alertCreacion) alertCreacion.style.display = 'none';
             seccionPassword.style.display = 'none';
             document.getElementById('inputPassword').required = false;
             document.getElementById('inputConfirmPassword').required = false;
@@ -182,7 +180,6 @@ export const UsuarioUI = {
         } else {
             titleText.innerHTML = '<i class="fas fa-user-plus"></i> Nuevo Usuario';
             btnText.textContent = 'Crear Usuario';
-            if (alertCreacion) alertCreacion.style.display = 'flex';
             seccionPassword.style.display = 'block';
             document.getElementById('inputPassword').required = true;
             document.getElementById('inputConfirmPassword').required = true;
@@ -203,23 +200,8 @@ export const UsuarioUI = {
         document.body.style.overflow = 'auto';
     },
 
-    openPasswordModal() {
-        document.getElementById('passwordForm').reset();
-        this.clearPasswordErrors();
-        document.getElementById('passwordModal').classList.add('active');
-    },
-
-    closePasswordModal() {
-        document.getElementById('passwordModal').classList.remove('active');
-    },
-
     clearErrors() {
         document.querySelectorAll('.error-message').forEach(span => span.textContent = '');
-    },
-
-    clearPasswordErrors() {
-        document.getElementById('errorNewPassword').textContent = '';
-        document.getElementById('errorConfirmNewPassword').textContent = '';
     },
 
     setLoading(btnId, isLoading, textLoading, textOriginal) {

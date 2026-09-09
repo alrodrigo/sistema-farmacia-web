@@ -1,91 +1,39 @@
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Proveedores - Sistema Farmacia</title>
 
-<!-- Favicon -->
-<link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proveedores - Sistema Farmacia</title>
 
-<!-- Google Fonts -->
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="../favicon.svg">
 
-<!-- Font Awesome -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-<!-- Estilos -->
-<!-- Sistema de Diseño Base -->
-<link rel="stylesheet" href="css/theme.css?v=4.0.1778693357">
-<link rel="stylesheet" href="css/components.css?v=4.0.1778693357">
-<link rel="stylesheet" href="css/layout.css?v=4.0.1778693357">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-<link rel="stylesheet" href="css/proveedores.css?v=4.0.1778693357">
+    <!-- Sistema de Diseño Base -->
+    <link rel="stylesheet" href="../css/theme.css?v=4.0.1788984350">
+    <link rel="stylesheet" href="../css/components.css?v=4.0.1788984350">
+    <link rel="stylesheet" href="../css/layout.css?v=4.0.1788984350">
 
-<!-- Responsive (DEBE IR AL FINAL) -->
-<link rel="stylesheet" href="css/responsive.css?v=4.0.1778693357">
+    <link rel="stylesheet" href="../css/proveedores.css?v=4.0.1788984350">
+
+    <!-- Responsive (DEBE IR AL FINAL) -->
+    <link rel="stylesheet" href="../css/responsive.css?v=4.0.1788984350">
 </head>
 
 <body>
-    <!-- ==================== NAVBAR SUPERIOR ==================== -->
-    <nav class="navbar">
-        <div class="navbar-left">
-            <button class="menu-toggle" id="menuToggle">
-                <i class="fas fa-bars"></i>
-            </button>
-            <div class="logo">
-                <img src="img/logo-servisalud.png" alt="ServiSalud Logo" class="logo-image">
-                <span class="logo-text">ServiSalud</span>
-            </div>
+    <!-- ==================== NAVBAR SUPERIOR (Inyectado por LayoutUI) ==================== -->
+    <div id="navbar-container"></div>
 
-        </div>
-
-        <div class="navbar-right">
-            <div class="user-menu">
-                <div class="user-avatar">
-                    <i class="fas fa-user-circle"></i>
-                </div>
-                <div class="user-details">
-                    <span class="user-name" id="userName">Cargando...</span>
-                    <span class="user-role" id="userRole">Cargando...</span>
-                </div>
-            </div>
-        </div>
-    </nav>
-
+    <!-- ==================== CONTENEDOR PRINCIPAL ==================== -->
     <div class="main-container">
-        <!-- ==================== SIDEBAR ==================== -->
-        <aside class="sidebar">
-            <nav class="sidebar-nav">
-                <a href="dashboard.html" class="nav-item">
-                    <i class="fas fa-home"></i>
-                    <span>Dashboard</span>
-                </a>
-                <a href="ventas.html" class="nav-item">
-                    <i class="fas fa-cash-register"></i>
-                    <span>Ventas</span>
-                </a>
-                <a href="productos.html" class="nav-item">
-                    <i class="fas fa-pills"></i>
-                    <span>Productos</span>
-                </a>
-                <a href="categorias.html" class="nav-item admin-only" id="menuCategorias">
-                    <i class="fas fa-tags"></i>
-                    <span>Categorías</span>
-                </a>
-                <a href="proveedores.html" class="nav-item admin-only active">
-                    <i class="fas fa-truck"></i>
-                    <span>Proveedores</span>
-                </a>
-                <a href="usuarios.html" class="nav-item admin-only" id="menuUsuarios">
-                    <i class="fas fa-users"></i>
-                    <span>Usuarios</span>
-                </a>
-                <a href="reportes.html" class="nav-item admin-only">
-                    <i class="fas fa-chart-bar"></i>
-                    <span>Reportes</span>
-                </a>
-            </nav>
-        </aside>
+
+        <!-- ==================== SIDEBAR (Inyectado por LayoutUI) ==================== -->
+        <div id="sidebar-container"></div>
 
         <!-- ==================== CONTENIDO PRINCIPAL ==================== -->
         <main class="content">
@@ -262,17 +210,17 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
     <!-- Configuración de Firebase -->
-    <script src="js/config/firebase.js?v=4.0.1778693357"></script>
+    <script src="../js/config/firebase.js?v=4.0.1788984350"></script>
 
     <!-- Utilidades -->
-    <script src="js/utils/helpers.js?v=4.0.1778693357"></script>
-    <script src="js/utils/roles.js?v=4.0.1778693357"></script>
+    <script src="../js/utils/helpers.js?v=4.0.1788984350"></script>
+    <script src="../js/utils/roles.js?v=4.0.1788984350"></script>
 
     <!-- Script principal -->
-    <script type="module" src="js/proveedores.js?v=4.0.1778693357"></script>
+    <script type="module" src="../js/controllers/proveedores.js?v=4.0.1788984350"></script>
 
     <!-- Service Worker para actualización automática -->
-    <script src="js/sw-register.js?v=4.0.1778693357"></script>
+    <script src="../js/sw-register.js?v=4.0.1788984350"></script>
 </body>
 
 </html>

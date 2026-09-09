@@ -38,6 +38,7 @@ const db = firebase.firestore();
 auth.languageCode = 'es';
 auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(() => { });
 
+window.firebaseConfig = firebaseConfig;
 window.firebaseAuth = auth;
 window.firebaseDB = db;
 

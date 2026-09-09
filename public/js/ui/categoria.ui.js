@@ -1,4 +1,5 @@
 // public/js/ui/categoria.ui.js
+import { Toast } from '../utils/toast.js';
 
 export const CategoriaUI = {
     renderGrid(categorias, onEdit, onDelete) {
@@ -82,7 +83,7 @@ export const CategoriaUI = {
         const nombre = nombreInput.value.trim();
 
         if (!nombre || nombre.length < 2 || nombre.length > 50) {
-            alert('⚠️ El nombre es obligatorio (entre 2 y 50 caracteres).');
+            Toast.warning('El nombre es obligatorio (entre 2 y 50 caracteres).');
             nombreInput.focus();
             return null;
         }

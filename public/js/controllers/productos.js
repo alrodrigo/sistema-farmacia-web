@@ -1,6 +1,9 @@
-// public/js/productos.js
-import { ProductoService } from './services/producto.service.js';
-import { ProductoUI } from './ui/producto.ui.js';
+// public/js/controllers/productos.js
+import { ProductoService } from '../services/producto.service.js';
+import { ProductoUI } from '../ui/producto.ui.js';
+import { AuthGuard } from '../middleware/auth.guard.js';
+import { Toast } from '../utils/toast.js';
+import { ConfirmDialog } from '../utils/confirm.js';
 
 let currentUser = null;
 let todosLosProductos = [];
@@ -14,42 +17,28 @@ let proveedoresMap = {};
 let modoEdicion = false;
 let productoEditandoId = null;
 
-const auth = window.firebaseAuth;
-const db = window.firebaseDB;
-
 document.addEventListener('DOMContentLoaded', async () => {
-    auth.onAuthStateChanged(async (user) => {
-        if (user) {
-            try {
-                const userDoc = await db.collection('users').doc(user.uid).get();
-                if (userDoc.exists) {
-                    currentUser = { uid: user.uid, email: user.email, ...userDoc.data() };
+    try {
+        // 1. 🛡️ AuthGuard valida sesión y pinta el Navbar
+        currentUser = await AuthGuard.protect();
 
-                    const displayName = currentUser.name || currentUser.nombre || currentUser.email?.split('@')[0] || 'Usuario';
-                    document.getElementById('userName').textContent = displayName;
-                    document.getElementById('userRole').textContent = currentUser.role === 'admin' ? 'Administrador' : 'Empleado';
-
-                    if (currentUser.role === 'empleado') {
-                        const btnNuevo = document.querySelector('.btn-primary');
-                        if (btnNuevo && btnNuevo.textContent.includes('Nuevo Producto')) btnNuevo.style.display = 'none';
-                    }
-
-                    setupEventListeners();
-                    await cargarDatosIniciales();
-                } else {
-                    await auth.signOut();
-                    window.location.href = 'index.html';
-                }
-            } catch (error) {
-                window.location.href = 'index.html';
-            }
-        } else {
-            window.location.href = 'index.html';
+        // 2. 🎭 Vista Mixta: Ocultar botón "Nuevo Producto" a empleados
+        if (currentUser.role === 'empleado') {
+            const btnNuevo = document.getElementById('btnNuevoProducto');
+            if (btnNuevo) btnNuevo.style.display = 'none';
         }
-    });
+
+        setupEventListeners();
+        await cargarDatosIniciales();
+    } catch (error) {
+        console.warn("Ejecución detenida por AuthGuard:", error);
+    }
 });
 
 function setupEventListeners() {
+    // Logout centralizado con el Guardián
+    document.getElementById('btnLogout')?.addEventListener('click', () => AuthGuard.logout());
+
     // === EVENTOS DEL NAVBAR Y SIDEBAR ===
     const menuToggle = document.getElementById('menuToggle');
     const sidebar = document.getElementById('sidebar');
@@ -60,10 +49,9 @@ function setupEventListeners() {
         });
     }
 
-    document.querySelector('.user-menu')?.addEventListener('click', () => {
-        if (confirm('¿Deseas cerrar sesión?')) {
-            auth.signOut().then(() => window.location.href = 'index.html');
-        }
+    document.querySelector('.user-menu')?.addEventListener('click', async () => {
+        const salir = await ConfirmDialog.show('Cerrar Sesión', '¿Estás seguro de que deseas salir del sistema?', 'warning', 'Cerrar Sesión');
+        if (salir) AuthGuard.logout();
     });
 
     // === EVENTOS DE PRODUCTOS ===
@@ -103,6 +91,10 @@ function setupEventListeners() {
         if (prod) ProductoUI.openModal('ver', prod);
     };
     window.editarProducto = (id) => {
+        if (currentUser?.role !== 'admin') {
+            Toast.warning('Solo los administradores pueden editar productos');
+            return;
+        }
         const prod = todosLosProductos.find(p => p.id === id);
         if (prod) {
             modoEdicion = true;
@@ -183,7 +175,7 @@ function limpiarFiltros() {
 async function guardarProducto(event) {
     event.preventDefault();
     if (!validarFormularioCompleto()) {
-        alert('⚠️ Por favor corrige los errores en el formulario');
+        Toast.warning('Por favor corrige los errores en el formulario');
         return;
     }
 
@@ -217,20 +209,20 @@ async function guardarProducto(event) {
             const index = todosLosProductos.findIndex(p => p.id === productoEditandoId);
             if (index !== -1) todosLosProductos[index] = { ...todosLosProductos[index], ...productoData };
 
-            alert('✅ Producto actualizado correctamente');
+            Toast.success('Producto actualizado correctamente');
         } else {
             const nuevoId = await ProductoService.save(null, productoData, null, currentUser.uid);
             const nuevoProductoCompleto = { id: nuevoId, ...productoData };
             todosLosProductos.unshift(nuevoProductoCompleto);
 
-            alert('✅ Producto creado correctamente');
+            Toast.success('Producto creado correctamente');
         }
 
         ProductoUI.closeModal();
         aplicarFiltros();
     } catch (error) {
         console.error('Error guardando producto:', error);
-        alert('❌ Error al guardar el producto.');
+        Toast.error('Error al guardar el producto.');
     } finally {
         ProductoUI.setLoading(false);
     }
@@ -305,16 +297,28 @@ function calcularMargen() {
 }
 
 async function eliminarProducto(id, nombre) {
-    if (confirm(`¿Estás seguro de eliminar el producto:\n\n"${nombre}"?`)) {
-        try {
-            const prod = todosLosProductos.find(p => p.id === id);
-            await ProductoService.delete(id, prod?.supplier);
-            alert(`✅ Producto "${nombre}" eliminado correctamente`);
-            todosLosProductos = todosLosProductos.filter(p => p.id !== id);
-            aplicarFiltros();
-        } catch (error) {
-            alert('❌ Error al eliminar el producto.');
-        }
+    if (currentUser?.role !== 'admin') {
+        Toast.warning('Solo los administradores pueden eliminar productos');
+        return;
+    }
+
+    const confirmado = await ConfirmDialog.show(
+        `Eliminar "${nombre}"`,
+        'El producto será retirado del inventario permanentemente.\nEsta acción no se puede deshacer.',
+        'danger',
+        'Sí, eliminar'
+    );
+    if (!confirmado) return;
+
+    try {
+        const prod = todosLosProductos.find(p => p.id === id);
+        await ProductoService.delete(id, prod?.supplier);
+        Toast.success(`Producto "${nombre}" eliminado correctamente`);
+        todosLosProductos = todosLosProductos.filter(p => p.id !== id);
+        aplicarFiltros();
+    } catch (error) {
+        console.error('Error al eliminar producto:', error);
+        Toast.error('Error al eliminar el producto.');
     }
 }
 
@@ -324,7 +328,10 @@ function setupModalesRapidos() {
     document.getElementById('btnCerrarNuevaCategoria')?.addEventListener('click', () => modalCat?.classList.remove('active'));
     document.getElementById('btnGuardarCategoria')?.addEventListener('click', async () => {
         const nombre = document.getElementById('inputNombreCategoria')?.value.trim();
-        if (!nombre) return alert('Nombre obligatorio');
+        if (!nombre) {
+            Toast.warning('El nombre de la categoría es obligatorio');
+            return;
+        }
         try {
             const id = await ProductoService.crearCategoriaRapida({
                 nombre,
@@ -340,7 +347,11 @@ function setupModalesRapidos() {
 
             document.getElementById('inputCategoria').value = id;
             modalCat?.classList.remove('active');
-        } catch (err) { alert('Error al crear categoría'); }
+            Toast.success('Categoría creada exitosamente');
+        } catch (err) {
+            console.error('Error al crear categoría rápida:', err);
+            Toast.error('Error al crear categoría');
+        }
     });
 
     const modalProv = document.getElementById('modalNuevoProveedor');
@@ -348,7 +359,10 @@ function setupModalesRapidos() {
     document.getElementById('btnCerrarNuevoProveedor')?.addEventListener('click', () => modalProv?.classList.remove('active'));
     document.getElementById('btnGuardarProveedor')?.addEventListener('click', async () => {
         const nombre = document.getElementById('inputNombreProveedor')?.value.trim();
-        if (!nombre) return alert('Nombre obligatorio');
+        if (!nombre) {
+            Toast.warning('El nombre del proveedor es obligatorio');
+            return;
+        }
         try {
             const id = await ProductoService.crearProveedorRapido({
                 nombre,
@@ -362,6 +376,10 @@ function setupModalesRapidos() {
 
             document.getElementById('inputProveedor').value = id;
             modalProv?.classList.remove('active');
-        } catch (err) { alert('Error al crear proveedor'); }
+            Toast.success('Proveedor creado exitosamente');
+        } catch (err) {
+            console.error('Error al crear proveedor rápido:', err);
+            Toast.error('Error al crear proveedor');
+        }
     });
 }

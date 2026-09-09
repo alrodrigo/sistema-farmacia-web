@@ -1,6 +1,9 @@
-// public/js/ventas.js
-import { VentaService } from './services/venta.service.js';
-import { VentaUI } from './ui/venta.ui.js';
+// public/js/controllers/ventas.js
+import { VentaService } from '../services/venta.service.js';
+import { VentaUI } from '../ui/venta.ui.js';
+import { AuthGuard } from '../middleware/auth.guard.js';
+import { Toast } from '../utils/toast.js';
+import { ConfirmDialog } from '../utils/confirm.js';
 
 let currentUser = null;
 let todosLosProductos = [];
@@ -8,45 +11,31 @@ let carrito = [];
 let numeroVentaActual = 1;
 let ultimaVentaItems = []; // Para el recibo
 
-const auth = window.firebaseAuth;
-const db = window.firebaseDB;
-
 document.addEventListener('DOMContentLoaded', async () => {
-  auth.onAuthStateChanged(async (user) => {
-    if (user) {
-      try {
-        const userDoc = await db.collection('users').doc(user.uid).get();
-        if (userDoc.exists) {
-          currentUser = { uid: user.uid, email: user.email, ...userDoc.data() };
+  try {
+    currentUser = await AuthGuard.protect();
 
-          document.getElementById('userName').textContent = currentUser.name || currentUser.nombre || currentUser.email?.split('@')[0] || 'Usuario';
-          document.getElementById('userRole').textContent = currentUser.role === 'admin' ? 'Administrador' : 'Empleado';
+    setupEventListeners();
+    await cargarDatosIniciales();
 
-          setupEventListeners();
-          await cargarDatosIniciales();
-
-          VentaUI.updateDateTime();
-          setInterval(() => VentaUI.updateDateTime(), 60000);
-        } else {
-          window.location.href = 'index.html';
-        }
-      } catch (error) {
-        window.location.href = 'index.html';
-      }
-    } else {
-      window.location.href = 'index.html';
-    }
-  });
+    VentaUI.updateDateTime();
+    setInterval(() => VentaUI.updateDateTime(), 60000);
+  } catch (error) {
+    console.warn("Ejecución detenida por AuthGuard:", error);
+  }
 });
 
 function setupEventListeners() {
+  document.getElementById('btnLogout')?.addEventListener('click', () => AuthGuard.logout());
+
   document.getElementById('menuToggle')?.addEventListener('click', (e) => {
     e.stopPropagation();
     document.getElementById('sidebar')?.classList.toggle('active');
   });
 
-  document.querySelector('.user-menu')?.addEventListener('click', () => {
-    if (confirm('¿Deseas cerrar sesión?')) auth.signOut().then(() => window.location.href = 'index.html');
+  document.querySelector('.user-menu')?.addEventListener('click', async () => {
+    const salir = await ConfirmDialog.show('Cerrar Sesión', '¿Estás seguro de que deseas salir del sistema?', 'warning', 'Cerrar Sesión');
+    if (salir) AuthGuard.logout();
   });
 
   let searchTimeout;
@@ -107,11 +96,17 @@ function buscarProductos(termino) {
 
 function agregarAlCarrito(id) {
   const producto = todosLosProductos.find(p => p.id === id);
-  if (!producto || producto.current_stock === 0) return alert('Producto sin stock o no encontrado.');
+  if (!producto || producto.current_stock === 0) {
+    Toast.warning('Producto sin stock o no encontrado.');
+    return;
+  }
 
   const item = carrito.find(i => i.id === id);
   if (item) {
-    if (item.cantidad >= producto.current_stock) return alert(`Límite de stock: ${producto.current_stock}`);
+    if (item.cantidad >= producto.current_stock) {
+      Toast.warning(`Límite de stock alcanzado (${producto.current_stock})`);
+      return;
+    }
     item.cantidad++;
   } else {
     carrito.push({ id: producto.id, name: producto.name, price: producto.price, cantidad: 1, stock_disponible: producto.current_stock });
@@ -124,7 +119,10 @@ function cambiarCantidad(id, cambio) {
   if (!item) return;
   const nueva = item.cantidad + cambio;
   if (nueva < 1) return quitarDelCarrito(id);
-  if (nueva > item.stock_disponible) return alert(`Stock insuficiente.`);
+  if (nueva > item.stock_disponible) {
+    Toast.warning('Stock insuficiente.');
+    return;
+  }
   item.cantidad = nueva;
   actualizarVistaCarrito();
 }
@@ -135,7 +133,7 @@ function actualizarCantidadDirecta(id, valor) {
   const nueva = parseInt(valor);
   if (isNaN(nueva) || nueva < 1) return actualizarVistaCarrito();
   if (nueva > item.stock_disponible) {
-    alert(`Stock insuficiente.`);
+    Toast.warning('Stock insuficiente.');
     return actualizarVistaCarrito();
   }
   item.cantidad = nueva;
@@ -147,20 +145,36 @@ function quitarDelCarrito(id) {
   actualizarVistaCarrito();
 }
 
-function limpiarCarrito() {
-  if (carrito.length > 0 && confirm('¿Limpiar todo el carrito?')) {
+async function limpiarCarrito() {
+  if (carrito.length === 0) return;
+  const confirmar = await ConfirmDialog.show(
+    'Vaciar Carrito',
+    '¿Deseas remover todos los productos del carrito?',
+    'warning',
+    'Sí, vaciar'
+  );
+  if (confirmar) {
     carrito = [];
     actualizarVistaCarrito();
     VentaUI.resetPaymentForm();
+    Toast.info('Carrito vaciado');
   }
 }
 
-function cancelarVenta() {
-  if (carrito.length > 0 && confirm('¿Cancelar la venta en curso?')) {
+async function cancelarVenta() {
+  if (carrito.length === 0) return;
+  const confirmar = await ConfirmDialog.show(
+    'Cancelar Venta',
+    '¿Deseas cancelar la venta en curso y restablecer el formulario?',
+    'warning',
+    'Sí, cancelar venta'
+  );
+  if (confirmar) {
     carrito = [];
     actualizarVistaCarrito();
     VentaUI.resetPaymentForm();
     VentaUI.renderEmptySearch();
+    Toast.info('Venta cancelada');
   }
 }
 
@@ -195,17 +209,26 @@ function actualizarVistaCarrito() {
 }
 
 async function procesarVenta() {
-  if (carrito.length === 0) return alert('Carrito vacío.');
+  if (carrito.length === 0) {
+    Toast.warning('El carrito está vacío.');
+    return;
+  }
 
   const calc = calcularCambioYTotales();
-  if (calc.total < 0) return alert('El total no puede ser negativo.');
+  if (calc.total < 0) {
+    Toast.warning('El total no puede ser negativo.');
+    return;
+  }
 
   let amountReceived = 0;
   let change = 0;
 
   if (calc.paymentMethod === 'cash') {
     amountReceived = parseFloat(document.getElementById('amountReceived').value) || 0;
-    if (amountReceived < calc.total) return alert('Monto recibido insuficiente.');
+    if (amountReceived < calc.total) {
+      Toast.warning('El monto recibido es insuficiente.');
+      return;
+    }
     change = amountReceived - calc.total;
   }
 
@@ -254,9 +277,10 @@ async function procesarVenta() {
 
   } catch (error) {
     if (error.type === 'STOCK_ERROR') {
-      alert(`⚠️ Stock insuficiente\nProducto: "${error.item}"\n${error.message}`);
+      Toast.error(`Stock insuficiente para "${error.item}": ${error.message}`);
     } else {
-      alert('❌ Error al procesar la venta.');
+      console.error('Error al procesar la venta:', error);
+      Toast.error('Error al procesar la venta.');
     }
   } finally {
     VentaUI.setProcessing(false);

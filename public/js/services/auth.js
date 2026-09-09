@@ -95,7 +95,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const userDoc = await firebaseDB.collection('users').doc(user.uid).get();
                 if (userDoc.exists) {
                     // console.log('✅ Usuario ya logueado, redirigiendo a dashboard');
-                    redirectTo('dashboard.html');
+                    redirectTo('pages/dashboard.html');
                 } else {
                     // console.error('❌ Usuario sin documento en Firestore, cerrando sesión');
                     await firebaseAuth.signOut();
@@ -146,7 +146,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 showAlert(`¡Bienvenido ${displayName}!`, 'success', 2000);
                 
                 setTimeout(() => {
-                    redirectTo('dashboard.html');
+                    redirectTo('pages/dashboard.html');
                 }, 2000);
                 
             } catch (error) {

@@ -1,48 +1,34 @@
-// public/js/proveedores.js
-import { ProveedorService } from './services/proveedor.service.js';
-import { ProveedorUI } from './ui/proveedor.ui.js';
+// public/js/controllers/proveedores.js
+import { ProveedorService } from '../services/proveedor.service.js';
+import { ProveedorUI } from '../ui/proveedor.ui.js';
+import { AuthGuard } from '../middleware/auth.guard.js';
+import { Toast } from '../utils/toast.js';
+import { ConfirmDialog } from '../utils/confirm.js';
 
 let proveedoresGlobal = [];
 let currentUser = null;
-const auth = window.firebaseAuth;
-const db = window.firebaseDB;
 
-document.addEventListener('DOMContentLoaded', () => {
-    auth.onAuthStateChanged(async (user) => {
-        if (user) {
-            try {
-                const userDoc = await db.collection('users').doc(user.uid).get();
-                if (userDoc.exists) {
-                    currentUser = { uid: user.uid, ...userDoc.data() };
+// 1. Inicialización protegida por el Guardián
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        // 🛡️ Valida sesión, protege ruta exclusiva de admin y llena el Navbar
+        currentUser = await AuthGuard.protect();
 
-                    if (currentUser.role !== 'admin') {
-                        alert('⚠️ Solo administradores pueden gestionar proveedores');
-                        window.location.href = 'dashboard.html';
-                        return;
-                    }
-
-                    document.getElementById('userName').textContent = currentUser.name || user.email;
-                    document.getElementById('userRole').textContent = 'Administrador';
-
-                    setupEventListeners();
-                    await refreshData();
-                } else {
-                    window.location.href = 'index.html';
-                }
-            } catch (error) {
-                console.error("Error validando usuario", error);
-            }
-        } else {
-            window.location.href = 'index.html';
-        }
-    });
+        setupEventListeners();
+        await refreshData();
+    } catch (error) {
+        console.warn("Ejecución detenida por AuthGuard:", error);
+    }
 });
 
 function setupEventListeners() {
-    document.getElementById('searchInput').addEventListener('input', applyFilters);
-    document.getElementById('filtroEstado').addEventListener('change', applyFilters);
-    document.getElementById('filtroPais').addEventListener('change', applyFilters);
-    document.getElementById('formProveedor').addEventListener('submit', handleSave);
+    // Logout centralizado con el Guardián
+    document.getElementById('btnLogout')?.addEventListener('click', () => AuthGuard.logout());
+
+    document.getElementById('searchInput')?.addEventListener('input', applyFilters);
+    document.getElementById('filtroEstado')?.addEventListener('change', applyFilters);
+    document.getElementById('filtroPais')?.addEventListener('change', applyFilters);
+    document.getElementById('formProveedor')?.addEventListener('submit', handleSave);
 
     // Sidebar toggle (si existe en el HTML actual)
     const menuToggle = document.getElementById('menuToggle');
@@ -72,7 +58,7 @@ async function refreshData() {
         applyFilters();
     } catch (error) {
         console.error("Error cargando proveedores:", error);
-        alert("Hubo un problema al cargar los proveedores.");
+        Toast.error("Hubo un problema al cargar los proveedores.");
     }
 }
 
@@ -109,22 +95,35 @@ async function handleSave(e) {
 
     // Validaciones
     if (nombre.length < 2 || nombre.length > 100) {
-        return alert('⚠️ El nombre debe tener entre 2 y 100 caracteres');
+        Toast.warning('El nombre debe tener entre 2 y 100 caracteres');
+        return;
     }
 
     const nombreDuplicado = proveedoresGlobal.find(p => p.nombre.toLowerCase() === nombre.toLowerCase() && p.id !== id);
-    if (nombreDuplicado) return alert('⚠️ Ya existe un proveedor con este nombre');
+    if (nombreDuplicado) {
+        Toast.warning('Ya existe un proveedor con este nombre');
+        return;
+    }
 
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return alert('⚠️ Email inválido');
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        Toast.warning('Email inválido');
+        return;
+    }
 
     if (telefono) {
         const telLimpio = telefono.replace(/[\s\-\(\)]/g, '');
-        if (telLimpio.length < 7 || telLimpio.length > 15) return alert('⚠️ El teléfono debe tener entre 7 y 15 dígitos');
+        if (telLimpio.length < 7 || telLimpio.length > 15) {
+            Toast.warning('El teléfono debe tener entre 7 y 15 dígitos');
+            return;
+        }
     }
 
     if (sitioWeb) {
         try { new URL(sitioWeb); }
-        catch (e) { return alert('⚠️ URL inválida (Ej: https://www.ejemplo.com)'); }
+        catch (e) {
+            Toast.warning('URL inválida (Ej: https://www.ejemplo.com)');
+            return;
+        }
     }
 
     const data = {
@@ -141,12 +140,12 @@ async function handleSave(e) {
     try {
         ProveedorUI.setLoading(true);
         await ProveedorService.save(id, data, currentUser.uid);
-        alert(id ? '✅ Proveedor actualizado' : '✅ Proveedor creado');
+        Toast.success(id ? 'Proveedor actualizado exitosamente' : 'Proveedor creado exitosamente');
         ProveedorUI.closeModal();
         await refreshData();
     } catch (error) {
         console.error("Error guardando:", error);
-        alert("❌ Error al guardar el proveedor.");
+        Toast.error("Error al guardar el proveedor.");
     } finally {
         ProveedorUI.setLoading(false);
     }
@@ -154,19 +153,25 @@ async function handleSave(e) {
 
 async function handleDelete(id, nombre) {
     const prov = proveedoresGlobal.find(p => p.id === id);
-    let msg = `¿Seguro que deseas eliminar "${nombre}"?`;
+    let msg = 'Esta acción eliminará el proveedor del sistema.';
     if (prov && (prov.total_productos > 0 || prov.productosCount > 0)) {
-        msg += `\n\n⚠️ Tiene productos asociados que quedarán sin proveedor.`;
+        msg += '\n\n⚠️ Tiene productos asociados que quedarán sin proveedor.';
     }
 
-    if (confirm(msg)) {
-        try {
-            await ProveedorService.delete(id);
-            alert('✅ Proveedor eliminado');
-            await refreshData();
-        } catch (error) {
-            console.error("Error eliminando:", error);
-            alert("❌ Error al eliminar proveedor.");
-        }
+    const confirmado = await ConfirmDialog.show(
+        `Eliminar "${nombre}"`,
+        msg,
+        'danger',
+        'Sí, eliminar'
+    );
+    if (!confirmado) return;
+
+    try {
+        await ProveedorService.delete(id);
+        Toast.success('Proveedor eliminado exitosamente');
+        await refreshData();
+    } catch (error) {
+        console.error("Error eliminando:", error);
+        Toast.error("Error al eliminar el proveedor.");
     }
 }
