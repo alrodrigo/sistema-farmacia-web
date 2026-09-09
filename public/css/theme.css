@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
 /* =========================================================
    SISTEMA DE DISEÑO - FARMACIA WEB
    Archivo centralizado para personalización completa
@@ -5,66 +7,70 @@
 
 :root {
     /* ===== COLORES PRINCIPALES ===== */
-    /* Basado en el logo de ServiSalud */
+    /* Basado en el logo corporativo de ServiSalud */
     
-    /* Color primario (azul oscuro del logo) */
+    /* Color primario (azul corporativo moderno) */
     --primary-color: #0D3C61;
     --primary-light: #1A5580;
     --primary-dark: #082A45;
-    --primary-gradient: linear-gradient(135deg, #0D3C61, #1A5580);
+    --primary-gradient: linear-gradient(135deg, #0D3C61 0%, #1A5580 100%);
     
-    /* Color secundario (verde del logo) */
+    /* Color secundario (verde corporativo de ServiSalud) */
     --secondary-color: #7CB342;
     --secondary-light: #9CCC65;
     --secondary-dark: #689F38;
     
-    /* Color de acento (verde claro) */
-    --accent-color: #8BC34A;
-    --accent-light: #AED581;
-    --accent-dark: #7CB342;
+    /* Color de acento (verde esmeralda moderno para indicadores de acción) */
+    --accent-color: #10B981;
+    --accent-light: #A7F3D0;
+    --accent-dark: #059669;
     
-    /* ===== COLORES SEMÁNTICOS ===== */
-    --success-color: #7CB342;
-    --success-light: #F1F8E9;
-    --success-dark: #689F38;
+    /* ===== COLORES SEMÁNTICOS (Paleta SaaS Moderna) ===== */
+    --success-color: #10B981;
+    --success-light: #ECFDF5;
+    --success-dark: #059669;
     
-    --error-color: #E53935;
-    --error-light: #FFEBEE;
-    --error-dark: #C62828;
+    --error-color: #EF4444;
+    --error-light: #FEF2F2;
+    --error-dark: #DC2626;
     
-    --warning-color: #FFA726;
-    --warning-light: #FFF3E0;
-    --warning-dark: #F57C00;
+    --warning-color: #F59E0B;
+    --warning-light: #FFFBEB;
+    --warning-dark: #D97706;
     
     --info-color: #0D3C61;
-    --info-light: #E1F5FE;
-    --info-dark: #082A45;
+    --info-light: #EFF6FF;
+    --info-dark: #1E40AF;
     
-    /* ===== COLORES DE TEXTO ===== */
-    --text-primary: #1A1A1A;
-    --text-secondary: #666666;
-    --text-tertiary: #999999;
-    --text-light: #BBBBBB;
+    /* ===== COLORES DE TEXTO (Slate Palette - Alta Nitidez) ===== */
+    --text-primary: #0F172A;   /* slate-900 */
+    --text-secondary: #475569; /* slate-600 */
+    --text-tertiary: #94A3B8;  /* slate-400 */
+    --text-light: #CBD5E1;     /* slate-300 */
     --text-white: #FFFFFF;
     
-    /* ===== COLORES DE FONDO ===== */
+    /* ===== COLORES DE FONDO (SaaS Look) ===== */
     --bg-primary: #FFFFFF;
-    --bg-secondary: #F8F9FA;
-    --bg-tertiary: #F0F2F5;
-    --bg-dark: #1A1A1A;
-    --bg-overlay: rgba(0, 0, 0, 0.4);
+    --bg-secondary: #F8FAFC;   /* slate-50 - fondo limpio */
+    --bg-tertiary: #F1F5F9;    /* slate-100 - hover suave */
+    --bg-main: #F8FAFC;
+    --bg-dark: #0F172A;
+    --bg-overlay: rgba(15, 23, 42, 0.45);
     
-    /* ===== BORDES Y DIVISORES ===== */
-    --border-color: #E0E0E0;
-    --border-light: #F5F5F5;
-    --border-dark: #CCCCCC;
+    /* ===== BORDES Y DIVISORES SUTILES ===== */
+    --border-color: #E2E8F0;
+    --border-soft: rgba(226, 232, 240, 0.85);
+    --border-light: #F1F5F9;
+    --border-dark: #CBD5E1;
     
-    /* ===== SOMBRAS (más suaves, estilo ServiSalud) ===== */
-    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
-    --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.1);
-    --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.12);
-    --shadow-xl: 0 8px 24px rgba(0, 0, 0, 0.15);
-    --shadow-2xl: 0 12px 32px rgba(0, 0, 0, 0.18);
+    /* ===== SOMBRAS DIFUSAS MULTICAPA (Elevación Premium) ===== */
+    --shadow-xs: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
+    --shadow-sm: 0 1px 3px 0 rgba(15, 23, 42, 0.06), 0 1px 2px -1px rgba(15, 23, 42, 0.06);
+    --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.07), 0 2px 4px -2px rgba(15, 23, 42, 0.05);
+    --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.07), 0 4px 6px -4px rgba(15, 23, 42, 0.04);
+    --shadow-xl: 0 20px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+    --shadow-2xl: 0 25px 50px -12px rgba(15, 23, 42, 0.18);
+    --shadow-float: 0 12px 30px -5px rgba(13, 60, 97, 0.14);
     
     /* ===== ESPACIADO (Sistema de 8px) ===== */
     --spacing-xs: 0.25rem;   /* 4px */
@@ -75,9 +81,9 @@
     --spacing-2xl: 3rem;     /* 48px */
     --spacing-3xl: 4rem;     /* 64px */
     
-    /* ===== TIPOGRAFÍA ===== */
-    --font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    --font-mono: 'Courier New', monospace;
+    /* ===== TIPOGRAFÍA (Inter Moderna con Tracking Optimizado) ===== */
+    --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
     
     /* Tamaños de fuente */
     --font-xs: 0.75rem;      /* 12px */
@@ -95,50 +101,55 @@
     --font-medium: 500;
     --font-semibold: 600;
     --font-bold: 700;
+    --font-extrabold: 800;
     
-    /* ===== BORDES REDONDEADOS (más pronunciados) ===== */
-    --radius-sm: 0.5rem;     /* 8px */
-    --radius-md: 0.5rem;     /* 8px */
-    --radius-lg: 0.75rem;    /* 12px */
-    --radius-xl: 1rem;       /* 16px */
-    --radius-full: 9999px;   /* Completamente redondeado */
+    /* ===== BORDES REDONDEADOS ===== */
+    --radius-xs: 4px;
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --radius-xl: 18px;
+    --radius-2xl: 24px;
+    --radius-full: 9999px;
     
-    /* ===== TRANSICIONES ===== */
-    --transition-fast: 150ms ease;
-    --transition-base: 200ms ease;
-    --transition-slow: 300ms ease;
-    --transition-slower: 500ms ease;
+    /* ===== TRANSICIONES MODERNAS ===== */
+    --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-smooth: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
     
-    /* ===== Z-INDEX (Capas) ===== */
+    /* ===== Z-INDEX (Jerarquía Segura) ===== */
     --z-dropdown: 1000;
     --z-sticky: 1020;
-    --z-fixed: 1030;
-    --z-modal-backdrop: 1040;
-    --z-modal: 1050;
-    --z-popover: 1060;
-    --z-tooltip: 1070;
+    --z-overlay: 1040;
+    --z-sidebar: 1045;
+    --z-navbar: 1050;
+    --z-modal-backdrop: 1060;
+    --z-modal: 1070;
+    --z-toast: 99999;
     
-    /* ===== SIDEBAR (estilo ServiSalud) ===== */
-    --sidebar-width: 240px;
+    /* ===== SIDEBAR ===== */
+    --sidebar-width: 250px;
     --sidebar-collapsed-width: 80px;
     --sidebar-bg: #FFFFFF;
     --sidebar-text: var(--text-secondary);
     --sidebar-text-active: var(--primary-color);
     --sidebar-hover: var(--bg-tertiary);
-    --sidebar-active-bg: rgba(74, 144, 226, 0.08);
-    --sidebar-border: var(--border-color);
+    --sidebar-active-bg: rgba(13, 60, 97, 0.08);
+    --sidebar-border: var(--border-soft);
     
     /* ===== NAVBAR ===== */
     --navbar-height: 70px;
-    --navbar-bg: var(--bg-primary);
-    --navbar-shadow: var(--shadow-md);
+    --navbar-bg: rgba(255, 255, 255, 0.85);
+    --navbar-shadow: var(--shadow-sm);
     
     /* ===== CARDS ===== */
     --card-bg: var(--bg-primary);
-    --card-border: var(--border-color);
+    --card-border: var(--border-soft);
     --card-radius: var(--radius-lg);
-    --card-shadow: var(--shadow-md);
-    --card-hover-shadow: var(--shadow-lg);
+    --card-shadow: var(--shadow-sm);
+    --card-hover-shadow: var(--shadow-md);
     
     /* ===== BOTONES ===== */
     --btn-height: 2.5rem;    /* 40px */
@@ -239,29 +250,30 @@ body {
     font-size: var(--font-base);
     font-weight: var(--font-normal);
     line-height: 1.6;
+    letter-spacing: -0.012em;
     color: var(--text-primary);
     background-color: var(--bg-secondary);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
 
-/* Scrollbar personalizado */
+/* Scrollbar moderno y sutil */
 ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-    background: var(--bg-tertiary);
+    background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-    background: var(--primary-color);
+    background: #cbd5e1;
     border-radius: var(--radius-full);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: var(--primary-dark);
+    background: #94a3b8;
 }
 
 /* Selección de texto */
