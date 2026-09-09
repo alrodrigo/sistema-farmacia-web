@@ -1,30 +1,30 @@
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reportes - Sistema Farmacia</title>
 
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reportes - Sistema Farmacia</title>
-    
-    <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="favicon.svg">
-    
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Sistema de Diseño Base -->
-    <link rel="stylesheet" href="css/theme.css?v=4.0.1778693357">
-    <link rel="stylesheet" href="css/components.css?v=4.0.1778693357">
-    <link rel="stylesheet" href="css/layout.css?v=4.0.1778693357">
-    
-    <!-- CSS -->
-    <link rel="stylesheet" href="css/reportes.css?v=4.0.1778693357">
-    
-    <!-- Responsive (DEBE IR AL FINAL) -->
-    <link rel="stylesheet" href="css/responsive.css?v=4.0.1778693357">
+<!-- Favicon -->
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<!-- Sistema de Diseño Base -->
+<link rel="stylesheet" href="css/theme.css?v=4.0.1778693357">
+<link rel="stylesheet" href="css/components.css?v=4.0.1778693357">
+<link rel="stylesheet" href="css/layout.css?v=4.0.1778693357">
+
+<!-- CSS -->
+<link rel="stylesheet" href="css/reportes.css?v=4.0.1778693357">
+
+<!-- Responsive (DEBE IR AL FINAL) -->
+<link rel="stylesheet" href="css/responsive.css?v=4.0.1778693357">
 </head>
+
 <body>
     <!-- ==================== NAVBAR SUPERIOR ==================== -->
     <nav class="navbar">
@@ -37,7 +37,7 @@
                 <span class="logo-text">ServiSalud</span>
             </div>
         </div>
-        
+
         <div class="navbar-right">
             <div class="user-menu">
                 <div class="user-avatar">
@@ -53,7 +53,7 @@
 
     <!-- ==================== CONTENEDOR PRINCIPAL ==================== -->
     <div class="main-container">
-        
+
         <!-- ==================== SIDEBAR ==================== -->
         <aside class="sidebar" id="sidebar">
             <nav class="sidebar-nav">
@@ -118,7 +118,7 @@
                         </label>
                         <input type="date" id="fechaInicio" class="form-control">
                     </div>
-                    
+
                     <div class="filter-group">
                         <label for="fechaFin">
                             <i class="fas fa-calendar-alt"></i>
@@ -126,7 +126,7 @@
                         </label>
                         <input type="date" id="fechaFin" class="form-control">
                     </div>
-                    
+
                     <div class="filter-group">
                         <label for="paymentMethod">
                             <i class="fas fa-credit-card"></i>
@@ -139,7 +139,7 @@
                             <option value="transfer">Transferencia</option>
                         </select>
                     </div>
-                    
+
                     <div class="filter-group admin-only" id="vendorFilterGroup">
                         <label for="vendorFilter">
                             <i class="fas fa-user"></i>
@@ -160,10 +160,10 @@
                             <option value="all">Todos los turnos</option>
                             <option value="manana">Mañana (06:00 – 13:59)</option>
                             <option value="tarde">Tarde (14:00 – 21:59)</option>
-                           
+
                         </select>
                     </div>
-                    
+
                     <div class="filter-actions">
                         <button class="btn-filter" id="btnFiltrar">
                             <i class="fas fa-search"></i>
@@ -310,7 +310,7 @@
                         Productos Más Vendidos
                     </h2>
                 </div>
-                
+
                 <div class="top-products-grid" id="topProductsGrid">
                     <!-- Productos se cargarán aquí -->
                 </div>
@@ -415,9 +415,10 @@
     <script src="js/utils/roles.js?v=4.0.1778693357"></script>
 
     <!-- Scripts de Reportes -->
-    <script src="js/reportes.js?v=4.0.1778693357"></script>
-    
+    <script type="module" src="js/reportes.js?v=4.0.1778693357"></script>
+
     <!-- Service Worker para actualización automática -->
     <script src="js/sw-register.js?v=4.0.1778693357"></script>
 </body>
+
 </html>
