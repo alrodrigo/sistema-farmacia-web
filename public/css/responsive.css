@@ -29,15 +29,17 @@
 
     /* SIDEBAR */
     .sidebar {
+        left: 0 !important;
         transform: translateX(-100%) !important;
         transition: transform 0.3s ease !important;
         box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1) !important;
-        z-index: 1000 !important;
+        z-index: 1045 !important;
         width: var(--sidebar-width) !important;
         position: fixed !important;
     }
 
     .sidebar.active {
+        left: 0 !important;
         transform: translateX(0) !important;
     }
 

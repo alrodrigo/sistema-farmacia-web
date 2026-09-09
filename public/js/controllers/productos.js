@@ -39,15 +39,7 @@ function setupEventListeners() {
     // Logout centralizado con el Guardián
     document.getElementById('btnLogout')?.addEventListener('click', () => AuthGuard.logout());
 
-    // === EVENTOS DEL NAVBAR Y SIDEBAR ===
-    const menuToggle = document.getElementById('menuToggle');
-    const sidebar = document.getElementById('sidebar');
-    if (menuToggle && sidebar) {
-        menuToggle.addEventListener('click', (e) => {
-            e.stopPropagation();
-            sidebar.classList.toggle('active');
-        });
-    }
+
 
     document.querySelector('.user-menu')?.addEventListener('click', async () => {
         const salir = await ConfirmDialog.show('Cerrar Sesión', '¿Estás seguro de que deseas salir del sistema?', 'warning', 'Cerrar Sesión');

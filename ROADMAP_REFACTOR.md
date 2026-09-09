@@ -13,4 +13,5 @@
 
 -[ ] **Buscador en categorias, en proveedores, filtros**
 - [x] **Gestión Integral de Usuarios (CRUD en Modal sin perder sesión):** Implementada creación de usuarios con instancia secundaria de Firebase Auth en `UsuarioService.create()`, eliminación definitiva del archivo temporal `crear-usuarios.html`, reseteo seguro de contraseña vía email y validación de usuarios inactivos/eliminados en `AuthGuard`.
+- [x] **Estandarización y Solución del Menú Lateral y Navegación (Sidebar & Logo):** Corrección del bug de superposición donde el overlay oscuro bloqueaba los clics en el menú en resoluciones móviles o al reabrir el drawer. Jerarquía Z-Index unificada (`.navbar`: 1050, `.sidebar`: 1045, `.sidebar-overlay`: 1040), eliminación de overlays duplicados/huérfanos en `helpers.js` y `dashboard.css`, gestión centralizada de apertura/cierre en `LayoutUI.bindEvents()`, y conversión del logotipo de la barra superior en botón directo hacia `dashboard.html`.
 -[ ] **optimizar las consultas de los reportes**

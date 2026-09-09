@@ -30,15 +30,7 @@ function setupEventListeners() {
     document.getElementById('filtroPais')?.addEventListener('change', applyFilters);
     document.getElementById('formProveedor')?.addEventListener('submit', handleSave);
 
-    // Sidebar toggle (si existe en el HTML actual)
-    const menuToggle = document.getElementById('menuToggle');
-    const sidebar = document.querySelector('.sidebar');
-    if (menuToggle && sidebar) {
-        menuToggle.addEventListener('click', e => {
-            e.stopPropagation();
-            sidebar.classList.toggle('active');
-        });
-    }
+
 
     // Exponer funciones globales para los onclick del HTML inyectado
     window.abrirModalNuevo = () => ProveedorUI.openModal();

@@ -52,6 +52,13 @@
     align-items: center;
     gap: 0.75rem;
     cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    transition: opacity var(--transition-fast);
+}
+
+.logo:hover {
+    opacity: 0.85;
 }
 
 .logo-image {
@@ -140,7 +147,7 @@
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 0.5rem 1rem;
+    padding: 0.5rem 0.75rem;
     border-radius: var(--radius-lg);
     cursor: pointer;
     transition: var(--transition-base);
@@ -193,17 +200,41 @@
     padding: 1.5rem 0;
     position: fixed;
     top: var(--navbar-height);
-    left: -250px; /* Colapsado por defecto */
+    left: 0;
+    transform: translateX(-100%);
     bottom: 0;
     overflow-y: auto;
     border-right: 1px solid var(--sidebar-border);
-    transition: left 0.3s ease;
-    z-index: 999;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1045; /* Siempre por encima del overlay (1040) */
 }
 
 /* Sidebar visible cuando tiene clase 'active' */
 .sidebar.active {
+    transform: translateX(0);
+    box-shadow: 4px 0 25px rgba(0, 0, 0, 0.18);
+}
+
+/* Overlay translúcido para oscurecer fondo */
+.sidebar-overlay {
+    position: fixed;
+    top: var(--navbar-height);
     left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(2px);
+    z-index: 1040; /* Debajo de sidebar (1045) pero encima del contenido */
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
+.sidebar-overlay.active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
 }
 
 .sidebar-nav {
@@ -302,10 +333,11 @@ body.show-admin-options .admin-only {
     }
 
     .sidebar {
+        left: 0 !important;
         transform: translateX(-100%) !important;
         transition: transform 0.3s ease !important;
         box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
-        z-index: var(--z-modal) !important;
+        z-index: 1045 !important;
         position: fixed !important;
         width: var(--sidebar-width) !important;
     }

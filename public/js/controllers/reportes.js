@@ -29,10 +29,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 function setupEventListeners() {
     document.getElementById('btnLogout')?.addEventListener('click', () => AuthGuard.logout());
 
-    document.getElementById('menuToggle')?.addEventListener('click', (e) => {
-        e.stopPropagation();
-        document.getElementById('sidebar')?.classList.toggle('active');
-    });
+
 
     document.querySelector('.user-menu')?.addEventListener('click', async () => {
         const salir = await ConfirmDialog.show('Cerrar Sesión', '¿Estás seguro de que deseas salir del sistema?', 'warning', 'Cerrar Sesión');

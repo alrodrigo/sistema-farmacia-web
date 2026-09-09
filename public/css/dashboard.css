@@ -251,17 +251,6 @@
         box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
     }
     
-    /* Overlay cuando el sidebar está abierto */
-    .sidebar.active::before {
-        content: '';
-        position: fixed;
-        top: 0;
-        left: var(--sidebar-width);
-        width: calc(100vw - var(--sidebar-width));
-        height: 100vh;
-        background: rgba(0, 0, 0, 0.5);
-        z-index: -1;
-    }
     
     /* Contenido sin margen lateral en móviles */
     .content {
