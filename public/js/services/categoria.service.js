@@ -1,87 +1,151 @@
-const db = window.firebaseDB
+// =====================================================
+// ARCHIVO: public/js/services/categoria.service.js
+// DESCRIPCIÓN: Servicio de Categorías con conteo optimizado en servidor (Firebase v10 Modular)
+// =====================================================
+
+import { db } from '../config/firebase.js';
+import { 
+    collection, 
+    doc, 
+    query, 
+    where, 
+    orderBy, 
+    getDocs, 
+    addDoc, 
+    updateDoc, 
+    writeBatch, 
+    serverTimestamp,
+    getCountFromServer 
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 export const CategoriaService = {
-    //Obtener todas las categorias ordenadas
+    /**
+     * Obtener todas las categorías ordenadas alfabéticamente
+     * @returns {Promise<Array>}
+     */
     async getAll() {
         try {
-            const snapshot = await db.collection('categorias').orderBy('nombre', 'asc').get();
-            return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            const q = query(collection(db, 'categorias'), orderBy('nombre', 'asc'));
+            const snapshot = await getDocs(q);
+            return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
         } catch (error) {
-            //Fallback si falta el indice en firestore
-            if (error.code === 'failed-precondition' || error.message.includes('index')) {
-                const snapshot = await db.collection('categorias').get();
-                const categorias = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                return categorias.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
-
-            }
-            throw error;
+            // Fallback si falta el índice en Firestore
+            console.warn('Fallback al obtener categorías sin índice:', error);
+            const snapshot = await getDocs(collection(db, 'categorias'));
+            const categorias = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+            return categorias.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
         }
     },
 
-    //Crear nueva categoria
+    /**
+     * Conteo ultra-eficiente en servidor para una categoría específica
+     * @param {string} categoriaId 
+     * @returns {Promise<number>}
+     */
+    async getProductCount(categoriaId) {
+        try {
+            const q = query(collection(db, 'products'), where('category', '==', categoriaId));
+            const snapshot = await getCountFromServer(q);
+            return snapshot.data().count;
+        } catch (error) {
+            console.warn(`Error al contar productos de la categoría ${categoriaId}:`, error);
+            return 0;
+        }
+    },
+
+    /**
+     * Crear nueva categoría
+     * @param {object} data 
+     * @returns {Promise<object>}
+     */
     async create(data) {
-        data.created_at = window.firebase.firestore.FieldValue.serverTimestamp();
+        data.created_at = serverTimestamp();
         data.productosCount = 0;
-        return await db.collection('categorias').add(data);
+        return await addDoc(collection(db, 'categorias'), data);
     },
 
-    //Actualizar categoria
+    /**
+     * Actualizar categoría existente
+     * @param {string} id 
+     * @param {object} data 
+     * @returns {Promise<void>}
+     */
     async update(id, data) {
-        data.updated_at = window.firebase.firestore.FieldValue.serverTimestamp();
-        return await db.collection('categorias').doc(id).update(data);
+        data.updated_at = serverTimestamp();
+        return await updateDoc(doc(db, 'categorias', id), data);
     },
 
-    //Elminar categoria  y desvincular de productos
+    /**
+     * Eliminar categoría y desvincular productos asociados
+     * @param {string} id 
+     * @returns {Promise<void>}
+     */
     async delete(id) {
-        const batch = db.batch();
+        const batch = writeBatch(db);
 
-        //1.Borrar la categoria
-        const catRef = db.collection('categorias').doc(id);
-        batch.delete(catRef);
+        // 1. Borrar categoría
+        batch.delete(doc(db, 'categorias', id));
 
-        //2. Desvincular productos(category: null)
-
-        const productosSnapshot = await db.collection('productos').where('category', '==', id).get();
-        productosSnapshot.docs.forEach(doc => {
-            batch.update(doc.ref, { category: null })
-        })
+        // 2. Desvincular productos asociados (category: null)
+        const q = query(collection(db, 'products'), where('category', '==', id));
+        const snapshot = await getDocs(q);
+        snapshot.docs.forEach(d => {
+            batch.update(doc(db, 'products', d.id), { category: null });
+        });
 
         await batch.commit();
         if (window.AppCache) window.AppCache.invalidarProductos();
     },
-    // Sincronización temporal en memoria (Refactorizaremos al Enfoque Proactivo al tocar productos.js)
+
+    /**
+     * Sincronización ultrarrápida de contadores usando getCountFromServer (Sin descargar productos)
+     * @param {Array} categoriasActuales 
+     * @returns {Promise<object>}
+     */
     async syncCounters(categoriasActuales) {
-        const batch = db.batch();
+        try {
+            const batch = writeBatch(db);
+            let huboCambios = false;
 
-        // 1. Descargamos los productos (Ahora es seguro porque la BD está limpia)
-        const snapshot = await db.collection('products').get();
-        const totalProductosGlobal = snapshot.size;
+            // 1. Conteo total global directo del servidor
+            const totalSnap = await getCountFromServer(collection(db, 'products'));
+            const totalProductosGlobal = totalSnap.data().count;
 
-        // 2. Contamos en memoria RAM (Extremadamente rápido en el navegador)
-        const conteos = {};
-        snapshot.docs.forEach(doc => {
-            const catId = doc.data().category;
-            // Ya no validamos categoriaId porque nuestro script de migración saneó la BD
-            if (catId) {
-                conteos[catId] = (conteos[catId] || 0) + 1;
+            // 2. Conteo en paralelo para cada categoría
+            const conteos = await Promise.all(
+                categoriasActuales.map(async (cat) => {
+                    const q = query(collection(db, 'products'), where('category', '==', cat.id));
+                    const snap = await getCountFromServer(q);
+                    return { id: cat.id, count: snap.data().count };
+                })
+            );
+
+            // 3. Actualizar solo las categorías cuyo contador no coincida
+            categoriasActuales.forEach(cat => {
+                const match = conteos.find(c => c.id === cat.id);
+                const count = match ? match.count : 0;
+                if (cat.productosCount !== count) {
+                    batch.update(doc(db, 'categorias', cat.id), { productosCount: count });
+                    cat.productosCount = count;
+                    huboCambios = true;
+                }
+            });
+
+            // 4. Confirmar cambios si hubo discrepancias
+            if (huboCambios) {
+                await batch.commit();
             }
-        });
 
-        // 3. Comparamos y actualizamos solo lo necesario
-        categoriasActuales.forEach(cat => {
-            const count = conteos[cat.id] || 0;
-            if (cat.productosCount !== count) {
-                batch.update(db.collection('categorias').doc(cat.id), { productosCount: count });
-                cat.productosCount = count; // Actualizamos la memoria local
-            }
-        });
-
-        // 4. Guardamos los cambios
-        await batch.commit();
-
-        return {
-            totalProductos: totalProductosGlobal,
-            categoriasActualizadas: categoriasActuales
-        };
+            return {
+                totalProductos: totalProductosGlobal,
+                categoriasActualizadas: categoriasActuales
+            };
+        } catch (error) {
+            console.error('Error al sincronizar contadores de categorías:', error);
+            return {
+                totalProductos: 0,
+                categoriasActualizadas: categoriasActuales
+            };
+        }
     }
 };
