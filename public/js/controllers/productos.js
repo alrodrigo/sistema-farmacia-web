@@ -68,11 +68,17 @@ function setupEventListeners() {
     document.getElementById('btnLimpiarFiltros')?.addEventListener('click', limpiarFiltros);
 
     document.getElementById('btnPrevPage')?.addEventListener('click', () => {
-        if (paginaActual > 1) { paginaActual--; actualizarVistaTabla(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+        if (paginaActual > 1) {
+            paginaActual--;
+            actualizarVistaTabla();
+        }
     });
     document.getElementById('btnNextPage')?.addEventListener('click', () => {
         const totalPaginas = Math.ceil(productosFiltrados.length / productosPorPagina);
-        if (paginaActual < totalPaginas) { paginaActual++; actualizarVistaTabla(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+        if (paginaActual < totalPaginas) {
+            paginaActual++;
+            actualizarVistaTabla();
+        }
     });
 
     setupModalesRapidos();

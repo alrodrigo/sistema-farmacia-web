@@ -13,8 +13,6 @@ const usuariosPorPagina = 10;
 let modoEdicion = false;
 let usuarioEditandoId = null;
 
-const auth = window.firebaseAuth;
-
 document.addEventListener('DOMContentLoaded', async () => {
     try {
         // 🛡️ El Guardián valida sesión, restringe ruta exclusiva a admin y llena el Navbar

@@ -48,6 +48,13 @@ async function refreshData() {
         ProveedorUI.renderFilters(proveedoresGlobal);
         ProveedorUI.renderStats(proveedoresGlobal);
         applyFilters();
+
+        // Sincronizar contadores exactos desde el servidor en segundo plano
+        ProveedorService.syncCounters(proveedoresGlobal).then(synced => {
+            proveedoresGlobal = synced;
+            ProveedorUI.renderStats(proveedoresGlobal);
+            applyFilters();
+        }).catch(() => {});
     } catch (error) {
         console.error("Error cargando proveedores:", error);
         Toast.error("Hubo un problema al cargar los proveedores.");
