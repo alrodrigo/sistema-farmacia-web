@@ -65,10 +65,10 @@ export const ProveedorUI = {
                 </div>
                 
                 <div class="proveedor-actions">
-                    <button class="btn-edit" onclick="window.editarProveedor('${prov.id}')">
+                    <button class="btn-edit" data-action="editar" data-id="${prov.id}">
                         <i class="fas fa-edit"></i> Editar
                     </button>
-                    <button class="btn-delete" onclick="window.confirmarEliminar('${prov.id}', '${prov.nombre}')">
+                    <button class="btn-delete" data-action="eliminar" data-id="${prov.id}" data-name="${encodeURIComponent(prov.nombre || '')}">
                         <i class="fas fa-trash"></i> Eliminar
                     </button>
                 </div>

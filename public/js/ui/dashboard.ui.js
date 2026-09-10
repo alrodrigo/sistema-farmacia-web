@@ -51,7 +51,7 @@ export const DashboardUI = {
                 <td>${producto.minStock} unidades</td>
                 <td><strong style="color: var(--danger-color);">Faltan ${producto.faltante} unidades</strong></td>
                 <td>
-                    <button class="btn-small" onclick="window.irAProducto('${producto.id}')">
+                    <button class="btn-small" data-action="ir-a-producto" data-id="${producto.id}">
                         <i class="fas fa-edit"></i> Actualizar
                     </button>
                 </td>

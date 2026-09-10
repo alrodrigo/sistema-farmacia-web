@@ -62,7 +62,7 @@ export const ReportesUI = {
                     <td class="text-success">${discountText}</td>
                     <td><strong>Bs. ${sale.total.toFixed(2)}</strong></td>
                     <td>
-                        <button class="btn-view-detail" onclick="window.verDetalleVenta('${sale.id}')">
+                        <button class="btn-view-detail" data-action="ver-detalle" data-id="${sale.id}">
                             <i class="fas fa-eye"></i> Ver
                         </button>
                     </td>

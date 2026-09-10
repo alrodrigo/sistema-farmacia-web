@@ -33,21 +33,22 @@ export const ProductoUI = {
                 : (producto.supplier || 'Sin proveedor');
 
             const isAdmin = role === 'admin';
+            const safeName = encodeURIComponent(producto.name || '');
             const botonesAccion = isAdmin ? `
                 <div class="action-buttons">
-                    <button class="btn-action btn-view" onclick="window.verProducto('${producto.id}')" title="Ver detalles">
+                    <button class="btn-action btn-view" data-action="ver" data-id="${producto.id}" title="Ver detalles">
                         <i class="fas fa-eye"></i>
                     </button>
-                    <button class="btn-action btn-edit" onclick="window.editarProducto('${producto.id}')" title="Editar">
+                    <button class="btn-action btn-edit" data-action="editar" data-id="${producto.id}" title="Editar">
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button class="btn-action btn-delete" onclick="window.eliminarProducto('${producto.id}', '${producto.name}')" title="Eliminar">
+                    <button class="btn-action btn-delete" data-action="eliminar" data-id="${producto.id}" data-name="${safeName}" title="Eliminar">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
             ` : `
                 <div class="action-buttons">
-                    <button class="btn-action btn-view" onclick="window.verProducto('${producto.id}')" title="Ver detalles">
+                    <button class="btn-action btn-view" data-action="ver" data-id="${producto.id}" title="Ver detalles">
                         <i class="fas fa-eye"></i>
                     </button>
                 </div>

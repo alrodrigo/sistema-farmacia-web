@@ -83,24 +83,31 @@ function setupEventListeners() {
 
     setupModalesRapidos();
 
-    // === EXPOSICIÓN GLOBAL (Corregido) ===
-    window.verProducto = (id) => {
-        const prod = todosLosProductos.find(p => p.id === id);
-        if (prod) ProductoUI.openModal('ver', prod);
-    };
-    window.editarProducto = (id) => {
-        if (currentUser?.role !== 'admin') {
-            Toast.warning('Solo los administradores pueden editar productos');
-            return;
+    // === DELEGACIÓN DE EVENTOS EN LA TABLA (Arquitectura Ortogonal) ===
+    document.getElementById('productosTableBody')?.addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-action]');
+        if (!btn) return;
+
+        const { action, id } = btn.dataset;
+        if (action === 'ver') {
+            const prod = todosLosProductos.find(p => p.id === id);
+            if (prod) ProductoUI.openModal('ver', prod);
+        } else if (action === 'editar') {
+            if (currentUser?.role !== 'admin') {
+                Toast.warning('Solo los administradores pueden editar productos');
+                return;
+            }
+            const prod = todosLosProductos.find(p => p.id === id);
+            if (prod) {
+                modoEdicion = true;
+                productoEditandoId = id;
+                ProductoUI.openModal('editar', prod);
+            }
+        } else if (action === 'eliminar') {
+            const nombre = decodeURIComponent(btn.dataset.name || '');
+            eliminarProducto(id, nombre);
         }
-        const prod = todosLosProductos.find(p => p.id === id);
-        if (prod) {
-            modoEdicion = true;
-            productoEditandoId = id;
-            ProductoUI.openModal('editar', prod);
-        }
-    };
-    window.eliminarProducto = (id, nombre) => eliminarProducto(id, nombre);
+    });
 }
 
 async function cargarDatosIniciales() {

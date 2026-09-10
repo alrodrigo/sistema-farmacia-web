@@ -32,14 +32,23 @@ function setupEventListeners() {
 
 
 
-    // Exponer funciones globales para los onclick del HTML inyectado
+    // Delegación de eventos en el grid de tarjetas (Arquitectura Ortogonal)
+    document.getElementById('proveedoresGrid')?.addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-action]');
+        if (!btn) return;
+        const { action, id } = btn.dataset;
+        if (action === 'editar') {
+            const prov = proveedoresGlobal.find(p => p.id === id);
+            if (prov) ProveedorUI.openModal(prov);
+        } else if (action === 'eliminar') {
+            const nombre = decodeURIComponent(btn.dataset.name || '');
+            handleDelete(id, nombre);
+        }
+    });
+
+    // Funciones globales para botones del modal estático HTML
     window.abrirModalNuevo = () => ProveedorUI.openModal();
     window.cerrarModal = () => ProveedorUI.closeModal();
-    window.editarProveedor = (id) => {
-        const prov = proveedoresGlobal.find(p => p.id === id);
-        if (prov) ProveedorUI.openModal(prov);
-    };
-    window.confirmarEliminar = (id, nombre) => handleDelete(id, nombre);
 }
 
 async function refreshData() {

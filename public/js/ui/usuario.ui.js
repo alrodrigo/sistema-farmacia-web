@@ -32,13 +32,13 @@ export const UsuarioUI = {
 
             const botonesAccion = isAdmin ? `
                 <div class="action-buttons">
-                    <button class="btn-action btn-edit" onclick="window.editarUsuario('${usuario.id}')" title="Editar">
+                    <button class="btn-action btn-edit" data-action="editar" data-id="${usuario.id}" title="Editar">
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button class="btn-action btn-password" onclick="window.enviarCorreoRecuperacion('${usuario.email}')" title="Enviar correo de recuperación">
+                    <button class="btn-action btn-password" data-action="recuperar" data-email="${usuario.email}" title="Enviar correo de recuperación">
                         <i class="fas fa-envelope"></i>
                     </button>
-                    <button class="btn-action btn-delete" onclick="window.eliminarUsuario('${usuario.id}', '${usuario.name || usuario.email}')" title="Eliminar" ${deleteDisabled}>
+                    <button class="btn-action btn-delete" data-action="eliminar" data-id="${usuario.id}" data-name="${encodeURIComponent(usuario.name || usuario.nombre || usuario.email || '')}" title="Eliminar" ${deleteDisabled}>
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>

@@ -107,14 +107,21 @@ function setupEventListeners() {
     }
 
     // Exponer funciones globales requeridas por el renderizado de HTML de la tabla
-    window.editarUsuario = (id) => editarUsuarioHandler(id);
-    window.enviarCorreoRecuperacion = (email) => enviarCorreoRecuperacionHandler(email);
-    window.eliminarUsuario = (id, nombre) => eliminarUsuarioHandler(id, nombre);
-    window.abrirModalNuevo = () => {
-        modoEdicion = false;
-        usuarioEditandoId = null;
-        UsuarioUI.openUserModal(false);
-    };
+    // Delegación de eventos en la tabla de usuarios (Arquitectura Ortogonal)
+    document.getElementById('usuariosTableBody')?.addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-action]');
+        if (!btn) return;
+
+        const { action, id, email } = btn.dataset;
+        if (action === 'editar') {
+            editarUsuarioHandler(id);
+        } else if (action === 'recuperar') {
+            enviarCorreoRecuperacionHandler(email);
+        } else if (action === 'eliminar') {
+            const nombre = decodeURIComponent(btn.dataset.name || '');
+            eliminarUsuarioHandler(id, nombre);
+        }
+    });
 }
 
 async function cargarUsuarios() {

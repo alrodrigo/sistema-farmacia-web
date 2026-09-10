@@ -34,13 +34,18 @@ function setupEventListeners() {
 
     document.getElementById('btnScanQR')?.addEventListener('click', () => Toast.info('📷 Función de escaneo QR próximamente'));
 
-    // EXPOSICIÓN AL OBJETO WINDOW (Corrección de Módulos vs Inline HTML)
+    // Delegación de eventos en la tabla de stock bajo (Arquitectura Ortogonal)
+    document.getElementById('stockBajoTableBody')?.addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-action="ir-a-producto"]');
+        if (!btn) return;
+        localStorage.setItem('editProductId', btn.dataset.id);
+        window.location.href = 'productos.html';
+    });
+
+    document.getElementById('filtroLabStockBajo')?.addEventListener('change', filtrarStockBajo);
+
     window.filtrarStockBajo = filtrarStockBajo;
     window.exportarStockBajoExcel = exportarStockBajoExcel;
-    window.irAProducto = (productId) => {
-        localStorage.setItem('editProductId', productId);
-        window.location.href = 'productos.html';
-    };
 }
 
 async function cargarEstadisticas() {

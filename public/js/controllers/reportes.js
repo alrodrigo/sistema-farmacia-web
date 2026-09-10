@@ -54,14 +54,18 @@ function setupEventListeners() {
         if (e.target.id === 'saleDetailModal') ReportesUI.cerrarModalDetalle();
     });
 
-    // Exposiciones globales para botones generados por la UI
-    window.verDetalleVenta = (id) => {
+    // Delegación de eventos en la tabla de ventas (Arquitectura Ortogonal)
+    document.getElementById('salesTableBody')?.addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-action="ver-detalle"]');
+        if (!btn) return;
+
+        const id = btn.dataset.id;
         const sale = filteredSales.find(s => s.id === id);
         if (!sale) return;
         const saleIndex = filteredSales.indexOf(sale);
         const saleNumber = filteredSales.length - saleIndex;
         ReportesUI.abrirModalDetalle(sale, saleNumber);
-    };
+    });
 
     document.getElementById('btnPrintReceipt')?.addEventListener('click', function () {
         const saleId = this.dataset.saleId;
