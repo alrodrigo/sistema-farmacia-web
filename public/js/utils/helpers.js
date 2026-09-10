@@ -279,7 +279,7 @@ const AppCache = (function () {
          * @param {object} db - Referencia a firebaseDB
          * @returns {Promise<Array>}
          */
-        async getProductos(db) {
+        async getProductos(db = window.firebaseDB) {
             const cached = _leer(KEYS.products, KEYS.products_ts);
             if (cached) return cached;
 
@@ -293,10 +293,10 @@ const AppCache = (function () {
 
         /**
          * Devuelve la colección 'proveedores' desde sessionStorage o Firestore.
-         * @param {object} db - Referencia a firebaseDB
+         * @param {object} [db] - Referencia a firebaseDB
          * @returns {Promise<Array>}
          */
-        async getProveedores(db) {
+        async getProveedores(db = window.firebaseDB) {
             const cached = _leer(KEYS.proveedores, KEYS.proveedores_ts);
             if (cached) return cached;
 

@@ -8,6 +8,7 @@
 - [ ] **Poder crear una categoria dentro del modal de categoria**
 - [ ] **Estandarización del modelo de datos de Productos (Migración `categoriaId` -> `category`):** Ejecutar un script de migración único para asegurar que todos los documentos en la colección `products` utilicen exclusivamente el campo `category`, eliminando referencias legadas a `categoriaId`.
 - [x] **Optimización de Contadores de Categorías (Server-side Count con `getCountFromServer()`):** Migrado a Firebase Modular v10. El conteo de productos por categoría y global se ejecuta 100% en los servidores de Google con `getCountFromServer()` en paralelo, sin descargar documentos pesados a memoria.
+- [x] **Refactorización de Productos a Firebase v10 Modular & Sincronización Atómica:** Migrado `ProductoService` a ES Modules v10. Implementada sincronización atómica con `writeBatch` e `increment()` para contadores de proveedores (`total_productos`) y categorías (`productosCount`) en altas, bajas y modificaciones. Agregados métodos de servidor directo: conteo total (`getTotalCountFromServer`), conteos por categoría/proveedor y validación de SKU (`verificarSkuEnServidor`).
 
 -[ ] **Buscador en categorias, en proveedores, filtros**
 - [x] **Gestión Integral de Usuarios (CRUD en Modal sin perder sesión):** Implementada creación de usuarios con instancia secundaria de Firebase Auth en `UsuarioService.create()`, eliminación definitiva del archivo temporal `crear-usuarios.html`, reseteo seguro de contraseña vía email y validación de usuarios inactivos/eliminados en `AuthGuard`.

@@ -195,8 +195,9 @@ async function guardarProducto(event) {
         if (modoEdicion) {
             const productoAnterior = todosLosProductos.find(p => p.id === productoEditandoId);
             const supplierAnterior = productoAnterior?.supplier || null;
+            const categoryAnterior = productoAnterior?.category || null;
 
-            await ProductoService.save(productoEditandoId, productoData, supplierAnterior, currentUser.uid);
+            await ProductoService.save(productoEditandoId, productoData, supplierAnterior, currentUser.uid, categoryAnterior);
 
             const index = todosLosProductos.findIndex(p => p.id === productoEditandoId);
             if (index !== -1) todosLosProductos[index] = { ...todosLosProductos[index], ...productoData };
@@ -304,7 +305,7 @@ async function eliminarProducto(id, nombre) {
 
     try {
         const prod = todosLosProductos.find(p => p.id === id);
-        await ProductoService.delete(id, prod?.supplier);
+        await ProductoService.delete(id, prod?.supplier, prod?.category);
         Toast.success(`Producto "${nombre}" eliminado correctamente`);
         todosLosProductos = todosLosProductos.filter(p => p.id !== id);
         aplicarFiltros();
