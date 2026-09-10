@@ -23,7 +23,11 @@ import {
     query, 
     where, 
     orderBy, 
-    writeBatch 
+    limit,
+    runTransaction,
+    writeBatch,
+    serverTimestamp,
+    increment
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { getStorage } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
@@ -88,6 +92,7 @@ function createQueryRef(colName, constraints = []) {
     return {
         where: (field, op, val) => createQueryRef(colName, [...constraints, where(field, op, val)]),
         orderBy: (field, dir = 'asc') => createQueryRef(colName, [...constraints, orderBy(field, dir)]),
+        limit: (num) => createQueryRef(colName, [...constraints, limit(num)]),
         doc: (docId) => createDocRef(colName, docId),
         add: async (data) => {
             const docRef = await addDoc(collection(db, colName), data);
@@ -126,7 +131,23 @@ const bridgeDB = {
             delete: (docWrapper) => b.delete(docWrapper._ref || docWrapper),
             commit: () => b.commit()
         };
-    }
+    },
+    runTransaction: (updateFn) => runTransaction(db, async (trans) => {
+        return await updateFn({
+            get: async (docWrapper) => {
+                const rawRef = docWrapper._ref || docWrapper;
+                const snap = await trans.get(rawRef);
+                return {
+                    id: snap.id,
+                    exists: snap.exists(),
+                    data: () => snap.data()
+                };
+            },
+            set: (docWrapper, data, opts) => trans.set(docWrapper._ref || docWrapper, data, opts),
+            update: (docWrapper, data) => trans.update(docWrapper._ref || docWrapper, data),
+            delete: (docWrapper) => trans.delete(docWrapper._ref || docWrapper)
+        });
+    })
 };
 
 const bridgeAuth = {
@@ -139,12 +160,23 @@ const bridgeAuth = {
 };
 
 // Exposición global para interoperabilidad
+window.firebase = window.firebase || {};
+window.firebase.firestore = window.firebase.firestore || {};
+window.firebase.firestore.FieldValue = {
+    serverTimestamp: () => serverTimestamp(),
+    increment: (n) => increment(n)
+};
+
 window.firebaseConfig = firebaseConfig;
 window.firebaseApp = app;
 window.firebaseAuth = bridgeAuth;
 window.firebaseDB = bridgeDB;
 window.firebaseStorage = storage;
 
-console.log(`🔥 [Firebase v10 Modular] Conectado a: ${isLocalhost ? 'DESARROLLO (Búnker)' : 'PRODUCCIÓN (Real)'}`);
+// Guard para registrar el log solo una vez
+if (!window.__firebaseModularInitLogged) {
+    window.__firebaseModularInitLogged = true;
+    console.log(`🔥 [Firebase v10 Modular] Conectado a: ${isLocalhost ? 'DESARROLLO (Búnker)' : 'PRODUCCIÓN (Real)'}`);
+}
 
 export { app, auth, db, storage, firebaseConfig };
