@@ -17,11 +17,62 @@ import {
 
 export const ProductoService = {
     /**
-     * Obtiene todos los productos (con caché en sessionStorage vía CacheService).
+     * Normaliza un producto a un esquema ortogonal predecible
+     * @param {Object} raw
+     * @returns {Object}
+     */
+    normalize(raw) {
+        if (!raw) return null;
+        return {
+            id: raw.id,
+            name: raw.name || raw.nombre || 'Sin nombre',
+            sku: (raw.sku || '').toUpperCase(),
+            category: raw.category || raw.categoriaId || '',
+            supplier: raw.supplier || raw.laboratorio || raw.proveedorId || '',
+            price: typeof raw.price === 'number' ? raw.price : parseFloat(raw.price || 0),
+            price_per_box: raw.price_per_box ? parseFloat(raw.price_per_box) : null,
+            cost: typeof raw.cost === 'number' ? raw.cost : parseFloat(raw.cost || 0),
+            current_stock: typeof raw.current_stock === 'number' ? raw.current_stock : parseInt(raw.current_stock || 0, 10),
+            min_stock: typeof raw.min_stock === 'number' ? raw.min_stock : parseInt(raw.min_stock || 0, 10),
+            expiration_date: raw.expiration_date || null,
+            description: raw.description || '',
+            created_at: raw.created_at || null,
+            updated_at: raw.updated_at || null
+        };
+    },
+
+    /**
+     * Obtiene todos los productos normalizados (con caché en sessionStorage vía CacheService).
      * @returns {Promise<Array>}
      */
     async getAll() {
-        return await CacheService.getProductos();
+        const rawList = await CacheService.getProductos();
+        return rawList.map(p => this.normalize(p));
+    },
+
+    /**
+     * Migra en lote documentos antiguos que pudieran tener 'categoriaId' a 'category'
+     * @returns {Promise<number>} Cantidad de documentos migrados
+     */
+    async migrarCamposLegadosFirestore() {
+        const q = query(collection(db, 'products'));
+        const snap = await getDocs(q);
+        const batch = writeBatch(db);
+        let actualizados = 0;
+
+        snap.docs.forEach(docSnap => {
+            const data = docSnap.data();
+            if (data.categoriaId && !data.category) {
+                batch.update(docSnap.ref, { category: data.categoriaId });
+                actualizados++;
+            }
+        });
+
+        if (actualizados > 0) {
+            await batch.commit();
+            CacheService.invalidarProductos();
+        }
+        return actualizados;
     },
 
     /**

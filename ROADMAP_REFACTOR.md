@@ -17,4 +17,4 @@
 -[ ] **optimizar las consultas de los reportes, es muy lento, colocar paginacion, agregar paginacion igual a los datos del dashboard**
 -[ ] **Buscador en categorias, en proveedores, filtros**
 - [ ] **Gestión Centralizada de SDKs:** Consolidar la carga de scripts de Firebase y librerías externas para no declararlos en cada vista individual.
-- [ ] **Estandarización del modelo de datos de Productos (Migración `categoriaId` -> `category`):** Ejecutar un script de migración único para asegurar que todos los documentos en la colección `products` utilicen exclusivamente el campo `category`, eliminando referencias legadas a `categoriaId`.
+- [ ] **Estandarización del modelo de datos de Productos (Migración `categoriaId` -> `category`):** Ejecutar un script de migración único para asegurar que todos los documentos en la colección `products` utilicen exclusivamente el campo `category`, eliminando referencias legadas a `categoriaId`.1
