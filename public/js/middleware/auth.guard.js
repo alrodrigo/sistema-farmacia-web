@@ -1,11 +1,15 @@
-// public/js/middleware/auth.guard.js
+// =====================================================
+// ARCHIVO: public/js/middleware/auth.guard.js
+// DESCRIPCIÓN: Route Guard y protección PBAC modular (Firebase v10)
+// =====================================================
+
 import { LayoutUI } from '../ui/layout.ui.js';
+import { auth, db } from '../config/firebase.js';
+import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-const auth = window.firebaseAuth;
-const db = window.firebaseDB;
-
-// DICCIONARIO DE RUTAS PBAC (Preparado para la Fase 2)
-// Mapea la ruta de la URL con el permiso futuro que se necesitará.
+// DICCIONARIO DE RUTAS PBAC
+// Mapea la ruta de la URL con el permiso que se necesitará.
 const ROUTE_PERMISSIONS = {
     '/categorias.html': 'gestionar_categorias',
     '/proveedores.html': 'gestionar_proveedores',
@@ -16,7 +20,7 @@ const ROUTE_PERMISSIONS = {
 export const AuthGuard = {
     async protect() {
         return new Promise((resolve, reject) => {
-            auth.onAuthStateChanged(async (user) => {
+            onAuthStateChanged(auth, async (user) => {
                 if (!user) {
                     window.location.href = '/index.html';
                     return reject('No autenticado');
@@ -27,8 +31,9 @@ export const AuthGuard = {
                     let userData = JSON.parse(sessionStorage.getItem('currentUserSession'));
 
                     if (!userData || userData.uid !== user.uid) {
-                        const userDoc = await db.collection('users').doc(user.uid).get();
-                        if (!userDoc.exists) throw new Error('Usuario no encontrado en BD');
+                        const userRef = doc(db, 'users', user.uid);
+                        const userDoc = await getDoc(userRef);
+                        if (!userDoc.exists()) throw new Error('Usuario no encontrado en BD');
 
                         userData = { uid: user.uid, email: user.email, ...userDoc.data() };
                         sessionStorage.setItem('currentUserSession', JSON.stringify(userData));
@@ -41,12 +46,12 @@ export const AuthGuard = {
                         return reject('Cuenta desactivada');
                     }
 
-                    // 2. VERIFICACIÓN DINÁMICA DE RUTAS (Fase 1)
+                    // 2. VERIFICACIÓN DINÁMICA DE RUTAS
                     const currentPath = window.location.pathname;
                     const requiredPermission = Object.keys(ROUTE_PERMISSIONS).find(route => currentPath.endsWith(route));
 
                     if (requiredPermission) {
-                        // FASE 1: Como aún no tenemos la consola de permisos, exigimos que sea 'admin'
+                        // Como aún no tenemos la consola de permisos, exigimos que sea 'admin'
                         if (userData.role !== 'admin') {
                             alert('⚠️ Acceso denegado. No tienes permisos para ver esta pantalla.');
                             window.location.href = 'dashboard.html';
@@ -54,7 +59,7 @@ export const AuthGuard = {
                         }
                     }
 
-                    // 3. RENDERIZADO VISUAL CENTRALIZADO (KISS)
+                    // 3. RENDERIZADO VISUAL CENTRALIZADO
                     this.applyUnifiedUI(userData);
 
                     resolve(userData);
@@ -93,7 +98,7 @@ export const AuthGuard = {
     async logout() {
         sessionStorage.removeItem('currentUserSession'); // Limpiar caché de usuario
         if (window.AppCache && window.AppCache.clearAll) window.AppCache.clearAll(); // Limpiar caché de inventario
-        await auth.signOut();
+        await signOut(auth);
         window.location.href = '/index.html';
     }
 };

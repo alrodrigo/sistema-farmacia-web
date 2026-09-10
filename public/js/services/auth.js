@@ -1,58 +1,79 @@
-// ===== SERVICIO DE AUTENTICACIÓN =====
+// =====================================================
+// ARCHIVO: public/js/services/auth.js
+// DESCRIPCIÓN: Servicio de autenticación modular (Firebase v10)
+// =====================================================
+
+import { auth, db } from '../config/firebase.js';
+import { 
+    signInWithEmailAndPassword, 
+    signOut, 
+    onAuthStateChanged 
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { 
+    doc, 
+    getDoc 
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 /**
- * Login de usuario
+ * Iniciar sesión de usuario
  * @param {string} email 
  * @param {string} password 
- * @returns {Promise}
+ * @returns {Promise<object>}
  */
-
-async function loginUser(email, password) {
+export async function loginUser(email, password) {
     try {
-        const userCredential = await firebaseAuth.signInWithEmailAndPassword(email, password);
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
         
         // Obtener datos adicionales del usuario desde Firestore
-        const userDoc = await firebaseDB.collection('users').doc(user.uid).get();
+        const userRef = doc(db, 'users', user.uid);
+        const userDoc = await getDoc(userRef);
         
-        if (userDoc.exists) {
+        if (userDoc.exists()) {
             const userData = {
                 uid: user.uid,
                 email: user.email,
                 ...userDoc.data()
             };
             
-            saveCurrentUser(userData);
+            if (typeof saveCurrentUser === 'function') {
+                saveCurrentUser(userData);
+            }
             return userData;
         } else {
-            throw new Error('Datos de usuario no encontrados');
+            throw new Error('Datos de usuario no encontrados en Firestore');
         }
     } catch (error) {
-        // console.error('Error en login:', error);
         throw error;
     }
 }
 
 /**
- * Logout de usuario
+ * Cerrar sesión de usuario
  */
-async function logoutUser() {
+export async function logoutUser() {
     try {
-        await firebaseAuth.signOut();
-        clearCurrentUser();
-        redirectTo('index.html');
+        await signOut(auth);
+        if (typeof clearCurrentUser === 'function') {
+            clearCurrentUser();
+        }
+        if (typeof redirectTo === 'function') {
+            redirectTo('index.html');
+        } else {
+            window.location.href = '/index.html';
+        }
     } catch (error) {
-        // console.error('Error en logout:', error);
         throw error;
     }
 }
 
 /**
  * Verificar si el usuario está autenticado
+ * @returns {Promise<object|null>}
  */
-function checkAuth() {
+export function checkAuth() {
     return new Promise((resolve) => {
-        firebaseAuth.onAuthStateChanged((user) => {
+        onAuthStateChanged(auth, (user) => {
             resolve(user);
         });
     });
@@ -61,14 +82,24 @@ function checkAuth() {
 /**
  * Proteger página (requiere autenticación)
  */
-async function protectPage() {
+export async function protectPage() {
     const user = await checkAuth();
     if (!user) {
-        redirectTo('index.html');
+        if (typeof redirectTo === 'function') {
+            redirectTo('index.html');
+        } else {
+            window.location.href = '/index.html';
+        }
     }
 }
 
-// ===== MANEJO DEL FORMULARIO DE LOGIN =====
+// Exposición global para interoperabilidad
+window.loginUser = loginUser;
+window.logoutUser = logoutUser;
+window.checkAuth = checkAuth;
+window.protectPage = protectPage;
+
+// ===== MANEJO DEL FORMULARIO DE LOGIN (index.html) =====
 document.addEventListener('DOMContentLoaded', function() {
     const loginForm = document.getElementById('loginForm');
     const togglePassword = document.getElementById('togglePassword');
@@ -82,60 +113,68 @@ document.addEventListener('DOMContentLoaded', function() {
             passwordInput.type = type;
             
             const icon = this.querySelector('i');
-            icon.classList.toggle('fa-eye');
-            icon.classList.toggle('fa-eye-slash');
+            if (icon) {
+                icon.classList.toggle('fa-eye');
+                icon.classList.toggle('fa-eye-slash');
+            }
         });
     }
 
-    // Verificar si ya está logueado (solo si estamos en la página de login)
-    checkAuth().then(async user => {
-        if (user) {
-            // Verificar que el usuario tenga documento en Firestore antes de redirigir
+    // Verificar si ya está logueado (solo en la página de login)
+    checkAuth().then(async (user) => {
+        if (user && loginForm) {
             try {
-                const userDoc = await firebaseDB.collection('users').doc(user.uid).get();
-                if (userDoc.exists) {
-                    // console.log('✅ Usuario ya logueado, redirigiendo a dashboard');
-                    redirectTo('pages/dashboard.html');
+                const userRef = doc(db, 'users', user.uid);
+                const userDoc = await getDoc(userRef);
+                if (userDoc.exists()) {
+                    if (typeof redirectTo === 'function') {
+                        redirectTo('pages/dashboard.html');
+                    } else {
+                        window.location.href = 'pages/dashboard.html';
+                    }
                 } else {
-                    // console.error('❌ Usuario sin documento en Firestore, cerrando sesión');
-                    await firebaseAuth.signOut();
-                    showAlert('Error: Tu cuenta no está configurada correctamente. Por favor contacta al administrador.', 'error');
+                    await signOut(auth);
+                    if (typeof showAlert === 'function') {
+                        showAlert('Error: Tu cuenta no está configurada correctamente. Por favor contacta al administrador.', 'error');
+                    }
                 }
             } catch (error) {
-                // console.error('❌ Error verificando usuario:', error);
-                await firebaseAuth.signOut();
-                showAlert('Error al verificar tu cuenta. Intenta iniciar sesión nuevamente.', 'error');
+                await signOut(auth);
+                if (typeof showAlert === 'function') {
+                    showAlert('Error al verificar tu cuenta. Intenta iniciar sesión nuevamente.', 'error');
+                }
             }
         }
     });
 
-    // Manejo del formulario
+    // Manejo del envío del formulario
     if (loginForm) {
         loginForm.addEventListener('submit', async function(e) {
             e.preventDefault();
-            clearAlerts();
+            if (typeof clearAlerts === 'function') clearAlerts();
 
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
 
-            // Validaciones
-            if (!isValidEmail(email)) {
-                showAlert('Por favor ingresa un correo válido', 'error');
+            // Validaciones locales
+            if (typeof isValidEmail === 'function' && !isValidEmail(email)) {
+                if (typeof showAlert === 'function') showAlert('Por favor ingresa un correo válido', 'error');
                 return;
             }
 
-            if (!isValidPassword(password)) {
-                showAlert('La contraseña debe tener al menos 6 caracteres', 'error');
+            if (typeof isValidPassword === 'function' && !isValidPassword(password)) {
+                if (typeof showAlert === 'function') showAlert('La contraseña debe tener al menos 6 caracteres', 'error');
                 return;
             }
 
-            // Intentar login
-            toggleButtonLoading(btnLogin, true);
+            // Bloquear botón durante el login
+            if (typeof toggleButtonLoading === 'function') {
+                toggleButtonLoading(btnLogin, true);
+            }
 
             try {
                 const userData = await loginUser(email, password);
                 
-                // Obtener nombre con fallbacks
                 const displayName = userData.nombre || 
                                   userData.name || 
                                   userData.first_name || 
@@ -143,20 +182,31 @@ document.addEventListener('DOMContentLoaded', function() {
                                   userData.email?.split('@')[0] || 
                                   'Usuario';
                 
-                showAlert(`¡Bienvenido ${displayName}!`, 'success', 2000);
+                if (typeof showAlert === 'function') {
+                    showAlert(`¡Bienvenido ${displayName}!`, 'success', 2000);
+                }
                 
                 setTimeout(() => {
-                    redirectTo('pages/dashboard.html');
-                }, 2000);
+                    if (typeof redirectTo === 'function') {
+                        redirectTo('pages/dashboard.html');
+                    } else {
+                        window.location.href = 'pages/dashboard.html';
+                    }
+                }, 1500);
                 
             } catch (error) {
-                // console.error('Error en login:', error);
-                const errorMessage = getFirebaseErrorMessage(error);
-                showAlert(errorMessage, 'error');
-                toggleButtonLoading(btnLogin, false);
+                const errorMessage = typeof getFirebaseErrorMessage === 'function' 
+                    ? getFirebaseErrorMessage(error) 
+                    : (error.message || 'Error al iniciar sesión');
+                
+                if (typeof showAlert === 'function') {
+                    showAlert(errorMessage, 'error');
+                }
+                
+                if (typeof toggleButtonLoading === 'function') {
+                    toggleButtonLoading(btnLogin, false);
+                }
             }
         });
     }
 });
-
-// console.log('🔐 Servicio de autenticación cargado');

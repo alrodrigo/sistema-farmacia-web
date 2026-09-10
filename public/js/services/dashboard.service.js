@@ -1,11 +1,21 @@
-// public/js/services/dashboard.service.js
-const db = window.firebaseDB;
+// =====================================================
+// ARCHIVO: public/js/services/dashboard.service.js
+// DESCRIPCIÓN: Servicio de estadísticas del Dashboard (Firebase v10 Modular)
+// =====================================================
+
+import { db } from '../config/firebase.js';
+import { 
+    collection, 
+    query, 
+    where, 
+    getDocs 
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 export const DashboardService = {
     async getInventario() {
         const [productosArray, proveedoresArray] = await Promise.all([
-            window.AppCache.getProductos(db),
-            window.AppCache.getProveedores(db)
+            window.AppCache.getProductos(window.firebaseDB),
+            window.AppCache.getProveedores(window.firebaseDB)
         ]);
 
         const proveedoresMap = {};
@@ -23,17 +33,23 @@ export const DashboardService = {
             const finDia = new Date();
             finDia.setHours(23, 59, 59, 999);
 
-            let query = db.collection('sales')
-                .where('created_at', '>=', hoy)
-                .where('created_at', '<=', finDia);
-
-            // Si es empleado, cuenta solo sus ventas
+            let q;
             if (role !== 'admin') {
-                query = query.where('seller_id', '==', userId);
+                q = query(
+                    collection(db, 'sales'),
+                    where('created_at', '>=', hoy),
+                    where('created_at', '<=', finDia),
+                    where('seller_id', '==', userId)
+                );
+            } else {
+                q = query(
+                    collection(db, 'sales'),
+                    where('created_at', '>=', hoy),
+                    where('created_at', '<=', finDia)
+                );
             }
 
-            // Usamos .get() compatible con el SDK actual
-            const snapshot = await query.get();
+            const snapshot = await getDocs(q);
 
             let totalIngresos = 0;
             snapshot.forEach(doc => {

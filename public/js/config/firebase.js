@@ -1,3 +1,32 @@
+// =====================================================
+// ARCHIVO: public/js/config/firebase.js
+// DESCRIPCIÓN: Configuración y conexión modular a Firebase v10
+// =====================================================
+
+import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { 
+    getAuth, 
+    onAuthStateChanged, 
+    signInWithEmailAndPassword, 
+    signOut 
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { 
+    getFirestore, 
+    collection, 
+    doc, 
+    getDoc, 
+    getDocs, 
+    setDoc, 
+    updateDoc, 
+    deleteDoc, 
+    addDoc, 
+    query, 
+    where, 
+    orderBy, 
+    writeBatch 
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getStorage } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+
 // ==================== CONFIGURACIÓN MULTI-ENTORNO ====================
 
 // 1. Configuración de PRODUCCIÓN (El negocio real)
@@ -20,27 +49,102 @@ const devConfig = {
   appId: "1:958591889656:web:9ef6c704e85673e73e0b0d"
 };
 
-// 3. El Switch Automático
-// Si la URL dice "localhost" o "127.0.0.1", usamos dev. Si no, usamos producción.
+// 3. El Switch Automático (localhost = dev; producción = prod)
 const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 const firebaseConfig = isLocalhost ? devConfig : prodConfig;
 
-// ==================== INICIALIZACIÓN ====================
-if (!firebase.apps.length) {
-  firebase.initializeApp(firebaseConfig);
-} else {
-  firebase.app();
-}
-
-const auth = firebase.auth();
-const db = firebase.firestore();
+// ==================== INICIALIZACIÓN MODULAR ====================
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage(app);
 
 auth.languageCode = 'es';
-auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(() => { });
 
+// ==================== PUENTE DE INTEROPERABILIDAD ====================
+// Permite que servicios y controladores aún en transición sigan consultando
+// sin romperse mientras se refactorizan individualmente a módulos ES6 puros.
+
+function createDocRef(colName, docId) {
+    const dRef = docId ? doc(db, colName, docId) : doc(collection(db, colName));
+    return {
+        id: dRef.id,
+        _ref: dRef,
+        get: async () => {
+            const snap = await getDoc(dRef);
+            return {
+                id: snap.id,
+                exists: snap.exists(),
+                data: () => snap.data()
+            };
+        },
+        set: (data, opts) => setDoc(dRef, data, opts),
+        update: (data) => updateDoc(dRef, data),
+        delete: () => deleteDoc(dRef)
+    };
+}
+
+function createQueryRef(colName, constraints = []) {
+    return {
+        where: (field, op, val) => createQueryRef(colName, [...constraints, where(field, op, val)]),
+        orderBy: (field, dir = 'asc') => createQueryRef(colName, [...constraints, orderBy(field, dir)]),
+        doc: (docId) => createDocRef(colName, docId),
+        add: async (data) => {
+            const docRef = await addDoc(collection(db, colName), data);
+            return { id: docRef.id };
+        },
+        get: async () => {
+            const q = constraints.length > 0 ? query(collection(db, colName), ...constraints) : collection(db, colName);
+            const snap = await getDocs(q);
+            return {
+                size: snap.size,
+                empty: snap.empty,
+                docs: snap.docs.map(d => ({
+                    id: d.id,
+                    exists: d.exists(),
+                    data: () => d.data()
+                })),
+                forEach: (cb) => snap.docs.forEach(d => cb({
+                    id: d.id,
+                    exists: d.exists(),
+                    data: () => d.data()
+                }))
+            };
+        }
+    };
+}
+
+const bridgeDB = {
+    ...db,
+    _raw: db,
+    collection: (colName) => createQueryRef(colName),
+    batch: () => {
+        const b = writeBatch(db);
+        return {
+            set: (docWrapper, data) => b.set(docWrapper._ref || docWrapper, data),
+            update: (docWrapper, data) => b.update(docWrapper._ref || docWrapper, data),
+            delete: (docWrapper) => b.delete(docWrapper._ref || docWrapper),
+            commit: () => b.commit()
+        };
+    }
+};
+
+const bridgeAuth = {
+    ...auth,
+    _raw: auth,
+    get currentUser() { return auth.currentUser; },
+    onAuthStateChanged: (cb) => onAuthStateChanged(auth, cb),
+    signOut: () => signOut(auth),
+    signInWithEmailAndPassword: (e, p) => signInWithEmailAndPassword(auth, e, p)
+};
+
+// Exposición global para interoperabilidad
 window.firebaseConfig = firebaseConfig;
-window.firebaseAuth = auth;
-window.firebaseDB = db;
+window.firebaseApp = app;
+window.firebaseAuth = bridgeAuth;
+window.firebaseDB = bridgeDB;
+window.firebaseStorage = storage;
 
-// Mensaje de seguridad para la consola
-console.log(`🔥 Conectado a la base de datos de: ${isLocalhost ? 'DESARROLLO (Búnker)' : 'PRODUCCIÓN (Real)'}`);
+console.log(`🔥 [Firebase v10 Modular] Conectado a: ${isLocalhost ? 'DESARROLLO (Búnker)' : 'PRODUCCIÓN (Real)'}`);
+
+export { app, auth, db, storage, firebaseConfig };
