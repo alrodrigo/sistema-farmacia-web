@@ -4,6 +4,7 @@
 // =====================================================
 
 import { db } from '../config/firebase.js';
+import { CacheService } from './cache.service.js';
 import { 
     collection, 
     doc, 
@@ -19,7 +20,7 @@ import {
 
 export const VentaService = {
     async getProductos() {
-        return await window.AppCache.getProductos(window.firebaseDB);
+        return await CacheService.getProductos();
     },
 
     async getNextSaleNumber() {

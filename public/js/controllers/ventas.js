@@ -1,5 +1,6 @@
 // public/js/controllers/ventas.js
 import { VentaService } from '../services/venta.service.js';
+import { CacheService } from '../services/cache.service.js';
 import { VentaUI } from '../ui/venta.ui.js';
 import { AuthGuard } from '../middleware/auth.guard.js';
 import { Toast } from '../utils/toast.js';
@@ -246,8 +247,7 @@ async function procesarVenta() {
       change: change,
       seller_id: currentUser.uid,
       seller_name: currentUser.name || currentUser.nombre || currentUser.email?.split('@')[0],
-      fecha: firebase.firestore.FieldValue.serverTimestamp(),
-      created_at: firebase.firestore.FieldValue.serverTimestamp(),
+      fecha: new Date(),
       status: 'completed'
     };
 
@@ -259,7 +259,7 @@ async function procesarVenta() {
       const prod = todosLosProductos.find(p => p.id === item.id);
       if (prod) prod.current_stock = Math.max(0, (prod.current_stock || 0) - item.cantidad);
     });
-    window.AppCache.setProductos(todosLosProductos);
+    CacheService.setProductos(todosLosProductos);
 
     // UI Updates
     VentaUI.showSuccessModal(numeroVentaActual, calc.total, calc.totalItems, calc.paymentMethod, calc.discountAmount, amountReceived, change);

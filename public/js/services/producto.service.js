@@ -1,5 +1,6 @@
 // public/js/services/producto.service.js
 import { db } from '../config/firebase.js';
+import { CacheService } from './cache.service.js';
 import {
     collection,
     doc,
@@ -16,11 +17,11 @@ import {
 
 export const ProductoService = {
     /**
-     * Obtiene todos los productos (con caché en sessionStorage vía AppCache).
+     * Obtiene todos los productos (con caché en sessionStorage vía CacheService).
      * @returns {Promise<Array>}
      */
     async getAll() {
-        return await window.AppCache.getProductos(window.firebaseDB);
+        return await CacheService.getProductos();
     },
 
     /**
@@ -86,11 +87,11 @@ export const ProductoService = {
     },
 
     /**
-     * Obtiene mapa de proveedores (desde AppCache).
+     * Obtiene mapa de proveedores (desde CacheService).
      * @returns {Promise<Object>}
      */
     async getProveedoresCache() {
-        const proveedoresArray = await window.AppCache.getProveedores(window.firebaseDB);
+        const proveedoresArray = await CacheService.getProveedores();
         const proveedoresMap = {};
         proveedoresArray.forEach(prov => {
             proveedoresMap[prov.id] = { id: prov.id, ...prov };
@@ -152,7 +153,7 @@ export const ProductoService = {
 
             await batch.commit();
             if (supplierAnterior !== supplierNuevo) {
-                window.AppCache.invalidarProveedores();
+                CacheService.invalidarProveedores();
             }
         } else {
             // Crear nuevo producto
@@ -179,13 +180,13 @@ export const ProductoService = {
 
             await batch.commit();
             if (productoData.supplier) {
-                window.AppCache.invalidarProveedores();
+                CacheService.invalidarProveedores();
             }
-            window.AppCache.invalidarProductos();
+            CacheService.invalidarProductos();
             return prodRef.id;
         }
 
-        window.AppCache.invalidarProductos();
+        CacheService.invalidarProductos();
     },
 
     /**
@@ -212,9 +213,9 @@ export const ProductoService = {
 
         await batch.commit();
         if (supplierId) {
-            window.AppCache.invalidarProveedores();
+            CacheService.invalidarProveedores();
         }
-        window.AppCache.invalidarProductos();
+        CacheService.invalidarProductos();
     },
 
     /**
@@ -245,7 +246,7 @@ export const ProductoService = {
             created_at: serverTimestamp(),
             updated_at: serverTimestamp()
         });
-        window.AppCache.invalidarProveedores();
+        CacheService.invalidarProveedores();
         return docRef.id;
     }
 };

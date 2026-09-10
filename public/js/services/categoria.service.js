@@ -4,6 +4,7 @@
 // =====================================================
 
 import { db } from '../config/firebase.js';
+import { CacheService } from './cache.service.js';
 import { 
     collection, 
     doc, 
@@ -94,7 +95,7 @@ export const CategoriaService = {
         });
 
         await batch.commit();
-        if (window.AppCache) window.AppCache.invalidarProductos();
+        CacheService.invalidarProductos();
     },
 
     /**

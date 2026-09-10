@@ -4,6 +4,7 @@
 // =====================================================
 
 import { db } from '../config/firebase.js';
+import { CacheService } from './cache.service.js';
 import { 
     collection, 
     query, 
@@ -14,8 +15,8 @@ import {
 export const DashboardService = {
     async getInventario() {
         const [productosArray, proveedoresArray] = await Promise.all([
-            window.AppCache.getProductos(window.firebaseDB),
-            window.AppCache.getProveedores(window.firebaseDB)
+            CacheService.getProductos(),
+            CacheService.getProveedores()
         ]);
 
         const proveedoresMap = {};

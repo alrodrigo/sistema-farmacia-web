@@ -1,5 +1,6 @@
 // public/js/services/proveedor.service.js
 import { db } from '../config/firebase.js';
+import { CacheService } from './cache.service.js';
 import {
     collection,
     doc,
@@ -97,7 +98,7 @@ export const ProveedorService = {
             await addDoc(collection(db, 'proveedores'), payload);
         }
 
-        if (window.AppCache) window.AppCache.invalidarProveedores();
+        CacheService.invalidarProveedores();
     },
 
     /**
@@ -120,9 +121,7 @@ export const ProveedorService = {
 
         await batch.commit();
 
-        if (window.AppCache) {
-            window.AppCache.invalidarProveedores();
-            window.AppCache.invalidarProductos();
-        }
+        CacheService.invalidarProveedores();
+        CacheService.invalidarProductos();
     }
 };

@@ -5,6 +5,7 @@
 
 import { LayoutUI } from '../ui/layout.ui.js';
 import { auth, db } from '../config/firebase.js';
+import { CacheService } from '../services/cache.service.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
@@ -97,7 +98,7 @@ export const AuthGuard = {
 
     async logout() {
         sessionStorage.removeItem('currentUserSession'); // Limpiar caché de usuario
-        if (window.AppCache && window.AppCache.clearAll) window.AppCache.clearAll(); // Limpiar caché de inventario
+        CacheService.invalidarTodo(); // Limpiar caché de inventario
         await signOut(auth);
         window.location.href = '/index.html';
     }
