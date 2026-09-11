@@ -1,11 +1,15 @@
 // public/js/controllers/dashboard.js
 import { DashboardService } from '../services/dashboard.service.js';
+import { ProductoService } from '../services/producto.service.js';
 import { DashboardUI } from '../ui/dashboard.ui.js';
 import { AuthGuard } from '../middleware/auth.guard.js';
 import { Toast } from '../utils/toast.js';
 import { ConfirmDialog } from '../utils/confirm.js';
 
 let currentUser = null;
+let todosLosProductos = [];
+let categoriasMap = {};
+let proveedoresMap = {};
 
 // Estado de Stock Bajo
 let stockBajoGlobal = [];
@@ -43,13 +47,54 @@ function setupEventListeners() {
 
     document.getElementById('btnScanQR')?.addEventListener('click', () => Toast.info('📷 Función de escaneo QR próximamente'));
 
-    // Delegación de eventos en la tabla de stock bajo (Arquitectura Ortogonal)
+    // Delegación de eventos para abrir modal de producto directamente en el Dashboard
     document.getElementById('stockBajoTableBody')?.addEventListener('click', (e) => {
-        const btn = e.target.closest('button[data-action="ir-a-producto"]');
+        const btn = e.target.closest('button[data-action="actualizar-producto"]');
         if (!btn) return;
-        localStorage.setItem('editProductId', btn.dataset.id);
-        window.location.href = 'productos.html';
+        abrirModalActualizar(btn.dataset.id);
     });
+
+    document.getElementById('expiringTableBody')?.addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-action="actualizar-producto"]');
+        if (!btn) return;
+        abrirModalActualizar(btn.dataset.id);
+    });
+
+    // Cierre del modal de actualización
+    document.getElementById('btnCerrarModalActualizar')?.addEventListener('click', cerrarModalActualizar);
+    document.getElementById('btnCancelarModalActualizar')?.addEventListener('click', cerrarModalActualizar);
+    document.getElementById('modalOverlayActualizar')?.addEventListener('click', cerrarModalActualizar);
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') cerrarModalActualizar();
+    });
+
+    // Guardado del formulario del modal
+    document.getElementById('formActualizarProducto')?.addEventListener('submit', guardarActualizacionProducto);
+
+    // Botones de incremento rápido de stock (+5, +10, +20, +50)
+    document.querySelectorAll('.btn-incrementar-stock').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const input = document.getElementById('editModalStockActual');
+            if (!input) return;
+            const cant = parseInt(btn.dataset.cant, 10) || 0;
+            const actual = parseInt(input.value, 10) || 0;
+            input.value = Math.max(0, actual + cant);
+            actualizarIndicadoresModal();
+        });
+    });
+
+    // Botón "Reponer Mínimo"
+    document.getElementById('btnReponerFaltante')?.addEventListener('click', () => {
+        const inputActual = document.getElementById('editModalStockActual');
+        const inputMin = document.getElementById('editModalStockMinimo');
+        if (!inputActual || !inputMin) return;
+        const minVal = parseInt(inputMin.value, 10) || 0;
+        inputActual.value = minVal;
+        actualizarIndicadoresModal();
+    });
+
+    document.getElementById('editModalStockActual')?.addEventListener('input', actualizarIndicadoresModal);
+    document.getElementById('editModalStockMinimo')?.addEventListener('input', actualizarIndicadoresModal);
 
     // Filtros interactivos para Stock Bajo
     document.getElementById('busquedaStockBajo')?.addEventListener('input', filtrarStockBajo);
@@ -98,14 +143,22 @@ function setupEventListeners() {
 
 async function cargarEstadisticas() {
     try {
-        const { productos, proveedoresMap } = await DashboardService.getInventario();
+        const [inventario, categorias, proveedores] = await Promise.all([
+            DashboardService.getInventario(),
+            ProductoService.getCategoriasCache(),
+            ProductoService.getProveedoresCache()
+        ]);
 
-        procesarStockBajo(productos, proveedoresMap);
-        procesarProximosVencer(productos, proveedoresMap);
+        todosLosProductos = inventario.productos;
+        proveedoresMap = proveedores;
+        categoriasMap = categorias;
+
+        procesarStockBajo(inventario.productos, inventario.proveedoresMap);
+        procesarProximosVencer(inventario.productos, inventario.proveedoresMap);
 
         // Resumen de ventas de hoy
         const { ventasHoy, ingresosHoy } = await DashboardService.getResumenHoy(currentUser.uid, currentUser.role);
-        DashboardUI.renderKpis(productos.length, ventasHoy, ingresosHoy, currentUser.role);
+        DashboardUI.renderKpis(inventario.productos.length, ventasHoy, ingresosHoy, currentUser.role);
 
     } catch (error) {
         console.error("Error al cargar estadísticas", error);
@@ -306,4 +359,217 @@ function exportarExpiringExcel() {
     const fecha = new Date().toISOString().split('T')[0];
     XLSX.writeFile(libro, `Reporte_Proximos_A_Vencer_${fecha}.xlsx`);
     Toast.success('Reporte de Próximos a Vencer exportado exitosamente.');
+}
+
+// =========================================================================
+// LÓGICA DEL MODAL DE ACTUALIZACIÓN DE PRODUCTO / STOCK EN DASHBOARD
+// =========================================================================
+
+function abrirModalActualizar(id) {
+    if (currentUser?.role !== 'admin') {
+        Toast.warning('Solo los administradores pueden editar productos');
+        return;
+    }
+
+    const prod = todosLosProductos.find(p => p.id === id);
+    if (!prod) {
+        Toast.error('No se encontró la información del producto');
+        return;
+    }
+
+    document.getElementById('editModalProdId').value = prod.id;
+    document.getElementById('editModalNombreHeader').textContent = prod.name;
+    document.getElementById('editModalSkuBadge').textContent = prod.sku || 'S/SKU';
+
+    document.getElementById('editModalNombre').value = prod.name || '';
+    document.getElementById('editModalSKU').value = prod.sku || '';
+
+    const currentStock = typeof prod.current_stock === 'number' ? prod.current_stock : (parseInt(prod.current_stock, 10) || 0);
+    const minStock = typeof prod.min_stock === 'number' ? prod.min_stock : (parseInt(prod.min_stock, 10) || 0);
+
+    document.getElementById('editModalStockActual').value = currentStock;
+    document.getElementById('editModalStockMinimo').value = minStock;
+
+    // Poblar selects de Categoría y Proveedor
+    poblarSelectCategorias(prod.category);
+    poblarSelectProveedores(prod.supplier);
+
+    document.getElementById('editModalCosto').value = prod.cost !== undefined ? prod.cost : '';
+    document.getElementById('editModalPrecio').value = prod.price !== undefined ? prod.price : '';
+
+    // Fecha de vencimiento
+    document.getElementById('editModalVencimiento').value = formatearFechaInput(prod.expiration_date);
+
+    actualizarIndicadoresModal();
+
+    const modal = document.getElementById('actualizarProductoModal');
+    if (modal) modal.style.display = 'flex';
+}
+
+function cerrarModalActualizar() {
+    const modal = document.getElementById('actualizarProductoModal');
+    if (modal) modal.style.display = 'none';
+}
+
+function actualizarIndicadoresModal() {
+    const inputActual = document.getElementById('editModalStockActual');
+    const inputMin = document.getElementById('editModalStockMinimo');
+    const badge = document.getElementById('editModalStockBadge');
+    const faltanteText = document.getElementById('editModalFaltanteText');
+
+    if (!inputActual || !inputMin) return;
+
+    const actual = parseInt(inputActual.value, 10) || 0;
+    const min = parseInt(inputMin.value, 10) || 0;
+
+    if (badge) {
+        badge.textContent = `Stock: ${actual}`;
+        badge.className = actual <= min ? 'badge-danger' : 'badge-success';
+    }
+
+    if (faltanteText) {
+        if (actual < min) {
+            faltanteText.textContent = `⚠️ Faltan ${min - actual} unidades para el mínimo`;
+            faltanteText.style.color = '#b45309';
+        } else {
+            faltanteText.textContent = `✅ Stock en nivel óptimo (≥ ${min})`;
+            faltanteText.style.color = '#15803d';
+        }
+    }
+}
+
+function formatearFechaInput(valorFecha) {
+    if (!valorFecha) return '';
+    let fechaReal;
+    if (typeof valorFecha.toDate === 'function') fechaReal = valorFecha.toDate();
+    else if (valorFecha.seconds) fechaReal = new Date(valorFecha.seconds * 1000);
+    else fechaReal = new Date(valorFecha);
+
+    if (isNaN(fechaReal.getTime())) return '';
+    const año = fechaReal.getFullYear();
+    const mes = String(fechaReal.getMonth() + 1).padStart(2, '0');
+    const dia = String(fechaReal.getDate()).padStart(2, '0');
+    return `${año}-${mes}-${dia}`;
+}
+
+function poblarSelectCategorias(categoriaActual) {
+    const select = document.getElementById('editModalCategoria');
+    if (!select) return;
+    select.innerHTML = '<option value="">Sin categoría</option>';
+    Object.values(categoriasMap)
+        .sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''))
+        .forEach(cat => {
+            const opt = document.createElement('option');
+            opt.value = cat.id;
+            opt.textContent = cat.nombre || cat.name || 'Sin nombre';
+            if (cat.id === categoriaActual) opt.selected = true;
+            select.appendChild(opt);
+        });
+}
+
+function poblarSelectProveedores(proveedorActual) {
+    const select = document.getElementById('editModalProveedor');
+    if (!select) return;
+    select.innerHTML = '<option value="">Sin laboratorio</option>';
+    Object.values(proveedoresMap)
+        .sort((a, b) => (a.nombre || a.name || '').localeCompare(b.nombre || b.name || ''))
+        .forEach(prov => {
+            const opt = document.createElement('option');
+            opt.value = prov.id;
+            opt.textContent = prov.nombre || prov.name || 'Sin nombre';
+            if (prov.id === proveedorActual) opt.selected = true;
+            select.appendChild(opt);
+        });
+}
+
+async function guardarActualizacionProducto(e) {
+    e.preventDefault();
+
+    const id = document.getElementById('editModalProdId')?.value;
+    if (!id) return;
+
+    const prodOriginal = todosLosProductos.find(p => p.id === id);
+    if (!prodOriginal) {
+        Toast.error('Producto no encontrado');
+        return;
+    }
+
+    const nombre = document.getElementById('editModalNombre')?.value.trim();
+    if (!nombre) {
+        Toast.warning('El nombre del producto es obligatorio');
+        return;
+    }
+
+    const nuevoStock = parseInt(document.getElementById('editModalStockActual')?.value, 10);
+    const nuevoMinStock = parseInt(document.getElementById('editModalStockMinimo')?.value, 10);
+    const nuevoPrecio = parseFloat(document.getElementById('editModalPrecio')?.value);
+    const nuevoCosto = parseFloat(document.getElementById('editModalCosto')?.value) || 0;
+    const nuevoSku = document.getElementById('editModalSKU')?.value.trim().toUpperCase() || '';
+    const nuevaCategoria = document.getElementById('editModalCategoria')?.value || null;
+    const nuevoProveedor = document.getElementById('editModalProveedor')?.value || null;
+    const fechaVencVal = document.getElementById('editModalVencimiento')?.value;
+
+    if (isNaN(nuevoStock) || nuevoStock < 0) {
+        Toast.warning('El stock actual debe ser un número mayor o igual a 0');
+        return;
+    }
+
+    if (isNaN(nuevoMinStock) || nuevoMinStock < 0) {
+        Toast.warning('El stock mínimo debe ser un número mayor o igual a 0');
+        return;
+    }
+
+    if (isNaN(nuevoPrecio) || nuevoPrecio < 0) {
+        Toast.warning('El precio de venta debe ser un número mayor o igual a 0');
+        return;
+    }
+
+    let expirationDate = prodOriginal.expiration_date;
+    if (fechaVencVal) {
+        const [y, m, d] = fechaVencVal.split('-').map(Number);
+        expirationDate = new Date(y, m - 1, d, 12, 0, 0);
+    } else if (fechaVencVal === '') {
+        expirationDate = null;
+    }
+
+    const btnGuardar = document.getElementById('btnGuardarModalActualizar');
+    const originalBtnHtml = btnGuardar ? btnGuardar.innerHTML : '';
+    if (btnGuardar) {
+        btnGuardar.disabled = true;
+        btnGuardar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+    }
+
+    try {
+        const productoData = {
+            name: nombre,
+            sku: nuevoSku,
+            category: nuevaCategoria,
+            supplier: nuevoProveedor,
+            current_stock: nuevoStock,
+            min_stock: nuevoMinStock,
+            price: nuevoPrecio,
+            cost: nuevoCosto,
+            expiration_date: expirationDate
+        };
+
+        await ProductoService.save(
+            id,
+            productoData,
+            prodOriginal.supplier || null,
+            currentUser.uid,
+            prodOriginal.category || null
+        );
+
+        Toast.success(`Producto "${nombre}" actualizado correctamente`);
+        cerrarModalActualizar();
+        await cargarEstadisticas();
+    } catch (error) {
+        console.error("Error al actualizar producto:", error);
+        Toast.error('Error al guardar los cambios del producto');
+    } finally {
+        if (btnGuardar) {
+            btnGuardar.disabled = false;
+            btnGuardar.innerHTML = originalBtnHtml;
+        }
+    }
 }

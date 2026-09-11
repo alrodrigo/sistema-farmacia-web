@@ -53,7 +53,7 @@ export const DashboardUI = {
                 <td>${producto.minStock} unidades</td>
                 <td><strong style="color: var(--danger-color);">Faltan ${producto.faltante} unidades</strong></td>
                 <td>
-                    <button class="btn-small" data-action="ir-a-producto" data-id="${producto.id}">
+                    <button class="btn-small" data-action="actualizar-producto" data-id="${producto.id}">
                         <i class="fas fa-edit"></i> Actualizar
                     </button>
                 </td>
@@ -119,7 +119,7 @@ export const DashboardUI = {
         if (badge) badge.textContent = totalFiltrados;
 
         if (totalFiltrados === 0) {
-            tbody.innerHTML = `<tr><td colspan="6" class="text-center" style="padding: 25px; color: #64748b;"><i class="fas fa-search" style="margin-right: 6px;"></i> No se encontraron productos próximos a vencer con los filtros seleccionados.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center" style="padding: 25px; color: #64748b;"><i class="fas fa-search" style="margin-right: 6px;"></i> No se encontraron productos próximos a vencer con los filtros seleccionados.</td></tr>`;
             const pag = document.getElementById('expiringPagination');
             if (pag) pag.style.display = 'none';
             return;
@@ -151,6 +151,11 @@ export const DashboardUI = {
                     <td>${fechaFormateada}</td>
                     <td><span class="${badgeClass}">${diasTexto}</span></td>
                     <td>${producto.stock} unidades</td>
+                    <td class="text-center">
+                        <button class="btn-small" data-action="actualizar-producto" data-id="${producto.id}">
+                            <i class="fas fa-edit"></i> Actualizar
+                        </button>
+                    </td>
                 </tr>
             `;
         }).join('');
