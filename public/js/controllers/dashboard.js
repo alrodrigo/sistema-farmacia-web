@@ -155,9 +155,15 @@ async function cargarEstadisticas() {
         procesarStockBajo(inventario.productos, inventario.proveedoresMap);
         procesarProximosVencer(inventario.productos, inventario.proveedoresMap);
 
+        // Conteo de productos con Salida Prioritaria (FEFO / Urgente)
+        const salidaPrioritaria = inventario.productos.filter(p => {
+            const status = ProductoService.getPriorityStatus(p);
+            return status.isUrgent && (p.current_stock || 0) > 0;
+        }).length;
+
         // Resumen de ventas de hoy
         const { ventasHoy, ingresosHoy } = await DashboardService.getResumenHoy(currentUser.uid, currentUser.role);
-        DashboardUI.renderKpis(inventario.productos.length, ventasHoy, ingresosHoy, currentUser.role);
+        DashboardUI.renderKpis(inventario.productos.length, ventasHoy, ingresosHoy, currentUser.role, salidaPrioritaria);
 
     } catch (error) {
         console.error("Error al cargar estadísticas", error);

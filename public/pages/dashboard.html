@@ -15,15 +15,15 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- Sistema de Diseño Base -->
-    <link rel="stylesheet" href="../css/theme.css?v=4.0.1789158812">
-    <link rel="stylesheet" href="../css/components.css?v=4.0.1789158812">
-    <link rel="stylesheet" href="../css/layout.css?v=4.0.1789158812">
+    <link rel="stylesheet" href="../css/theme.css?v=4.0.1789160049">
+    <link rel="stylesheet" href="../css/components.css?v=4.0.1789160049">
+    <link rel="stylesheet" href="../css/layout.css?v=4.0.1789160049">
 
     <!-- CSS del Dashboard -->
-    <link rel="stylesheet" href="../css/dashboard.css?v=4.0.1789158812">
+    <link rel="stylesheet" href="../css/dashboard.css?v=4.0.1789160049">
 
     <!-- Responsive (DEBE IR AL FINAL) -->
-    <link rel="stylesheet" href="../css/responsive.css?v=4.0.1789158812">
+    <link rel="stylesheet" href="../css/responsive.css?v=4.0.1789160049">
 </head>
 
 <body>
@@ -77,6 +77,16 @@
                     <div class="stat-details">
                         <h3 id="ingresosHoy">Bs. 0</h3>
                         <p>Ingresos Hoy</p>
+                    </div>
+                </div>
+                <!-- Tarjeta 4: Salida Prioritaria (FEFO / Urgente) -->
+                <div class="stat-card" style="cursor: pointer;" onclick="window.location.href='ventas.html'" title="Ver medicamentos en Salida Prioritaria en el punto de venta">
+                    <div class="stat-icon" style="background: #fee2e2;">
+                        <i class="fas fa-fire" style="color: #ef4444;"></i>
+                    </div>
+                    <div class="stat-details">
+                        <h3 id="salidaPrioritariaCount" style="color: #ef4444;">0</h3>
+                        <p>Salida Prioritaria</p>
                     </div>
                 </div>
             </div>
@@ -405,16 +415,16 @@
     <!-- Librería para exportar a Excel (SheetJS) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <!-- Configuración de Firebase (Modular v10) -->
-    <script type="module" src="../js/config/firebase.js?v=4.0.1789158812"></script>
+    <script type="module" src="../js/config/firebase.js?v=4.0.1789160049"></script>
 
     <!-- Utilidades -->
-    <script src="../js/utils/helpers.js?v=4.0.1789158812"></script>
+    <script src="../js/utils/helpers.js?v=4.0.1789160049"></script>
 
     <!-- Scripts del Dashboard -->
-    <script type="module" src="../js/controllers/dashboard.js?v=4.0.1789158812"></script>
+    <script type="module" src="../js/controllers/dashboard.js?v=4.0.1789160049"></script>
 
     <!-- Service Worker para actualización automática -->
-    <script src="../js/sw-register.js?v=4.0.1789158812"></script>
+    <script src="../js/sw-register.js?v=4.0.1789160049"></script>
 </body>
 
 </html>

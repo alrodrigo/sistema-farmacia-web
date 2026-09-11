@@ -15,16 +15,16 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- Sistema de Diseño Base -->
-    <link rel="stylesheet" href="../css/theme.css?v=4.0.1789158812">
-    <link rel="stylesheet" href="../css/components.css?v=4.0.1789158812">
-    <link rel="stylesheet" href="../css/layout.css?v=4.0.1789158812">
+    <link rel="stylesheet" href="../css/theme.css?v=4.0.1789160049">
+    <link rel="stylesheet" href="../css/components.css?v=4.0.1789160049">
+    <link rel="stylesheet" href="../css/layout.css?v=4.0.1789160049">
 
     <!-- CSS -->
-    <link rel="stylesheet" href="../css/ventas.css?v=4.0.1789158812">
-    <link rel="stylesheet" href="../css/print.css?v=4.0.1789158812">
+    <link rel="stylesheet" href="../css/ventas.css?v=4.0.1789160049">
+    <link rel="stylesheet" href="../css/print.css?v=4.0.1789160049">
 
     <!-- Responsive (DEBE IR AL FINAL) -->
-    <link rel="stylesheet" href="../css/responsive.css?v=4.0.1789158812">
+    <link rel="stylesheet" href="../css/responsive.css?v=4.0.1789160049">
 </head>
 
 <body>
@@ -56,6 +56,25 @@
 
                 <!-- ===== COLUMNA IZQUIERDA: Búsqueda de productos ===== -->
                 <div class="pos-left">
+
+                    <!-- Panel de Venta Rápida (1-Clic) y Salida Prioritaria (FEFO) -->
+                    <div class="quick-sale-card">
+                        <div class="quick-sale-top">
+                            <div class="quick-sale-tabs">
+                                <button type="button" class="quick-tab-btn active" id="tabQuickTop" data-tab="frecuentes">
+                                    <i class="fas fa-star" style="color: #f59e0b;"></i> Frecuentes
+                                </button>
+                                <button type="button" class="quick-tab-btn" id="tabQuickPriority" data-tab="prioridad">
+                                    <i class="fas fa-fire" style="color: #ef4444;"></i> Salida Prioritaria
+                                    <span class="badge-priority-counter" id="priorityCountBadge" style="display: none;">0</span>
+                                </button>
+                            </div>
+                            <small class="quick-sale-hint"><i class="fas fa-hand-pointer"></i> 1 Clic para agregar</small>
+                        </div>
+                        <div class="quick-sale-items" id="quickSaleContainer">
+                            <!-- Cargado dinámicamente -->
+                        </div>
+                    </div>
 
                     <!-- Búsqueda -->
                     <div class="search-section">
@@ -257,16 +276,16 @@
 
 
     <!-- Configuración de Firebase -->
-    <script type="module" src="../js/config/firebase.js?v=4.0.1789158812"></script>
+    <script type="module" src="../js/config/firebase.js?v=4.0.1789160049"></script>
 
     <!-- Utilidades -->
-    <script src="../js/utils/helpers.js?v=4.0.1789158812"></script>
+    <script src="../js/utils/helpers.js?v=4.0.1789160049"></script>
 
     <!-- Scripts de Ventas -->
-    <script type="module" src="../js/controllers/ventas.js?v=4.0.1789158812"></script>
+    <script type="module" src="../js/controllers/ventas.js?v=4.0.1789160049"></script>
 
     <!-- Service Worker para actualización automática -->
-    <script src="../js/sw-register.js?v=4.0.1789158812"></script>
+    <script src="../js/sw-register.js?v=4.0.1789160049"></script>
 </body>
 
 </html>

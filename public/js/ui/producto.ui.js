@@ -1,7 +1,26 @@
 // public/js/ui/producto.ui.js
 import { ModalUI } from './modal.ui.js';
+import { ProductoService } from '../services/producto.service.js';
 
 export const ProductoUI = {
+    renderSkeleton(filas = 5) {
+        const tbody = document.getElementById('productosTableBody');
+        if (!tbody) return;
+        tbody.innerHTML = Array(filas).fill(0).map(() => `
+            <tr class="skeleton-row">
+                <td><div class="skeleton-line" style="width: 70px; height: 16px;"></div></td>
+                <td><div class="skeleton-line" style="width: 160px; height: 16px;"></div></td>
+                <td><div class="skeleton-line" style="width: 100px; height: 16px;"></div></td>
+                <td><div class="skeleton-line" style="width: 100px; height: 16px;"></div></td>
+                <td><div class="skeleton-line" style="width: 40px; height: 16px;"></div></td>
+                <td><div class="skeleton-line" style="width: 40px; height: 16px;"></div></td>
+                <td><div class="skeleton-line" style="width: 60px; height: 16px;"></div></td>
+                <td><div class="skeleton-line" style="width: 80px; height: 20px; border-radius: 12px;"></div></td>
+                <td class="text-center"><div class="skeleton-line" style="width: 70px; height: 24px; margin: 0 auto;"></div></td>
+            </tr>
+        `).join('');
+    },
+
     renderTable(productos, paginaActual, productosPorPagina, categoriasMap, proveedoresMap, role) {
         const tbody = document.getElementById('productosTableBody');
         if (!tbody) return;
@@ -56,10 +75,15 @@ export const ProductoUI = {
                 </div>
             `;
 
+            const priority = ProductoService.getPriorityStatus(producto);
+            const priorityBadge = priority.isUrgent
+                ? `<span class="badge badge-danger" title="${priority.label}" style="font-size: 0.7rem; padding: 2px 6px; margin-left: 6px; vertical-align: middle;"><i class="fas fa-fire"></i> ${priority.label}</span>`
+                : (priority.isPromo ? `<span class="badge badge-warning" style="font-size: 0.7rem; padding: 2px 6px; margin-left: 6px; vertical-align: middle;"><i class="fas fa-tag"></i> Promo</span>` : '');
+
             return `
             <tr data-id="${producto.id}">
                 <td><strong>${producto.sku || 'N/A'}</strong></td>
-                <td>${producto.name}</td>
+                <td>${producto.name} ${priorityBadge}</td>
                 <td>${categoriaNombre}</td>
                 <td>${proveedorNombre}</td>
                 <td><strong>${producto.current_stock || 0}</strong></td>
@@ -144,6 +168,8 @@ export const ProductoUI = {
             btnGuardar.textContent = 'Guardar Producto';
             inputs.forEach(i => i.disabled = false);
             document.getElementById('margenGanancia').value = '0%';
+            const inputPrioridad = document.getElementById('inputPrioridad');
+            if (inputPrioridad) inputPrioridad.value = 'normal';
         }
 
         ModalUI.open('productoModal');
@@ -165,6 +191,8 @@ export const ProductoUI = {
         document.getElementById('inputStockActual').value = producto.current_stock || 0;
         document.getElementById('inputStockMinimo').value = producto.min_stock || 0;
         document.getElementById('inputFechaVencimiento').value = this.formatearFechaVencimiento(producto.expiration_date);
+        const inputPrioridad = document.getElementById('inputPrioridad');
+        if (inputPrioridad) inputPrioridad.value = producto.priority_flag || 'normal';
         document.getElementById('inputDescripcion').value = producto.description || '';
     },
 

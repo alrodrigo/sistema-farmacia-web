@@ -7,9 +7,12 @@ export const DashboardUI = {
         if (userRoleElement) userRoleElement.textContent = roleText;
     },
 
-    renderKpis(totalProductos, ventasHoy, ingresosHoy, role) {
+    renderKpis(totalProductos, ventasHoy, ingresosHoy, role, salidaPrioritaria = 0) {
         document.getElementById('totalProductos').textContent = totalProductos;
         document.getElementById('ventasHoy').textContent = ventasHoy;
+
+        const elPrioritaria = document.getElementById('salidaPrioritariaCount');
+        if (elPrioritaria) elPrioritaria.textContent = salidaPrioritaria;
 
         const cardIngresos = document.getElementById('cardIngresosHoy');
         if (role === 'admin') {

@@ -1,6 +1,7 @@
 // public/js/controllers/ventas.js
 import { VentaService } from '../services/venta.service.js';
 import { CacheService } from '../services/cache.service.js';
+import { ProductoService } from '../services/producto.service.js';
 import { VentaUI } from '../ui/venta.ui.js';
 import { AuthGuard } from '../middleware/auth.guard.js';
 import { Toast } from '../utils/toast.js';
@@ -11,6 +12,7 @@ let todosLosProductos = [];
 let carrito = [];
 let numeroVentaActual = 1;
 let ultimaVentaItems = []; // Para el recibo
+let activeQuickTab = 'frecuentes';
 
 document.addEventListener('DOMContentLoaded', async () => {
   try {
@@ -29,12 +31,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 function setupEventListeners() {
   document.getElementById('btnLogout')?.addEventListener('click', () => AuthGuard.logout());
 
-
-
   document.querySelector('.user-menu')?.addEventListener('click', async () => {
     const salir = await ConfirmDialog.show('Cerrar Sesión', '¿Estás seguro de que deseas salir del sistema?', 'warning', 'Cerrar Sesión');
     if (salir) AuthGuard.logout();
   });
+
+  // Pestañas de venta rápida
+  document.getElementById('tabQuickTop')?.addEventListener('click', () => cambiarPestañaRapida('frecuentes'));
+  document.getElementById('tabQuickPriority')?.addEventListener('click', () => cambiarPestañaRapida('prioridad'));
 
   let searchTimeout;
   document.getElementById('searchProductInput')?.addEventListener('input', function () {
@@ -74,9 +78,51 @@ function setupEventListeners() {
 }
 
 async function cargarDatosIniciales() {
+  VentaUI.renderSkeletonQuick();
+  VentaUI.renderSkeletonSearch(3);
+
   todosLosProductos = await VentaService.getProductos();
   numeroVentaActual = await VentaService.getNextSaleNumber();
   document.getElementById('saleNumber').textContent = String(numeroVentaActual).padStart(4, '0');
+
+  actualizarPanelRapido();
+  VentaUI.renderEmptySearch();
+}
+
+function cambiarPestañaRapida(tab) {
+  activeQuickTab = tab;
+  document.getElementById('tabQuickTop')?.classList.toggle('active', tab === 'frecuentes');
+  document.getElementById('tabQuickPriority')?.classList.toggle('active', tab === 'prioridad');
+  actualizarPanelRapido();
+}
+
+function actualizarPanelRapido() {
+  const prioritarios = todosLosProductos
+    .filter(p => (p.current_stock || 0) > 0)
+    .map(p => ({ producto: p, priority: ProductoService.getPriorityStatus(p) }))
+    .filter(item => item.priority.isUrgent)
+    .sort((a, b) => (a.priority.daysLeft ?? 999) - (b.priority.daysLeft ?? 999))
+    .map(item => item.producto);
+
+  const badgeCounter = document.getElementById('priorityCountBadge');
+  if (badgeCounter) {
+    if (prioritarios.length > 0) {
+      badgeCounter.textContent = prioritarios.length;
+      badgeCounter.style.display = 'inline-flex';
+    } else {
+      badgeCounter.style.display = 'none';
+    }
+  }
+
+  if (activeQuickTab === 'prioridad') {
+    VentaUI.renderQuickProducts(prioritarios, 'prioridad');
+  } else {
+    // Frecuentes: primeros 8 productos con stock disponible
+    const frecuentes = todosLosProductos
+      .filter(p => (p.current_stock || 0) > 0)
+      .slice(0, 8);
+    VentaUI.renderQuickProducts(frecuentes, 'frecuentes');
+  }
 }
 
 function buscarProductos(termino) {
@@ -85,11 +131,19 @@ function buscarProductos(termino) {
     VentaUI.renderEmptySearch();
     return;
   }
-  const resultados = todosLosProductos.filter(p =>
+  let resultados = todosLosProductos.filter(p =>
     p.name.toLowerCase().includes(terminoLower) ||
     (p.sku && p.sku.toLowerCase().includes(terminoLower))
   );
-  VentaUI.renderSearchResults(resultados);
+
+  // Ordenar inteligentemente: productos con prioridad de salida (FEFO/Urgentes) primero
+  resultados.sort((a, b) => {
+    const pA = ProductoService.getPriorityStatus(a).isUrgent ? 1 : 0;
+    const pB = ProductoService.getPriorityStatus(b).isUrgent ? 1 : 0;
+    return pB - pA;
+  });
+
+  VentaUI.renderSearchResults(resultados, termino);
 }
 
 function agregarAlCarrito(id) {
@@ -260,6 +314,7 @@ async function procesarVenta() {
       if (prod) prod.current_stock = Math.max(0, (prod.current_stock || 0) - item.cantidad);
     });
     CacheService.setProductos(todosLosProductos);
+    actualizarPanelRapido();
 
     // UI Updates
     VentaUI.showSuccessModal(numeroVentaActual, calc.total, calc.totalItems, calc.paymentMethod, calc.discountAmount, amountReceived, change);

@@ -1173,3 +1173,60 @@
         padding: 1rem;
     }
 }
+
+/* ===== SKELETON LOADERS & SEARCH HIGHLIGHTING (GLOBAL) ===== */
+@keyframes shimmerAnim {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+.skeleton-line {
+    background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+    background-size: 200% 100%;
+    animation: shimmerAnim 1.6s infinite ease-in-out;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+.skeleton-row td {
+    padding: 0.85rem 0.5rem;
+}
+
+mark.search-highlight {
+    background-color: #fef08a !important;
+    color: #854d0e !important;
+    padding: 1px 3px !important;
+    border-radius: 3px !important;
+    font-weight: 700 !important;
+}
+
+/* ===== BANDERAS DE PRIORIDAD (SMART FLAGS / FEFO) ===== */
+.badge-priority {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 6px;
+    vertical-align: middle;
+    line-height: 1.2;
+}
+
+.badge-priority.badge-urgent {
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fca5a5;
+    animation: pulseUrgent 2.2s infinite ease-in-out;
+}
+
+.badge-priority.badge-promo {
+    background: #fef3c7;
+    color: #b45309;
+    border: 1px solid #fcd34d;
+}
+
+@keyframes pulseUrgent {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.03); }
+}

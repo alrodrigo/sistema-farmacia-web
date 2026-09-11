@@ -115,6 +115,7 @@ function setupEventListeners() {
 
 async function cargarDatosIniciales() {
     try {
+        ProductoUI.renderSkeleton(6);
         [categoriasMap, proveedoresMap, todosLosProductos] = await Promise.all([
             ProductoService.getCategoriasCache(),
             ProductoService.getProveedoresCache(),
@@ -205,6 +206,7 @@ async function guardarProducto(event) {
             current_stock: parseInt(document.getElementById('inputStockActual').value),
             min_stock: parseInt(document.getElementById('inputStockMinimo').value),
             expiration_date: fechaVencimiento ? new Date(fechaVencimiento + 'T00:00:00') : null,
+            priority_flag: document.getElementById('inputPrioridad')?.value || 'normal',
             description: document.getElementById('inputDescripcion').value.trim() || null
         };
 

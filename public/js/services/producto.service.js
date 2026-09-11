@@ -35,9 +35,84 @@ export const ProductoService = {
             current_stock: typeof raw.current_stock === 'number' ? raw.current_stock : parseInt(raw.current_stock || 0, 10),
             min_stock: typeof raw.min_stock === 'number' ? raw.min_stock : parseInt(raw.min_stock || 0, 10),
             expiration_date: raw.expiration_date || null,
+            priority_flag: raw.priority_flag || 'normal',
             description: raw.description || '',
             created_at: raw.created_at || null,
             updated_at: raw.updated_at || null
+        };
+    },
+
+    /**
+     * Evalúa la prioridad comercial y de vencimiento (FEFO) de un producto
+     * @param {Object} producto 
+     * @returns {Object} { level: 'urgent'|'promo'|'expired'|'normal', label: string, isUrgent: boolean, isPromo: boolean, isExpired: boolean, daysLeft: number|null }
+     */
+    getPriorityStatus(producto) {
+        if (!producto) return { level: 'normal', label: 'Normal', isNormal: true, isUrgent: false, daysLeft: null };
+
+        let daysLeft = null;
+        let isExpired = false;
+        let isExpiringSoon = false;
+
+        if (producto.expiration_date) {
+            const expDate = new Date(producto.expiration_date + 'T23:59:59');
+            const today = new Date();
+            const diffTime = expDate.getTime() - today.getTime();
+            daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (daysLeft < 0) {
+                isExpired = true;
+            } else if (daysLeft <= 45) {
+                isExpiringSoon = true;
+            }
+        }
+
+        if (isExpired) {
+            return {
+                level: 'expired',
+                label: 'Vencido',
+                isExpired: true,
+                isUrgent: false,
+                daysLeft
+            };
+        }
+
+        if (isExpiringSoon) {
+            return {
+                level: 'urgent',
+                label: daysLeft === 0 ? 'Vence hoy' : `Vence en ${daysLeft}d`,
+                isUrgent: true,
+                isFefo: true,
+                daysLeft
+            };
+        }
+
+        if (producto.priority_flag === 'urgent') {
+            return {
+                level: 'urgent',
+                label: 'Salida Urgente',
+                isUrgent: true,
+                isFefo: false,
+                daysLeft
+            };
+        }
+
+        if (producto.priority_flag === 'promo') {
+            return {
+                level: 'promo',
+                label: 'En Promoción',
+                isPromo: true,
+                isUrgent: false,
+                daysLeft
+            };
+        }
+
+        return {
+            level: 'normal',
+            label: 'Normal',
+            isNormal: true,
+            isUrgent: false,
+            daysLeft
         };
     },
 

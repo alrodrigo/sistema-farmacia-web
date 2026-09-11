@@ -1,4 +1,6 @@
 // public/js/ui/venta.ui.js
+import { ProductoService } from '../services/producto.service.js';
+
 export const VentaUI = {
     updateDateTime() {
         const ahora = new Date();
@@ -8,7 +10,116 @@ export const VentaUI = {
         }
     },
 
-    renderSearchResults(productos) {
+    escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    },
+
+    highlightMatch(text, query) {
+        if (!text) return '';
+        const safeText = this.escapeHtml(text);
+        if (!query || !query.trim()) return safeText;
+
+        const cleanQuery = query.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(`(${cleanQuery})`, 'gi');
+        return safeText.replace(regex, '<mark class="search-highlight">$1</mark>');
+    },
+
+    renderSkeletonQuick() {
+        const container = document.getElementById('quickSaleContainer');
+        if (!container) return;
+        container.innerHTML = Array(6).fill(0).map(() => `
+            <div class="skeleton-quick-card">
+                <div class="skeleton-line" style="width: 75%; height: 14px; margin-bottom: 8px;"></div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div class="skeleton-line" style="width: 35%; height: 12px;"></div>
+                    <div class="skeleton-line" style="width: 40%; height: 14px;"></div>
+                </div>
+            </div>
+        `).join('');
+    },
+
+    renderSkeletonSearch(count = 4) {
+        const container = document.getElementById('searchResults');
+        if (!container) return;
+        container.innerHTML = Array(count).fill(0).map(() => `
+            <div class="product-card skeleton-prod-card" style="pointer-events: none;">
+                <div class="product-info" style="flex: 1;">
+                    <div class="skeleton-line" style="width: 60%; height: 16px; margin-bottom: 8px;"></div>
+                    <div class="skeleton-line" style="width: 40%; height: 12px;"></div>
+                </div>
+                <div class="skeleton-line" style="width: 60px; height: 18px; margin-right: 15px;"></div>
+                <div class="skeleton-line" style="width: 90px; height: 36px; border-radius: 6px;"></div>
+            </div>
+        `).join('');
+    },
+
+    renderQuickProducts(productos, activeTab = 'frecuentes') {
+        const container = document.getElementById('quickSaleContainer');
+        if (!container) return;
+
+        if (!productos || productos.length === 0) {
+            if (activeTab === 'prioridad') {
+                container.innerHTML = `
+                    <div class="quick-empty-state">
+                        <i class="fas fa-check-circle" style="color: #10b981; font-size: 1.3rem;"></i>
+                        <div>
+                            <strong>¡Excelente! Sin productos urgentes</strong>
+                            <p style="margin: 0; font-size: 0.8rem; color: #64748b;">No hay medicamentos con vencimiento próximo ni salida urgente.</p>
+                        </div>
+                    </div>`;
+            } else {
+                container.innerHTML = `
+                    <div class="quick-empty-state">
+                        <i class="fas fa-box-open" style="color: #94a3b8; font-size: 1.3rem;"></i>
+                        <div>
+                            <strong>Sin productos disponibles</strong>
+                            <p style="margin: 0; font-size: 0.8rem; color: #64748b;">No se encontraron productos frecuentes en stock.</p>
+                        </div>
+                    </div>`;
+            }
+            return;
+        }
+
+        container.innerHTML = productos.map(producto => {
+            const priority = ProductoService.getPriorityStatus(producto);
+            const stock = producto.current_stock || 0;
+            const minStock = producto.min_stock || 1;
+            const sinStock = stock <= 0;
+            const stockBajo = stock < minStock;
+            const isUrgent = priority.isUrgent;
+
+            const badgeHtml = isUrgent
+                ? `<span class="quick-badge urgent"><i class="fas fa-fire"></i> ${priority.label}</span>`
+                : (priority.isPromo ? `<span class="quick-badge promo"><i class="fas fa-tag"></i> Promo</span>` : '');
+
+            return `
+                <button type="button" class="quick-prod-card ${isUrgent ? 'priority-card' : ''} ${sinStock ? 'out-of-stock' : ''}"
+                    onclick="window.agregarAlCarrito('${producto.id}')"
+                    ${sinStock ? 'disabled title="Sin stock disponible"' : `title="Agregar 1 unidad de ${this.escapeHtml(producto.name)}"`}>
+                    <div class="quick-prod-top">
+                        <span class="quick-prod-name">${this.escapeHtml(producto.name)}</span>
+                        ${badgeHtml}
+                    </div>
+                    <div class="quick-prod-bottom">
+                        <span class="quick-prod-stock ${stockBajo ? 'stock-low' : ''}">
+                            <i class="fas fa-box"></i> ${stock}
+                        </span>
+                        <span class="quick-prod-price">
+                            ${window.formatCurrency ? window.formatCurrency(producto.price || 0) : `Bs. ${producto.price}`}
+                        </span>
+                    </div>
+                </button>
+            `;
+        }).join('');
+    },
+
+    renderSearchResults(productos, searchQuery = '') {
         const container = document.getElementById('searchResults');
         const countEl = document.getElementById('resultsCount');
 
@@ -28,12 +139,21 @@ export const VentaUI = {
         container.innerHTML = productos.map(producto => {
             const stockBajo = producto.current_stock < producto.min_stock;
             const sinStock = producto.current_stock === 0;
+            const priority = ProductoService.getPriorityStatus(producto);
+
+            const priorityBadge = priority.isUrgent
+                ? `<span class="badge-priority badge-urgent" title="${priority.label}"><i class="fas fa-fire"></i> ${priority.label}</span>`
+                : (priority.isPromo ? `<span class="badge-priority badge-promo"><i class="fas fa-tag"></i> Promo</span>` : '');
+
             return `
-                <div class="product-card" data-id="${producto.id}">
+                <div class="product-card ${priority.isUrgent ? 'product-card-urgent' : ''}" data-id="${producto.id}">
                     <div class="product-info">
-                        <div class="product-name">${producto.name}</div>
+                        <div class="product-name">
+                            ${this.highlightMatch(producto.name, searchQuery)}
+                            ${priorityBadge}
+                        </div>
                         <div class="product-details">
-                            <span class="product-sku">SKU: ${producto.sku || 'N/A'}</span>
+                            <span class="product-sku">SKU: ${this.highlightMatch(producto.sku || 'N/A', searchQuery)}</span>
                             <span class="product-stock ${stockBajo ? 'low' : ''}">
                                 <i class="fas fa-box"></i> Stock: ${producto.current_stock || 0}
                             </span>
