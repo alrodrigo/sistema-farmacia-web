@@ -22,10 +22,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 function setupEventListeners() {
-    // Vinculación automática del modal con soporte de Escape, overlay y reset
     ModalUI.bind('modalCategoria', {
-        form: 'formCategoria',
-        onClose: () => CategoriaUI.closeModal()
+        form: 'formCategoria'
     });
 
     document.getElementById('btnNuevaCategoria')?.addEventListener('click', () => CategoriaUI.openModal());

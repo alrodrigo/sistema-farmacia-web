@@ -51,12 +51,11 @@ function setupEventListeners() {
     });
 
     document.getElementById('btnExportExcel')?.addEventListener('click', exportarAExcel);
-    document.getElementById('btnExportPDF')?.addEventListener('click', exportarAPDF);
-    ModalUI.bind('saleDetailModal', { onClose: () => ReportesUI.cerrarModalDetalle() });
+    ModalUI.bind('saleDetailModal');
 
     // Cierre de Caja
     document.getElementById('btnOpenCierreCaja')?.addEventListener('click', abrirCierreCaja);
-    ModalUI.bind('cierreCajaModal', { onClose: () => ReportesUI.cerrarModalCierreCaja() });
+    ModalUI.bind('cierreCajaModal');
 
     const inputFondo = document.getElementById('cierreFondoInicial');
     const inputContado = document.getElementById('cierreEfectivoContado');

@@ -50,8 +50,7 @@ function setupEventListeners() {
 
     // === EVENTOS DE PRODUCTOS ===
     ModalUI.bind('productoModal', {
-        form: 'productoForm',
-        onClose: () => ProductoUI.closeModal()
+        form: 'productoForm'
     });
 
     document.getElementById('btnNuevoProducto')?.addEventListener('click', () => {

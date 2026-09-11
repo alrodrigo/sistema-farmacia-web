@@ -2,21 +2,29 @@
 
 /**
  * Controlador Universal y Ortogonal de Modales (ModalUI)
- * Maneja apertura, cierre, accesibilidad, tecla Escape, clic en overlay y bloqueo de scroll.
+ * - Manejo robusto de apertura y cierre sin bucles de recursión.
+ * - Delegación de eventos en botones de cierre ('X' y 'Cancelar').
+ * - Protegido contra cierres accidentales al hacer clic fuera del recuadro.
  */
 export const ModalUI = {
     _activeModals: [],
-    _escapeListenerAttached: false,
+    _globalListenersAttached: false,
 
     _attachGlobalListeners() {
-        if (this._escapeListenerAttached) return;
+        if (this._globalListenersAttached) return;
+        
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && this._activeModals.length > 0) {
                 const topModal = this._activeModals[this._activeModals.length - 1];
-                this.close(topModal);
+                const opts = topModal._modalOptions || {};
+                // Por defecto Escape está habilitado salvo que se configure lo contrario
+                if (opts.closeOnEscape !== false) {
+                    this.close(topModal);
+                }
             }
         });
-        this._escapeListenerAttached = true;
+        
+        this._globalListenersAttached = true;
     },
 
     /**
@@ -33,11 +41,13 @@ export const ModalUI = {
     },
 
     /**
-     * Vincula eventos estándar de cierre (botones X, Cancelar, clic en overlay) a un modal.
+     * Vincula eventos de cierre al modal.
      * @param {string|HTMLElement} modalOrId 
      * @param {Object} [options={}] 
-     * @param {string|HTMLFormElement} [options.form] Formulario opcional a resetear al cerrar
-     * @param {Function} [options.onClose] Callback al cerrar
+     * @param {string|HTMLFormElement} [options.form] Formulario asociado a resetear
+     * @param {boolean} [options.closeOnBackdrop=false] Si es false (por defecto), clic fuera NO cierra el modal para evitar pérdida de datos.
+     * @param {boolean} [options.closeOnEscape=true]
+     * @param {Function} [options.onClose] Callback ejecutado DESPUÉS de cerrar (no debe volver a llamar close)
      * @param {Function} [options.onOpen] Callback al abrir
      */
     bind(modalOrId, options = {}) {
@@ -46,32 +56,38 @@ export const ModalUI = {
 
         this._attachGlobalListeners();
 
-        // Botones de cierre estándar dentro del modal
-        const closeSelectors = '.modal-close, #btnCerrarModal, #btnCloseModal, #btnCancelar, [data-modal-close]';
-        const closeButtons = modal.querySelectorAll(closeSelectors);
-        closeButtons.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                // Si es un botón submit no cerramos accidentalmente
-                if (btn.type !== 'submit') {
-                    e.preventDefault();
-                    this.close(modal, !!options.form);
-                }
-            });
-        });
+        // Opciones con valores seguros por defecto: NO cerrar por clic afuera accidental
+        modal._modalOptions = {
+            closeOnBackdrop: false,
+            closeOnEscape: true,
+            ...options
+        };
 
-        // Clic en el overlay o fondo del modal
+        // Delegación de clics: captura precisa de botones de cierre ('X', 'Cancelar')
+        // Funciona tanto si se hace clic en el botón, en el icono <i> o en el texto
         modal.addEventListener('click', (e) => {
-            if (e.target === modal || e.target.classList.contains('modal-overlay')) {
-                this.close(modal, !!options.form);
+            const closeBtn = e.target.closest(
+                '.modal-close, #btnCerrarModal, #btnCloseModal, #btnCancelar, #btnCancelarModalActualizar, #btnCerrarModalActualizar, #btnCerrarNuevaCategoria, #btnCerrarNuevoProveedor, #btnCerrarModalCierre, .btn-cancelar, [data-modal-close], button[onclick*="cerrarModal"]'
+            );
+
+            if (closeBtn && closeBtn.type !== 'submit') {
+                e.preventDefault();
+                e.stopPropagation();
+                this.close(modal, !!modal._modalOptions.form);
+                return;
+            }
+
+            // Clic en el fondo/backdrop exterior: SOLO si está explícitamente activado
+            if (modal._modalOptions.closeOnBackdrop) {
+                if (e.target === modal || e.target.classList.contains('modal-overlay')) {
+                    this.close(modal, !!modal._modalOptions.form);
+                }
             }
         });
-
-        // Guardamos opciones en el elemento para recuperarlas
-        modal._modalOptions = options;
     },
 
     /**
-     * Abre un modal con transición suave y bloquea el scroll del fondo
+     * Abre un modal
      * @param {string|HTMLElement} modalOrId 
      * @param {Object} [openOptions={}]
      */
@@ -81,11 +97,8 @@ export const ModalUI = {
 
         this._attachGlobalListeners();
 
-        // Aseguramos visibilidad si tenía display: none
-        if (modal.style.display === 'none') {
-            modal.style.display = 'flex';
-        }
-
+        // Asegurar visibilidad limpia
+        modal.style.display = 'flex';
         requestAnimationFrame(() => {
             modal.classList.add('active');
         });
@@ -96,11 +109,11 @@ export const ModalUI = {
 
         document.body.style.overflow = 'hidden';
 
-        // Auto-focus en el primer input accesible
+        // Auto-enfoque al primer campo disponible
         setTimeout(() => {
             const firstInput = modal.querySelector('input:not([type="hidden"]):not([disabled]), select:not([disabled]), textarea:not([disabled])');
             if (firstInput) firstInput.focus();
-        }, 150);
+        }, 120);
 
         const opts = modal._modalOptions || openOptions;
         if (typeof opts.onOpen === 'function') {
@@ -109,40 +122,43 @@ export const ModalUI = {
     },
 
     /**
-     * Cierra un modal y restaura el scroll del fondo
+     * Cierra un modal de forma inmediata y confiable sin bucles de recursión
      * @param {string|HTMLElement} modalOrId 
      * @param {boolean} [resetForm=false] 
      */
     close(modalOrId, resetForm = false) {
         const modal = this._resolve(modalOrId);
-        if (!modal) return;
+        if (!modal || modal._isClosing) return;
 
-        modal.classList.remove('active');
+        modal._isClosing = true;
 
-        // Si usaba inline display: flex, esperar transición de opacidad (250ms)
-        if (modal.style.display === 'flex') {
-            setTimeout(() => {
-                if (!modal.classList.contains('active')) {
-                    modal.style.display = 'none';
-                }
-            }, 250);
-        }
+        try {
+            // Ocultar de inmediato eliminando clase y restableciendo display
+            modal.classList.remove('active');
+            modal.style.display = 'none';
 
-        this._activeModals = this._activeModals.filter(m => m !== modal);
-        if (this._activeModals.length === 0) {
-            document.body.style.overflow = '';
-        }
-
-        const opts = modal._modalOptions || {};
-        if (resetForm || opts.form) {
-            const form = typeof opts.form === 'string' ? document.getElementById(opts.form) : (opts.form || modal.querySelector('form'));
-            if (form && typeof form.reset === 'function') {
-                form.reset();
+            this._activeModals = this._activeModals.filter(m => m !== modal);
+            if (this._activeModals.length === 0) {
+                document.body.style.overflow = '';
             }
-        }
 
-        if (typeof opts.onClose === 'function') {
-            opts.onClose(modal);
+            const opts = modal._modalOptions || {};
+
+            // Resetear formulario si corresponde
+            if (resetForm || opts.form) {
+                const formElem = typeof opts.form === 'string'
+                    ? document.getElementById(opts.form)
+                    : (opts.form || modal.querySelector('form'));
+                if (formElem && typeof formElem.reset === 'function') {
+                    formElem.reset();
+                }
+            }
+
+            if (typeof opts.onClose === 'function') {
+                opts.onClose(modal);
+            }
+        } finally {
+            modal._isClosing = false;
         }
     }
 };

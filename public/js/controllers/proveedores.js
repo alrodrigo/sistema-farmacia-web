@@ -22,10 +22,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 function setupEventListeners() {
-    // Vinculación automática del modal con soporte Escape, overlay y reset
     ModalUI.bind('modalProveedor', {
-        form: 'formProveedor',
-        onClose: () => ProveedorUI.closeModal()
+        form: 'formProveedor'
     });
 
     document.getElementById('btnLogout')?.addEventListener('click', () => AuthGuard.logout());
