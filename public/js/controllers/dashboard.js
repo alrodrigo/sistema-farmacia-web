@@ -7,6 +7,13 @@ import { ConfirmDialog } from '../utils/confirm.js';
 
 let currentUser = null;
 let stockBajoGlobal = [];
+let stockBajoFiltrados = [];
+let stockBajoPagina = 1;
+const stockBajoPorPagina = 5;
+
+let proximosGlobal = [];
+let proximosPagina = 1;
+const proximosPorPagina = 5;
 
 document.addEventListener('DOMContentLoaded', async () => {
     try {
@@ -30,8 +37,6 @@ function setupEventListeners() {
         if (salir) AuthGuard.logout();
     });
 
-
-
     document.getElementById('btnScanQR')?.addEventListener('click', () => Toast.info('📷 Función de escaneo QR próximamente'));
 
     // Delegación de eventos en la tabla de stock bajo (Arquitectura Ortogonal)
@@ -43,6 +48,38 @@ function setupEventListeners() {
     });
 
     document.getElementById('filtroLabStockBajo')?.addEventListener('change', filtrarStockBajo);
+
+    // Controles de paginación Stock Bajo
+    document.getElementById('btnPrevStockBajo')?.addEventListener('click', () => {
+        if (stockBajoPagina > 1) {
+            stockBajoPagina--;
+            actualizarTablaStockBajo();
+        }
+    });
+
+    document.getElementById('btnNextStockBajo')?.addEventListener('click', () => {
+        const totalPaginas = Math.ceil(stockBajoFiltrados.length / stockBajoPorPagina);
+        if (stockBajoPagina < totalPaginas) {
+            stockBajoPagina++;
+            actualizarTablaStockBajo();
+        }
+    });
+
+    // Controles de paginación Próximos a Vencer
+    document.getElementById('btnPrevExpiring')?.addEventListener('click', () => {
+        if (proximosPagina > 1) {
+            proximosPagina--;
+            actualizarTablaProximos();
+        }
+    });
+
+    document.getElementById('btnNextExpiring')?.addEventListener('click', () => {
+        const totalPaginas = Math.ceil(proximosGlobal.length / proximosPorPagina);
+        if (proximosPagina < totalPaginas) {
+            proximosPagina++;
+            actualizarTablaProximos();
+        }
+    });
 
     window.filtrarStockBajo = filtrarStockBajo;
     window.exportarStockBajoExcel = exportarStockBajoExcel;
@@ -81,13 +118,23 @@ function procesarStockBajo(productos, proveedoresMap) {
         const laboratorios = [...new Set(stockBajoGlobal.map(p => p.supplier))].sort();
         DashboardUI.renderFiltroLaboratorios(laboratorios);
     }
-    DashboardUI.renderStockBajo(stockBajoGlobal, stockBajoGlobal.length);
+    stockBajoFiltrados = stockBajoGlobal;
+    stockBajoPagina = 1;
+    actualizarTablaStockBajo();
+}
+
+function actualizarTablaStockBajo() {
+    const inicio = (stockBajoPagina - 1) * stockBajoPorPagina;
+    const fin = inicio + stockBajoPorPagina;
+    const paginados = stockBajoFiltrados.slice(inicio, fin);
+    DashboardUI.renderStockBajo(paginados, stockBajoFiltrados.length, stockBajoGlobal.length, stockBajoPagina, stockBajoPorPagina);
 }
 
 function filtrarStockBajo() {
     const lab = document.getElementById('filtroLabStockBajo').value;
-    const filtrados = lab === 'TODOS' ? stockBajoGlobal : stockBajoGlobal.filter(p => p.supplier === lab);
-    DashboardUI.renderStockBajo(filtrados, stockBajoGlobal.length);
+    stockBajoFiltrados = lab === 'TODOS' ? stockBajoGlobal : stockBajoGlobal.filter(p => p.supplier === lab);
+    stockBajoPagina = 1;
+    actualizarTablaStockBajo();
 }
 
 function procesarProximosVencer(productos, proveedoresMap) {
@@ -123,7 +170,16 @@ function procesarProximosVencer(productos, proveedoresMap) {
         })
         .sort((a, b) => a.diasRestantes - b.diasRestantes);
 
-    DashboardUI.renderProximosVencer(proximos);
+    proximosGlobal = proximos;
+    proximosPagina = 1;
+    actualizarTablaProximos();
+}
+
+function actualizarTablaProximos() {
+    const inicio = (proximosPagina - 1) * proximosPorPagina;
+    const fin = inicio + proximosPorPagina;
+    const paginados = proximosGlobal.slice(inicio, fin);
+    DashboardUI.renderProximosVencer(paginados, proximosGlobal.length, proximosPagina, proximosPorPagina);
 }
 
 function exportarStockBajoExcel() {

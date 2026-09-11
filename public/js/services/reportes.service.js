@@ -62,14 +62,24 @@ export const ReportesService = {
         const startTs = new Date(yI, mI - 1, dI, 0, 0, 0, 0);
         const endTs = new Date(yF, mF - 1, dF, 23, 59, 59, 999);
 
-        const q = query(
-            collection(db, 'sales'),
-            where('fecha', '>=', startTs),
-            where('fecha', '<=', endTs),
-            orderBy('fecha', 'desc')
-        );
-
-        const snapshot = await getDocs(q);
+        let snapshot;
+        try {
+            const q = query(
+                collection(db, 'sales'),
+                where('fecha', '>=', startTs),
+                where('fecha', '<=', endTs),
+                orderBy('fecha', 'desc')
+            );
+            snapshot = await getDocs(q);
+        } catch (error) {
+            console.warn('Consulta con orderBy falló, ejecutando consulta alternativa sin orderBy:', error);
+            const fallbackQuery = query(
+                collection(db, 'sales'),
+                where('fecha', '>=', startTs),
+                where('fecha', '<=', endTs)
+            );
+            snapshot = await getDocs(fallbackQuery);
+        }
 
         let ventas = snapshot.docs
             .map(docSnap => {
@@ -91,6 +101,9 @@ export const ReportesService = {
                 }
             })
             .filter(sale => sale !== null);
+
+        // Asegurar ordenamiento descendente (más recientes primero)
+        ventas.sort((a, b) => b.fecha - a.fecha);
 
         // Si es empleado, filtrar en memoria solo sus ventas
         if (role !== 'admin') {

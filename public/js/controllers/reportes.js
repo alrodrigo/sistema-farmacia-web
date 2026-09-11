@@ -9,6 +9,8 @@ let currentUser = null;
 let currentUserData = null;
 let allSales = [];
 let filteredSales = [];
+let paginaActual = 1;
+const ventasPorPagina = 10;
 
 document.addEventListener('DOMContentLoaded', async () => {
     ReportesUI.setFechasPorDefecto();
@@ -28,8 +30,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 function setupEventListeners() {
     document.getElementById('btnLogout')?.addEventListener('click', () => AuthGuard.logout());
-
-
 
     document.querySelector('.user-menu')?.addEventListener('click', async () => {
         const salir = await ConfirmDialog.show('Cerrar Sesión', '¿Estás seguro de que deseas salir del sistema?', 'warning', 'Cerrar Sesión');
@@ -52,6 +52,22 @@ function setupEventListeners() {
     document.getElementById('closeDetailModal')?.addEventListener('click', () => ReportesUI.cerrarModalDetalle());
     document.getElementById('saleDetailModal')?.addEventListener('click', (e) => {
         if (e.target.id === 'saleDetailModal') ReportesUI.cerrarModalDetalle();
+    });
+
+    // Paginación de tabla de ventas
+    document.getElementById('btnPrevSalesPage')?.addEventListener('click', () => {
+        if (paginaActual > 1) {
+            paginaActual--;
+            actualizarTablaPaginada();
+        }
+    });
+
+    document.getElementById('btnNextSalesPage')?.addEventListener('click', () => {
+        const totalPaginas = Math.ceil(filteredSales.length / ventasPorPagina);
+        if (paginaActual < totalPaginas) {
+            paginaActual++;
+            actualizarTablaPaginada();
+        }
     });
 
     // Delegación de eventos en la tabla de ventas (Arquitectura Ortogonal)
@@ -79,8 +95,15 @@ async function cargarVentas() {
     const fechaInicioStr = document.getElementById('fechaInicio').value;
     const fechaFinStr = document.getElementById('fechaFin').value;
 
-    allSales = await ReportesService.getVentasPorRango(fechaInicioStr, fechaFinStr, currentUserData.role, currentUserData.uid);
-    aplicarFiltrosMemoria();
+    try {
+        allSales = await ReportesService.getVentasPorRango(fechaInicioStr, fechaFinStr, currentUserData.role, currentUserData.uid);
+        paginaActual = 1;
+        aplicarFiltrosMemoria();
+    } catch (error) {
+        console.error("Error cargando ventas en reportes:", error);
+        Toast.error("No se pudieron cargar los datos del período seleccionado.");
+        ReportesUI.cambiarEstado('empty');
+    }
 }
 
 function getTurno(date) {
@@ -111,6 +134,7 @@ function aplicarFiltrosMemoria() {
         return enRango && coincideMetodo && coincideVendedor && coincideTurno;
     });
 
+    paginaActual = 1;
     actualizarVistaCompleta();
 }
 
@@ -163,13 +187,23 @@ function actualizarVistaCompleta() {
     const labelsGraficoProductos = top10.map(p => p.nombre.length > 25 ? p.nombre.substring(0, 25) + '...' : p.nombre);
     const dataGraficoProductos = top10.map(p => p.cantidad);
 
-    // 3. Pasar a UI
-    ReportesUI.renderTablaVentas(filteredSales);
+    // 3. Renderizar tabla con paginación desacoplada
+    actualizarTablaPaginada();
+
+    // 4. Renderizar productos destacados y gráficos
     ReportesUI.renderTopProductos(topProducts);
     ReportesUI.renderGraficos(
         { labels: labelsGraficoVentas, data: dataGraficoVentas },
         { labels: labelsGraficoProductos, data: dataGraficoProductos }
     );
+}
+
+function actualizarTablaPaginada() {
+    const inicio = (paginaActual - 1) * ventasPorPagina;
+    const fin = inicio + ventasPorPagina;
+    const ventasPaginadas = filteredSales.slice(inicio, fin);
+
+    ReportesUI.renderTablaVentas(ventasPaginadas, filteredSales.length, paginaActual, ventasPorPagina);
 }
 
 function aplicarFiltroRapido(period) {

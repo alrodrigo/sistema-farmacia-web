@@ -38,21 +38,25 @@ export const ReportesUI = {
         document.getElementById('resultsCount').textContent = `${totalVentas} ${totalVentas === 1 ? 'venta' : 'ventas'}`;
     },
 
-    renderTablaVentas(ventas) {
+    renderTablaVentas(ventasPaginadas, totalFiltradas, paginaActual = 1, ventasPorPagina = 10) {
         const tbody = document.getElementById('salesTableBody');
-        tbody.innerHTML = '';
+        if (!tbody) return;
 
         const labelsPago = { 'cash': 'Efectivo', 'card': 'Tarjeta', 'transfer': 'Transferencia' };
+        const inicioIndex = (paginaActual - 1) * ventasPorPagina;
 
-        ventas.forEach((sale, index) => {
-            const saleNumber = ventas.length - index;
-            const fecha = sale.fecha.toLocaleDateString('es-BO', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        const rowsHtml = ventasPaginadas.map((sale, index) => {
+            const saleNumber = totalFiltradas - (inicioIndex + index);
+            const fecha = sale.fecha.toLocaleDateString('es-BO', {
+                day: '2-digit', month: '2-digit', year: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+            });
             const totalItems = sale.items.reduce((sum, item) => sum + (item.quantity || item.cantidad || 0), 0);
             const subtotal = sale.subtotal || sale.total;
             const discountText = sale.discount_amount > 0 ? `Bs. ${sale.discount_amount.toFixed(2)}` : '-';
             const paymentLabel = labelsPago[sale.payment_method] || 'Efectivo';
 
-            tbody.innerHTML += `
+            return `
                 <tr>
                     <td><strong>#${saleNumber}</strong></td>
                     <td>${fecha}</td>
@@ -68,12 +72,30 @@ export const ReportesUI = {
                     </td>
                 </tr>
             `;
-        });
+        }).join('');
+
+        tbody.innerHTML = rowsHtml;
+
+        // Actualizar controles de paginación
+        const totalPaginas = Math.ceil(totalFiltradas / ventasPorPagina) || 1;
+        const paginationInfo = document.getElementById('salesPaginationInfo');
+        const btnPrev = document.getElementById('btnPrevSalesPage');
+        const btnNext = document.getElementById('btnNextSalesPage');
+        const paginationContainer = document.getElementById('salesPagination');
+
+        if (paginationInfo) {
+            paginationInfo.textContent = `Página ${paginaActual} de ${totalPaginas} (${totalFiltradas} ventas)`;
+        }
+        if (btnPrev) btnPrev.disabled = paginaActual <= 1;
+        if (btnNext) btnNext.disabled = paginaActual >= totalPaginas;
+        if (paginationContainer) {
+            paginationContainer.style.display = totalFiltradas > 0 ? 'flex' : 'none';
+        }
     },
 
     renderTopProductos(topProducts) {
         const grid = document.getElementById('topProductsGrid');
-        grid.innerHTML = '';
+        if (!grid) return;
 
         if (topProducts.length === 0) {
             grid.innerHTML = '<p style="text-align: center; color: #999; padding: 2rem;">No hay datos de productos</p>';
@@ -89,18 +111,16 @@ export const ReportesUI = {
             'linear-gradient(135deg, #30cfd0 0%, #330867 100%)'
         ];
 
-        topProducts.forEach((product, index) => {
-            grid.innerHTML += `
-                <div class="product-card" style="background: ${gradients[index % gradients.length]}">
-                    <div class="product-info">
-                        <h4>${product.nombre}</h4>
-                        <p><i class="fas fa-box"></i> ${product.cantidad} unidades vendidas</p>
-                        <p><i class="fas fa-dollar-sign"></i> Bs. ${product.total.toFixed(2)} generado</p>
-                    </div>
-                    <div class="product-badge">#${index + 1}</div>
+        grid.innerHTML = topProducts.map((product, index) => `
+            <div class="product-card" style="background: ${gradients[index % gradients.length]}">
+                <div class="product-info">
+                    <h4>${product.nombre}</h4>
+                    <p><i class="fas fa-box"></i> ${product.cantidad} unidades vendidas</p>
+                    <p><i class="fas fa-dollar-sign"></i> Bs. ${product.total.toFixed(2)} generado</p>
                 </div>
-            `;
-        });
+                <div class="product-badge">#${index + 1}</div>
+            </div>
+        `).join('');
     },
 
     renderGraficos(datosVentasFechas, datosProductosTop) {
@@ -184,12 +204,19 @@ export const ReportesUI = {
     },
 
     cambiarEstado(estado) {
-        document.getElementById('loadingState').style.display = estado === 'loading' ? 'block' : 'none';
-        document.getElementById('emptyState').style.display = estado === 'empty' ? 'block' : 'none';
-        document.getElementById('salesTable').style.display = estado === 'data' ? 'table' : 'none';
+        const loading = document.getElementById('loadingState');
+        const empty = document.getElementById('emptyState');
+        const table = document.getElementById('salesTable');
+        const pagination = document.getElementById('salesPagination');
+
+        if (loading) loading.style.display = estado === 'loading' ? 'block' : 'none';
+        if (empty) empty.style.display = estado === 'empty' ? 'block' : 'none';
+        if (table) table.style.display = estado === 'data' ? 'table' : 'none';
+        if (pagination && estado !== 'data') pagination.style.display = 'none';
 
         if (estado === 'empty') {
-            document.getElementById('topProductsGrid').innerHTML = '<p style="text-align: center; color: #999; padding: 2rem;">No hay datos de productos</p>';
+            const grid = document.getElementById('topProductsGrid');
+            if (grid) grid.innerHTML = '<p style="text-align: center; color: #999; padding: 2rem;">No hay datos de productos</p>';
             if (salesChart) salesChart.destroy();
             if (productsChart) productsChart.destroy();
             this.actualizarKPIs(0, 0, 0, 0);

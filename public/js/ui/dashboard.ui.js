@@ -21,7 +21,7 @@ export const DashboardUI = {
         }
     },
 
-    renderStockBajo(productos, totalGlobal) {
+    renderStockBajo(productosPaginados, totalFiltrados, totalGlobal, paginaActual = 1, porPagina = 5) {
         const section = document.getElementById('stockBajoSection');
         const badge = document.getElementById('badgeStockBajo');
         const tbody = document.getElementById('stockBajoTableBody');
@@ -35,15 +35,17 @@ export const DashboardUI = {
         }
 
         section.style.display = 'block';
-        badge.textContent = productos.length;
+        if (badge) badge.textContent = totalFiltrados;
 
         // Si el filtro no devuelve resultados, mostramos la fila vacía (UX mejorado)
-        if (productos.length === 0) {
+        if (totalFiltrados === 0) {
             tbody.innerHTML = `<tr><td colspan="6" class="text-center" style="padding: 20px; color: #666;">No hay productos con stock bajo para este laboratorio.</td></tr>`;
+            const pag = document.getElementById('stockBajoPagination');
+            if (pag) pag.style.display = 'none';
             return;
         }
 
-        tbody.innerHTML = productos.map(producto => `
+        tbody.innerHTML = productosPaginados.map(producto => `
             <tr>
                 <td><strong>${producto.name}</strong></td>
                 <td>${producto.supplier}</td>
@@ -57,6 +59,22 @@ export const DashboardUI = {
                 </td>
             </tr>
         `).join('');
+
+        // Actualizar controles de paginación
+        const totalPaginas = Math.ceil(totalFiltrados / porPagina) || 1;
+        const paginationInfo = document.getElementById('stockBajoPaginationInfo');
+        const btnPrev = document.getElementById('btnPrevStockBajo');
+        const btnNext = document.getElementById('btnNextStockBajo');
+        const paginationContainer = document.getElementById('stockBajoPagination');
+
+        if (paginationInfo) {
+            paginationInfo.textContent = `Página ${paginaActual} de ${totalPaginas} (${totalFiltrados} productos)`;
+        }
+        if (btnPrev) btnPrev.disabled = paginaActual <= 1;
+        if (btnNext) btnNext.disabled = paginaActual >= totalPaginas;
+        if (paginationContainer) {
+            paginationContainer.style.display = totalFiltrados > porPagina ? 'flex' : 'none';
+        }
     },
 
     renderFiltroLaboratorios(laboratorios) {
@@ -72,22 +90,22 @@ export const DashboardUI = {
         });
     },
 
-    renderProximosVencer(productos) {
+    renderProximosVencer(productosPaginados, totalProductos, paginaActual = 1, porPagina = 5) {
         const section = document.getElementById('expiringSection');
         const badge = document.getElementById('badgeExpiring');
         const tbody = document.getElementById('expiringTableBody');
 
         if (!section || !tbody) return;
 
-        badge.textContent = productos.length;
+        if (badge) badge.textContent = totalProductos;
 
-        if (productos.length === 0) {
+        if (totalProductos === 0) {
             section.style.display = 'none';
             return;
         }
 
         section.style.display = 'block';
-        tbody.innerHTML = productos.map(producto => {
+        tbody.innerHTML = productosPaginados.map(producto => {
             let badgeClass = 'badge-warning';
             let diasTexto = `${producto.diasRestantes} días`;
 
@@ -116,5 +134,21 @@ export const DashboardUI = {
                 </tr>
             `;
         }).join('');
+
+        // Actualizar controles de paginación
+        const totalPaginas = Math.ceil(totalProductos / porPagina) || 1;
+        const paginationInfo = document.getElementById('expiringPaginationInfo');
+        const btnPrev = document.getElementById('btnPrevExpiring');
+        const btnNext = document.getElementById('btnNextExpiring');
+        const paginationContainer = document.getElementById('expiringPagination');
+
+        if (paginationInfo) {
+            paginationInfo.textContent = `Página ${paginaActual} de ${totalPaginas} (${totalProductos} productos)`;
+        }
+        if (btnPrev) btnPrev.disabled = paginaActual <= 1;
+        if (btnNext) btnNext.disabled = paginaActual >= totalPaginas;
+        if (paginationContainer) {
+            paginationContainer.style.display = totalProductos > porPagina ? 'flex' : 'none';
+        }
     }
 };
