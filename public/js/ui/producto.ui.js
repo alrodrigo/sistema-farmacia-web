@@ -169,7 +169,7 @@ export const ProductoUI = {
             inputs.forEach(i => i.disabled = false);
             document.getElementById('margenGanancia').value = '0%';
             const inputPrioridad = document.getElementById('inputPrioridad');
-            if (inputPrioridad) inputPrioridad.value = 'normal';
+            if (inputPrioridad) inputPrioridad.value = 'auto';
         }
 
         ModalUI.open('productoModal');
@@ -192,7 +192,7 @@ export const ProductoUI = {
         document.getElementById('inputStockMinimo').value = producto.min_stock || 0;
         document.getElementById('inputFechaVencimiento').value = this.formatearFechaVencimiento(producto.expiration_date);
         const inputPrioridad = document.getElementById('inputPrioridad');
-        if (inputPrioridad) inputPrioridad.value = producto.priority_flag || 'normal';
+        if (inputPrioridad) inputPrioridad.value = producto.priority_flag || 'auto';
         document.getElementById('inputDescripcion').value = producto.description || '';
     },
 

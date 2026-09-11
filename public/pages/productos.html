@@ -15,15 +15,15 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- Sistema de Diseño Base -->
-    <link rel="stylesheet" href="../css/theme.css?v=4.0.1789160804">
-    <link rel="stylesheet" href="../css/components.css?v=4.0.1789160804">
-    <link rel="stylesheet" href="../css/layout.css?v=4.0.1789160804">
+    <link rel="stylesheet" href="../css/theme.css?v=4.0.1789161340">
+    <link rel="stylesheet" href="../css/components.css?v=4.0.1789161340">
+    <link rel="stylesheet" href="../css/layout.css?v=4.0.1789161340">
 
     <!-- CSS -->
-    <link rel="stylesheet" href="../css/productos.css?v=4.0.1789160804">
+    <link rel="stylesheet" href="../css/productos.css?v=4.0.1789161340">
 
     <!-- Responsive (DEBE IR AL FINAL) -->
-    <link rel="stylesheet" href="../css/responsive.css?v=4.0.1789160804">
+    <link rel="stylesheet" href="../css/responsive.css?v=4.0.1789161340">
 </head>
 
 <body>
@@ -350,9 +350,10 @@
                                 <i class="fas fa-flag"></i> Prioridad / Bandera
                             </label>
                             <select id="inputPrioridad" class="form-control">
-                                <option value="normal">🟢 Normal</option>
-                                <option value="promo">🟡 Media / Promo</option>
-                                <option value="urgent">🔴 Salida Urgente</option>
+                                <option value="auto">⚡ Automático (FEFO por vencimiento)</option>
+                                <option value="urgent">🔴 Forzar Salida Urgente</option>
+                                <option value="promo">🟡 En Promoción</option>
+                                <option value="normal">🟢 Forzar Normal / Sin Alerta</option>
                             </select>
                             <small class="form-help">Prioridad en caja</small>
                         </div>
@@ -481,16 +482,16 @@
 
 
     <!-- Configuración de Firebase -->
-    <script type="module" src="../js/config/firebase.js?v=4.0.1789160804"></script>
+    <script type="module" src="../js/config/firebase.js?v=4.0.1789161340"></script>
 
     <!-- Utilidades -->
-    <script src="../js/utils/helpers.js?v=4.0.1789160804"></script>
+    <script src="../js/utils/helpers.js?v=4.0.1789161340"></script>
 
     <!-- Scripts de Productos -->
-    <script type="module" src="../js/controllers/productos.js?v=4.0.1789160804"></script>
+    <script type="module" src="../js/controllers/productos.js?v=4.0.1789161340"></script>
 
     <!-- Service Worker para actualización automática -->
-    <script src="../js/sw-register.js?v=4.0.1789160804"></script>
+    <script src="../js/sw-register.js?v=4.0.1789161340"></script>
 </body>
 
 </html>

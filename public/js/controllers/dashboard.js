@@ -407,7 +407,7 @@ function abrirModalActualizar(id) {
 
     // Prioridad / Bandera
     const selectPrioridad = document.getElementById('editModalPrioridad');
-    if (selectPrioridad) selectPrioridad.value = prod.priority_flag || 'normal';
+    if (selectPrioridad) selectPrioridad.value = prod.priority_flag || 'auto';
 
     actualizarIndicadoresModal();
 
@@ -541,7 +541,7 @@ async function guardarActualizacionProducto(e) {
         btnGuardar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
     }
 
-    const nuevaPrioridad = document.getElementById('editModalPrioridad')?.value || 'normal';
+    const nuevaPrioridad = document.getElementById('editModalPrioridad')?.value || 'auto';
 
     try {
         const productoData = {

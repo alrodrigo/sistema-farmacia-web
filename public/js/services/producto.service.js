@@ -35,7 +35,7 @@ export const ProductoService = {
             current_stock: typeof raw.current_stock === 'number' ? raw.current_stock : parseInt(raw.current_stock || 0, 10),
             min_stock: typeof raw.min_stock === 'number' ? raw.min_stock : parseInt(raw.min_stock || 0, 10),
             expiration_date: raw.expiration_date || null,
-            priority_flag: raw.priority_flag || 'normal',
+            priority_flag: raw.priority_flag || 'auto',
             description: raw.description || '',
             created_at: raw.created_at || null,
             updated_at: raw.updated_at || null
@@ -104,6 +104,7 @@ export const ProductoService = {
             }
         }
 
+        // Si ya está físicamente vencido
         if (isExpired) {
             return {
                 level: 'expired',
@@ -116,6 +117,49 @@ export const ProductoService = {
             };
         }
 
+        const flag = producto.priority_flag || 'auto';
+
+        // 1. Decisión Manual Forzada: Salida Urgente (siempre rojo)
+        if (flag === 'urgent') {
+            return {
+                level: 'urgent',
+                label: isExpiringSoon ? `Vence en ${daysLeft}d` : 'Salida Urgente',
+                isUrgent: true,
+                isFefo: isExpiringSoon,
+                isPromo: false,
+                isExpired: false,
+                daysLeft
+            };
+        }
+
+        // 2. Decisión Manual Forzada: En Promoción (siempre amarillo)
+        if (flag === 'promo') {
+            return {
+                level: 'promo',
+                label: 'En Promoción',
+                isPromo: true,
+                isUrgent: false,
+                isExpired: false,
+                isFefo: false,
+                daysLeft
+            };
+        }
+
+        // 3. Decisión Manual Forzada: Normal / Sin Alerta (el usuario desactiva la alerta)
+        if (flag === 'normal') {
+            return {
+                level: 'normal',
+                label: 'Normal',
+                isNormal: true,
+                isUrgent: false,
+                isPromo: false,
+                isExpired: false,
+                isFefo: false,
+                daysLeft
+            };
+        }
+
+        // 4. Modo Automático (FEFO por vencimiento: 'auto')
         if (isExpiringSoon) {
             return {
                 level: 'urgent',
@@ -124,30 +168,6 @@ export const ProductoService = {
                 isFefo: true,
                 isPromo: false,
                 isExpired: false,
-                daysLeft
-            };
-        }
-
-        if (producto.priority_flag === 'urgent') {
-            return {
-                level: 'urgent',
-                label: 'Salida Urgente',
-                isUrgent: true,
-                isFefo: false,
-                isPromo: false,
-                isExpired: false,
-                daysLeft
-            };
-        }
-
-        if (producto.priority_flag === 'promo') {
-            return {
-                level: 'promo',
-                label: 'En Promoción',
-                isPromo: true,
-                isUrgent: false,
-                isExpired: false,
-                isFefo: false,
                 daysLeft
             };
         }

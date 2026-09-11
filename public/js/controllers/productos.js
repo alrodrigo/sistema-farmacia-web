@@ -206,7 +206,7 @@ async function guardarProducto(event) {
             current_stock: parseInt(document.getElementById('inputStockActual').value),
             min_stock: parseInt(document.getElementById('inputStockMinimo').value),
             expiration_date: fechaVencimiento ? new Date(fechaVencimiento + 'T00:00:00') : null,
-            priority_flag: document.getElementById('inputPrioridad')?.value || 'normal',
+            priority_flag: document.getElementById('inputPrioridad')?.value || 'auto',
             description: document.getElementById('inputDescripcion').value.trim() || null
         };
 
