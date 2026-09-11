@@ -78,15 +78,17 @@
     }
 
     .modal-header {
-        padding: 1rem !important;
+        padding: 1rem 1.25rem !important;
         position: sticky !important;
         top: 0 !important;
-        background: var(--modal-bg) !important;
+        background: linear-gradient(135deg, #0d3c61 0%, #1a5276 100%) !important;
+        color: #ffffff !important;
         z-index: 10 !important;
     }
 
     .modal-title {
         font-size: var(--font-lg) !important;
+        color: #ffffff !important;
     }
 
     .modal-body {

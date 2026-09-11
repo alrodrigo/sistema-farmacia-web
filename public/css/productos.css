@@ -1003,44 +1003,55 @@ textarea.form-control {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 1.5rem;
-    background: linear-gradient(135deg, var(--bg-secondary) 0%, #e9ecef 100%);
-    border-bottom: 2px solid #dee2e6;
+    padding: 1.25rem 1.5rem;
+    background: linear-gradient(135deg, #0d3c61 0%, #1a5276 100%);
+    border-radius: 15px 15px 0 0;
+    border-bottom: none;
 }
 
 .quick-modal-header h3 {
     margin: 0;
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: var(--text-primary);
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: #ffffff;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 12px;
 }
 
 .quick-modal-header h3 i {
-    color: var(--primary-color);
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.16);
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
 }
 
 .quick-modal-close {
-    width: 36px;
-    height: 36px;
-    background: white;
-    border: 2px solid #dee2e6;
+    width: 34px;
+    height: 34px;
+    background: rgba(255, 255, 255, 0.12);
+    border: none;
     border-radius: 8px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--text-secondary);
+    color: #ffffff;
     transition: all 0.2s ease;
+    font-size: 1.2rem;
+    opacity: 0.9;
 }
 
 .quick-modal-close:hover {
-    background: #fee2e2;
-    border-color: #ef4444;
-    color: #ef4444;
-    transform: rotate(90deg);
+    background: rgba(239, 68, 68, 0.88);
+    color: #ffffff;
+    opacity: 1;
+    transform: scale(1.06);
 }
 
 .quick-modal-body {
