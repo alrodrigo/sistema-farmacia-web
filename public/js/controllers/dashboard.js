@@ -405,6 +405,10 @@ function abrirModalActualizar(id) {
     // Fecha de vencimiento
     document.getElementById('editModalVencimiento').value = formatearFechaInput(prod.expiration_date);
 
+    // Prioridad / Bandera
+    const selectPrioridad = document.getElementById('editModalPrioridad');
+    if (selectPrioridad) selectPrioridad.value = prod.priority_flag || 'normal';
+
     actualizarIndicadoresModal();
 
     ModalUI.open('actualizarProductoModal');
@@ -442,13 +446,8 @@ function actualizarIndicadoresModal() {
 }
 
 function formatearFechaInput(valorFecha) {
-    if (!valorFecha) return '';
-    let fechaReal;
-    if (typeof valorFecha.toDate === 'function') fechaReal = valorFecha.toDate();
-    else if (valorFecha.seconds) fechaReal = new Date(valorFecha.seconds * 1000);
-    else fechaReal = new Date(valorFecha);
-
-    if (isNaN(fechaReal.getTime())) return '';
+    const fechaReal = ProductoService.parseExpirationDate(valorFecha);
+    if (!fechaReal) return '';
     const año = fechaReal.getFullYear();
     const mes = String(fechaReal.getMonth() + 1).padStart(2, '0');
     const dia = String(fechaReal.getDate()).padStart(2, '0');
@@ -542,6 +541,8 @@ async function guardarActualizacionProducto(e) {
         btnGuardar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
     }
 
+    const nuevaPrioridad = document.getElementById('editModalPrioridad')?.value || 'normal';
+
     try {
         const productoData = {
             name: nombre,
@@ -552,7 +553,8 @@ async function guardarActualizacionProducto(e) {
             min_stock: nuevoMinStock,
             price: nuevoPrecio,
             cost: nuevoCosto,
-            expiration_date: expirationDate
+            expiration_date: expirationDate,
+            priority_flag: nuevaPrioridad
         };
 
         await ProductoService.save(

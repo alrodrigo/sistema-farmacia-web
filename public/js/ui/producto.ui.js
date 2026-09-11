@@ -197,13 +197,8 @@ export const ProductoUI = {
     },
 
     formatearFechaVencimiento(valorFecha) {
-        if (!valorFecha) return '';
-        let fechaReal;
-        if (typeof valorFecha.toDate === 'function') fechaReal = valorFecha.toDate();
-        else if (valorFecha.seconds) fechaReal = new Date(valorFecha.seconds * 1000);
-        else fechaReal = new Date(valorFecha);
-
-        if (isNaN(fechaReal.getTime())) return '';
+        const fechaReal = ProductoService.parseExpirationDate(valorFecha);
+        if (!fechaReal) return '';
         const año = fechaReal.getFullYear();
         const mes = String(fechaReal.getMonth() + 1).padStart(2, '0');
         const dia = String(fechaReal.getDate()).padStart(2, '0');

@@ -43,21 +43,58 @@ export const ProductoService = {
     },
 
     /**
+     * Parsea de manera robusta cualquier formato de fecha proveniente de Firestore
+     * (Timestamp con toDate(), { seconds }, Date nativo, String ISO o YYYY-MM-DD)
+     * @param {*} val 
+     * @returns {Date|null}
+     */
+    parseExpirationDate(val) {
+        if (!val) return null;
+        let d = null;
+        if (typeof val.toDate === 'function') {
+            d = val.toDate();
+        } else if (val.seconds !== undefined) {
+            d = new Date(val.seconds * 1000);
+        } else if (val._seconds !== undefined) {
+            d = new Date(val._seconds * 1000);
+        } else if (val instanceof Date) {
+            d = new Date(val.getTime());
+        } else if (typeof val === 'number') {
+            d = new Date(val);
+        } else if (typeof val === 'string') {
+            const trimmed = val.trim();
+            if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+                const [y, m, day] = trimmed.split('-').map(Number);
+                d = new Date(y, m - 1, day, 23, 59, 59);
+            } else {
+                d = new Date(trimmed);
+            }
+        }
+        return (d && !isNaN(d.getTime())) ? d : null;
+    },
+
+    /**
      * Evalúa la prioridad comercial y de vencimiento (FEFO) de un producto
      * @param {Object} producto 
-     * @returns {Object} { level: 'urgent'|'promo'|'expired'|'normal', label: string, isUrgent: boolean, isPromo: boolean, isExpired: boolean, daysLeft: number|null }
+     * @returns {Object} { level: 'urgent'|'promo'|'expired'|'normal', label: string, isUrgent: boolean, isPromo: boolean, isExpired: boolean, isFefo: boolean, daysLeft: number|null }
      */
     getPriorityStatus(producto) {
-        if (!producto) return { level: 'normal', label: 'Normal', isNormal: true, isUrgent: false, daysLeft: null };
+        if (!producto) return { level: 'normal', label: 'Normal', isNormal: true, isUrgent: false, isPromo: false, isExpired: false, isFefo: false, daysLeft: null };
 
         let daysLeft = null;
         let isExpired = false;
         let isExpiringSoon = false;
 
-        if (producto.expiration_date) {
-            const expDate = new Date(producto.expiration_date + 'T23:59:59');
+        const expDate = this.parseExpirationDate(producto.expiration_date);
+
+        if (expDate) {
             const today = new Date();
-            const diffTime = expDate.getTime() - today.getTime();
+            today.setHours(0, 0, 0, 0);
+
+            const target = new Date(expDate.getTime());
+            target.setHours(23, 59, 59, 999);
+
+            const diffTime = target.getTime() - today.getTime();
             daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
             if (daysLeft < 0) {
@@ -73,6 +110,8 @@ export const ProductoService = {
                 label: 'Vencido',
                 isExpired: true,
                 isUrgent: false,
+                isPromo: false,
+                isFefo: false,
                 daysLeft
             };
         }
@@ -80,9 +119,11 @@ export const ProductoService = {
         if (isExpiringSoon) {
             return {
                 level: 'urgent',
-                label: daysLeft === 0 ? 'Vence hoy' : `Vence en ${daysLeft}d`,
+                label: daysLeft === 0 ? 'Vence hoy' : (daysLeft === 1 ? 'Vence mañana' : `Vence en ${daysLeft}d`),
                 isUrgent: true,
                 isFefo: true,
+                isPromo: false,
+                isExpired: false,
                 daysLeft
             };
         }
@@ -93,6 +134,8 @@ export const ProductoService = {
                 label: 'Salida Urgente',
                 isUrgent: true,
                 isFefo: false,
+                isPromo: false,
+                isExpired: false,
                 daysLeft
             };
         }
@@ -103,6 +146,8 @@ export const ProductoService = {
                 label: 'En Promoción',
                 isPromo: true,
                 isUrgent: false,
+                isExpired: false,
+                isFefo: false,
                 daysLeft
             };
         }
@@ -112,6 +157,9 @@ export const ProductoService = {
             label: 'Normal',
             isNormal: true,
             isUrgent: false,
+            isPromo: false,
+            isExpired: false,
+            isFefo: false,
             daysLeft
         };
     },
@@ -283,6 +331,7 @@ export const ProductoService = {
             if (categoryAnterior !== categoryNuevo) {
                 CacheService.invalidarCategorias();
             }
+            CacheService.invalidarProductos();
         } else {
             // Crear nuevo producto
             const prodRef = doc(collection(db, 'products'));
