@@ -705,27 +705,9 @@
    Los estilos base están en components.css
    ===================================================== */
 
-/* Estilos específicos del modal de productos */
-.modal-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.modal-header h2 {
-    color: white;
-}
-
-.modal-close {
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
-}
-
-.modal-close:hover {
-    background: rgba(255, 255, 255, 0.3);
-}
-
 /* Secciones del formulario */
 .form-section {
-    margin-bottom: 30px;
+    margin-bottom: 24px;
 }
 
 .form-section:last-child {
@@ -733,11 +715,11 @@
 }
 
 .section-title {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 600;
     color: var(--text-primary);
-    margin-bottom: 20px;
-    padding-bottom: 10px;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
     border-bottom: 2px solid var(--border-light);
     display: flex;
     align-items: center;
@@ -746,15 +728,46 @@
 
 .section-title i {
     color: var(--primary-color);
-    font-size: 18px;
+    font-size: 16px;
 }
 
-/* Filas del formulario */
+/* Filas del formulario con soporte simétrico de columnas */
 .form-row {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
-    margin-bottom: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 16px;
+    width: 100%;
+}
+
+.form-row.grid-2 {
+    grid-template-columns: 1fr 1fr;
+}
+
+.form-row.grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.form-row.grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+@media (max-width: 768px) {
+    .form-row.grid-4 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .form-row.grid-3 {
+        grid-template-columns: 1fr;
+    }
+    .form-row.grid-2 {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .form-row.grid-4 {
+        grid-template-columns: 1fr;
+    }
 }
 
 .form-row:last-child {
@@ -765,6 +778,8 @@
 .form-group {
     display: flex;
     flex-direction: column;
+    min-width: 0;
+    width: 100%;
 }
 
 .form-group.full-width {
@@ -937,17 +952,24 @@ textarea.form-control {
     display: flex;
     gap: 8px;
     align-items: center;
+    width: 100%;
+    min-width: 0;
 }
 
-.input-with-action select {
-    flex: 1;
+.input-with-action select,
+.input-with-action .form-control {
+    flex: 1 1 0;
+    min-width: 0 !important;
+    width: 100%;
+    height: 44px;
 }
 
 .btn-add-option {
-    width: 42px;
-    height: 42px;
-    min-width: 42px;
-    background: linear-gradient(135deg, var(--primary-color) 0%, #764ba2 100%);
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    flex-shrink: 0;
+    background: linear-gradient(135deg, #0d3c61 0%, #1a5276 100%);
     color: white;
     border: none;
     border-radius: 8px;
@@ -955,14 +977,15 @@ textarea.form-control {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 16px;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+    font-size: 15px;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 6px rgba(13, 60, 97, 0.25);
 }
 
 .btn-add-option:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    background: #1a5276;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(13, 60, 97, 0.35);
 }
 
 .btn-add-option:active {

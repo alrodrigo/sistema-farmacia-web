@@ -15,15 +15,15 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- Sistema de Diseño Base -->
-    <link rel="stylesheet" href="../css/theme.css?v=4.0.1789146390">
-    <link rel="stylesheet" href="../css/components.css?v=4.0.1789146390">
-    <link rel="stylesheet" href="../css/layout.css?v=4.0.1789146390">
+    <link rel="stylesheet" href="../css/theme.css?v=4.0.1789147010">
+    <link rel="stylesheet" href="../css/components.css?v=4.0.1789147010">
+    <link rel="stylesheet" href="../css/layout.css?v=4.0.1789147010">
 
     <!-- CSS -->
-    <link rel="stylesheet" href="../css/productos.css?v=4.0.1789146390">
+    <link rel="stylesheet" href="../css/productos.css?v=4.0.1789147010">
 
     <!-- Responsive (DEBE IR AL FINAL) -->
-    <link rel="stylesheet" href="../css/responsive.css?v=4.0.1789146390">
+    <link rel="stylesheet" href="../css/responsive.css?v=4.0.1789147010">
 </head>
 
 <body>
@@ -188,7 +188,7 @@
     <!-- Modal de Producto -->
     <div class="modal" id="productoModal">
         <div class="modal-overlay" id="modalOverlay"></div>
-        <div class="modal-content">
+        <div class="modal-content modal-large">
             <div class="modal-header">
                 <h2 id="modalTitle">
                     <i class="fas fa-box"></i>
@@ -234,7 +234,7 @@
                         <i class="fas fa-tags"></i> Clasificación
                     </h3>
 
-                    <div class="form-row">
+                    <div class="form-row grid-2">
                         <div class="form-group">
                             <label for="inputCategoria">
                                 Categoría <span class="required">*</span>
@@ -277,7 +277,7 @@
                         <i class="fas fa-dollar-sign"></i> Precios
                     </h3>
 
-                    <div class="form-row">
+                    <div class="form-row grid-4">
                         <div class="form-group">
                             <label for="inputCosto">
                                 Costo (sin IVA) <span class="required">*</span>
@@ -318,7 +318,7 @@
                         <i class="fas fa-boxes"></i> Inventario
                     </h3>
 
-                    <div class="form-row">
+                    <div class="form-row grid-3">
                         <div class="form-group">
                             <label for="inputStockActual">
                                 Stock Actual <span class="required">*</span>
@@ -469,16 +469,16 @@
 
 
     <!-- Configuración de Firebase -->
-    <script type="module" src="../js/config/firebase.js?v=4.0.1789146390"></script>
+    <script type="module" src="../js/config/firebase.js?v=4.0.1789147010"></script>
 
     <!-- Utilidades -->
-    <script src="../js/utils/helpers.js?v=4.0.1789146390"></script>
+    <script src="../js/utils/helpers.js?v=4.0.1789147010"></script>
 
     <!-- Scripts de Productos -->
-    <script type="module" src="../js/controllers/productos.js?v=4.0.1789146390"></script>
+    <script type="module" src="../js/controllers/productos.js?v=4.0.1789147010"></script>
 
     <!-- Service Worker para actualización automática -->
-    <script src="../js/sw-register.js?v=4.0.1789146390"></script>
+    <script src="../js/sw-register.js?v=4.0.1789147010"></script>
 </body>
 
 </html>

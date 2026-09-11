@@ -438,17 +438,18 @@
     max-width: 650px;
     max-height: 90vh;
     overflow-y: auto;
+    overflow-x: hidden !important;
     animation: modalPopIn 0.24s cubic-bezier(0.16, 1, 0.3, 1);
     display: flex;
     flex-direction: column;
 }
 
 .modal-content.modal-large {
-    max-width: 780px !important;
+    max-width: 840px !important;
 }
 
 .modal-content.modal-xl {
-    max-width: 950px !important;
+    max-width: 960px !important;
 }
 
 @keyframes modalPopIn {
