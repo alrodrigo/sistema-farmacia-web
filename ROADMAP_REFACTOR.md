@@ -16,5 +16,5 @@
 -[x] **Unificación de Autorización y Eliminación de Código Muerto (`roles.js`):** Se eliminó el archivo legado `roles.js` y sus etiquetas `<script>` en todas las vistas HTML. Toda la lógica de control de acceso, verificación de roles PBAC, restricciones de interfaz y sesión en memoria está 100% centralizada en `AuthGuard` (`auth.guard.js`).
 -[ ] **optimizar las consultas de los reportes, es muy lento, colocar paginacion, agregar paginacion igual a los datos del dashboard**
 -[ ] **Buscador en categorias, en proveedores, filtros**
-- [ ] **Gestión Centralizada de SDKs:** Consolidar la carga de scripts de Firebase y librerías externas para no declararlos en cada vista individual.
-- [ ] **Estandarización del modelo de datos de Productos (Migración `categoriaId` -> `category`):** Ejecutar un script de migración único para asegurar que todos los documentos en la colección `products` utilicen exclusivamente el campo `category`, eliminando referencias legadas a `categoriaId`.1
+-[ ] **Gestión Centralizada de SDKs:** Consolidar la carga de scripts de Firebase y librerías externas para no declararlos en cada vista individual.
+-[x] **Estandarización del modelo de datos de Productos (Normalización Ortogonal & Migración):** Implementado el adaptador `ProductoService.normalize(raw)` que garantiza un esquema predecible en memoria (`category`, `name`, `sku`, `price`, `cost`, `current_stock`, etc.) y el método de migración en lote `migrarCamposLegadosFirestore()`, aislando completamente la UI de cualquier inconsistencia histórica en la base de datos.
