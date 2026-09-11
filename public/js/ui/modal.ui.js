@@ -63,14 +63,25 @@ export const ModalUI = {
             ...options
         };
 
+        // Selector exhaustivo de botones de cierre
+        const closeSelector = '.modal-close, .quick-modal-close, [data-dismiss="modal"], #btnCerrarModal, #btnCloseModal, #btnCancelar, #btnCancelarModalActualizar, #btnCerrarModalActualizar, #btnCerrarNuevaCategoria, #btnCerrarNuevoProveedor, #btnCerrarModalCierre, #closeDetailModal, #closeCierreCajaModal, #closeModalBtn, .btn-cancelar, [data-modal-close], button[onclick*="cerrarModal"]';
+
+        // Asegurar que ningún botón de cierre actúe como submit por defecto en formularios
+        modal.querySelectorAll(closeSelector).forEach(btn => {
+            if (btn.tagName === 'BUTTON' && !btn.getAttribute('type')) {
+                btn.type = 'button';
+            }
+        });
+
+        if (modal._modalBound) return;
+        modal._modalBound = true;
+
         // Delegación de clics: captura precisa de botones de cierre ('X', 'Cancelar')
         // Funciona tanto si se hace clic en el botón, en el icono <i> o en el texto
         modal.addEventListener('click', (e) => {
-            const closeBtn = e.target.closest(
-                '.modal-close, #btnCerrarModal, #btnCloseModal, #btnCancelar, #btnCancelarModalActualizar, #btnCerrarModalActualizar, #btnCerrarNuevaCategoria, #btnCerrarNuevoProveedor, #btnCerrarModalCierre, .btn-cancelar, [data-modal-close], button[onclick*="cerrarModal"]'
-            );
+            const closeBtn = e.target.closest(closeSelector);
 
-            if (closeBtn && closeBtn.type !== 'submit') {
+            if (closeBtn) {
                 e.preventDefault();
                 e.stopPropagation();
                 this.close(modal, !!modal._modalOptions.form);
