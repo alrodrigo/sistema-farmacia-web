@@ -15,15 +15,15 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- Sistema de Diseño Base -->
-    <link rel="stylesheet" href="../css/theme.css?v=4.0.1789145181">
-    <link rel="stylesheet" href="../css/components.css?v=4.0.1789145181">
-    <link rel="stylesheet" href="../css/layout.css?v=4.0.1789145181">
+    <link rel="stylesheet" href="../css/theme.css?v=4.0.1789145471">
+    <link rel="stylesheet" href="../css/components.css?v=4.0.1789145471">
+    <link rel="stylesheet" href="../css/layout.css?v=4.0.1789145471">
 
     <!-- CSS del Dashboard -->
-    <link rel="stylesheet" href="../css/dashboard.css?v=4.0.1789145181">
+    <link rel="stylesheet" href="../css/dashboard.css?v=4.0.1789145471">
 
     <!-- Responsive (DEBE IR AL FINAL) -->
-    <link rel="stylesheet" href="../css/responsive.css?v=4.0.1789145181">
+    <link rel="stylesheet" href="../css/responsive.css?v=4.0.1789145471">
 </head>
 
 <body>
@@ -202,11 +202,13 @@
                         </select>
                         <select id="filtroUrgenciaExpiring"
                             style="padding: 7px 10px; border-radius: 6px; border: 1px solid #cbd5e1; outline: none; font-family: inherit; font-size: 0.85rem; background: white;">
-                            <option value="TODOS">Todos (≤ 30 días)</option>
-                            <option value="VENCIDOS">⛔ Ya Vencidos</option>
-                            <option value="HOY">🚨 Vencen Hoy</option>
+                            <option value="TODOS">Todos los Estados</option>
+                            <option value="POR_VENCER">⏳ Próximos a Vencer (No vencidos)</option>
                             <option value="7">⚠️ Próximos 7 días</option>
-                            <option value="15">Próximos 15 días</option>
+                            <option value="15">📅 Próximos 15 días</option>
+                            <option value="30">📅 Próximos 30 días</option>
+                            <option value="HOY">🚨 Vencen Hoy</option>
+                            <option value="VENCIDOS">⛔ Ya Vencidos</option>
                         </select>
                         <button class="btn-primary" id="btnExportarExpiring"
                             style="padding: 7px 14px; display: flex; align-items: center; gap: 6px; background-color: #ef4444; border: none; color: white; border-radius: 6px; cursor: pointer; font-family: inherit; font-weight: 500; font-size: 0.85rem; white-space: nowrap;">
@@ -252,16 +254,16 @@
     <!-- Librería para exportar a Excel (SheetJS) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <!-- Configuración de Firebase (Modular v10) -->
-    <script type="module" src="../js/config/firebase.js?v=4.0.1789145181"></script>
+    <script type="module" src="../js/config/firebase.js?v=4.0.1789145471"></script>
 
     <!-- Utilidades -->
-    <script src="../js/utils/helpers.js?v=4.0.1789145181"></script>
+    <script src="../js/utils/helpers.js?v=4.0.1789145471"></script>
 
     <!-- Scripts del Dashboard -->
-    <script type="module" src="../js/controllers/dashboard.js?v=4.0.1789145181"></script>
+    <script type="module" src="../js/controllers/dashboard.js?v=4.0.1789145471"></script>
 
     <!-- Service Worker para actualización automática -->
-    <script src="../js/sw-register.js?v=4.0.1789145181"></script>
+    <script src="../js/sw-register.js?v=4.0.1789145471"></script>
 </body>
 
 </html>

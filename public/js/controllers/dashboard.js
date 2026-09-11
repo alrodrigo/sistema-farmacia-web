@@ -216,10 +216,19 @@ function filtrarProximosVencer() {
         const coincideLab = lab === 'TODOS' || p.supplier === lab;
 
         let coincideUrgencia = true;
-        if (urgencia === 'VENCIDOS') coincideUrgencia = p.diasRestantes < 0;
-        else if (urgencia === 'HOY') coincideUrgencia = p.diasRestantes === 0;
-        else if (urgencia === '7') coincideUrgencia = p.diasRestantes <= 7;
-        else if (urgencia === '15') coincideUrgencia = p.diasRestantes <= 15;
+        if (urgencia === 'POR_VENCER') {
+            coincideUrgencia = p.diasRestantes >= 0;
+        } else if (urgencia === 'VENCIDOS') {
+            coincideUrgencia = p.diasRestantes < 0;
+        } else if (urgencia === 'HOY') {
+            coincideUrgencia = p.diasRestantes === 0;
+        } else if (urgencia === '7') {
+            coincideUrgencia = p.diasRestantes >= 0 && p.diasRestantes <= 7;
+        } else if (urgencia === '15') {
+            coincideUrgencia = p.diasRestantes >= 0 && p.diasRestantes <= 15;
+        } else if (urgencia === '30') {
+            coincideUrgencia = p.diasRestantes >= 0 && p.diasRestantes <= 30;
+        }
 
         return coincideTexto && coincideLab && coincideUrgencia;
     });
