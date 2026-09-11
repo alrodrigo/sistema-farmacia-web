@@ -1,9 +1,11 @@
 // public/js/controllers/productos.js
 import { ProductoService } from '../services/producto.service.js';
 import { ProductoUI } from '../ui/producto.ui.js';
+import { ModalUI } from '../ui/modal.ui.js';
 import { AuthGuard } from '../middleware/auth.guard.js';
 import { Toast } from '../utils/toast.js';
 import { ConfirmDialog } from '../utils/confirm.js';
+import { ErrorHandler } from '../utils/error-handler.js';
 
 let currentUser = null;
 let todosLosProductos = [];
@@ -47,15 +49,17 @@ function setupEventListeners() {
     });
 
     // === EVENTOS DE PRODUCTOS ===
+    ModalUI.bind('productoModal', {
+        form: 'productoForm',
+        onClose: () => ProductoUI.closeModal()
+    });
+
     document.getElementById('btnNuevoProducto')?.addEventListener('click', () => {
         modoEdicion = false;
         productoEditandoId = null;
         ProductoUI.openModal('nuevo');
     });
 
-    document.getElementById('btnCerrarModal')?.addEventListener('click', () => ProductoUI.closeModal());
-    document.getElementById('btnCancelar')?.addEventListener('click', () => ProductoUI.closeModal());
-    document.getElementById('modalOverlay')?.addEventListener('click', () => ProductoUI.closeModal());
     document.getElementById('productoForm')?.addEventListener('submit', guardarProducto);
 
     document.getElementById('inputCosto')?.addEventListener('input', calcularMargen);
@@ -127,7 +131,7 @@ async function cargarDatosIniciales() {
         actualizarVistaTabla();
         ProductoUI.renderStats(productosFiltrados, todosLosProductos);
     } catch (error) {
-        console.error('Error cargando datos:', error);
+        ErrorHandler.handle(error, 'al cargar datos');
         ProductoUI.mostrarErrorTabla('Error al cargar los datos. Por favor, recarga la página.');
     }
 }
@@ -227,8 +231,7 @@ async function guardarProducto(event) {
         ProductoUI.closeModal();
         aplicarFiltros();
     } catch (error) {
-        console.error('Error guardando producto:', error);
-        Toast.error('Error al guardar el producto.');
+        ErrorHandler.handle(error, 'al guardar el producto');
     } finally {
         ProductoUI.setLoading(false);
     }
@@ -323,15 +326,15 @@ async function eliminarProducto(id, nombre) {
         todosLosProductos = todosLosProductos.filter(p => p.id !== id);
         aplicarFiltros();
     } catch (error) {
-        console.error('Error al eliminar producto:', error);
-        Toast.error('Error al eliminar el producto.');
+        ErrorHandler.handle(error, 'al eliminar el producto');
     }
 }
 
 function setupModalesRapidos() {
-    const modalCat = document.getElementById('modalNuevaCategoria');
-    document.getElementById('btnNuevaCategoria')?.addEventListener('click', () => modalCat?.classList.add('active'));
-    document.getElementById('btnCerrarNuevaCategoria')?.addEventListener('click', () => modalCat?.classList.remove('active'));
+    ModalUI.bind('modalNuevaCategoria');
+    document.getElementById('btnNuevaCategoria')?.addEventListener('click', () => {
+        ModalUI.open('modalNuevaCategoria');
+    });
     document.getElementById('btnGuardarCategoria')?.addEventListener('click', async () => {
         const nombre = document.getElementById('inputNombreCategoria')?.value.trim();
         if (!nombre) {
@@ -347,22 +350,21 @@ function setupModalesRapidos() {
             });
             categoriasMap = await ProductoService.getCategoriasCache();
 
-            // Actualizar ambos selects
             ProductoUI.renderSelectOptions('inputCategoria', categoriasMap, 'Selecciona una categoría');
             ProductoUI.renderSelectOptions('filterCategoria', categoriasMap, 'Todas las categorías');
 
             document.getElementById('inputCategoria').value = id;
-            modalCat?.classList.remove('active');
+            ModalUI.close('modalNuevaCategoria', true);
             Toast.success('Categoría creada exitosamente');
         } catch (err) {
-            console.error('Error al crear categoría rápida:', err);
-            Toast.error('Error al crear categoría');
+            ErrorHandler.handle(err, 'al crear categoría rápida');
         }
     });
 
-    const modalProv = document.getElementById('modalNuevoProveedor');
-    document.getElementById('btnNuevoProveedor')?.addEventListener('click', () => modalProv?.classList.add('active'));
-    document.getElementById('btnCerrarNuevoProveedor')?.addEventListener('click', () => modalProv?.classList.remove('active'));
+    ModalUI.bind('modalNuevoProveedor');
+    document.getElementById('btnNuevoProveedor')?.addEventListener('click', () => {
+        ModalUI.open('modalNuevoProveedor');
+    });
     document.getElementById('btnGuardarProveedor')?.addEventListener('click', async () => {
         const nombre = document.getElementById('inputNombreProveedor')?.value.trim();
         if (!nombre) {
@@ -376,16 +378,14 @@ function setupModalesRapidos() {
             });
             proveedoresMap = await ProductoService.getProveedoresCache();
 
-            // Actualizar ambos selects
             ProductoUI.renderSelectOptions('inputProveedor', proveedoresMap, 'Selecciona un laboratorio');
             ProductoUI.renderSelectOptions('filterProveedor', proveedoresMap, 'Todos los laboratorios');
 
             document.getElementById('inputProveedor').value = id;
-            modalProv?.classList.remove('active');
+            ModalUI.close('modalNuevoProveedor', true);
             Toast.success('Proveedor creado exitosamente');
         } catch (err) {
-            console.error('Error al crear proveedor rápido:', err);
-            Toast.error('Error al crear proveedor');
+            ErrorHandler.handle(err, 'al crear proveedor rápido');
         }
     });
 }

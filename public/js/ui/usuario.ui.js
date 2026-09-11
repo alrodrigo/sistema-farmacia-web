@@ -1,4 +1,6 @@
 // public/js/ui/usuario.ui.js
+import { ModalUI } from './modal.ui.js';
+
 export const UsuarioUI = {
     renderTable(usuarios, paginaActual, usuariosPorPagina, currentUserId, userRole) {
         const tbody = document.getElementById('usuariosTableBody');
@@ -191,13 +193,12 @@ export const UsuarioUI = {
             inputEmail.title = '';
         }
 
-        modal.classList.add('active');
-        document.body.style.overflow = 'hidden';
+        ModalUI.open('usuarioModal');
     },
 
     closeUserModal() {
-        document.getElementById('usuarioModal').classList.remove('active');
-        document.body.style.overflow = 'auto';
+        ModalUI.close('usuarioModal', true);
+        this.clearErrors();
     },
 
     clearErrors() {

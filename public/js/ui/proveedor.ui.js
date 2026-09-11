@@ -1,4 +1,6 @@
 // public/js/ui/proveedor.ui.js
+import { ModalUI } from './modal.ui.js';
+
 export const ProveedorUI = {
     renderGrid(proveedores) {
         const grid = document.getElementById('proveedoresGrid');
@@ -116,12 +118,11 @@ export const ProveedorUI = {
             document.getElementById('inputActivo').checked = true;
         }
 
-        modal.classList.add('active');
+        ModalUI.open('modalProveedor');
     },
 
     closeModal() {
-        document.getElementById('modalProveedor').classList.remove('active');
-        document.getElementById('formProveedor').reset();
+        ModalUI.close('modalProveedor', true);
     },
 
     setLoading(isLoading) {

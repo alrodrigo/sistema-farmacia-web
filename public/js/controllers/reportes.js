@@ -1,9 +1,11 @@
 // public/js/controllers/reportes.js
 import { ReportesService } from '../services/reportes.service.js';
 import { ReportesUI } from '../ui/reportes.ui.js';
+import { ModalUI } from '../ui/modal.ui.js';
 import { AuthGuard } from '../middleware/auth.guard.js';
 import { Toast } from '../utils/toast.js';
 import { ConfirmDialog } from '../utils/confirm.js';
+import { ErrorHandler } from '../utils/error-handler.js';
 
 let currentUser = null;
 let currentUserData = null;
@@ -50,18 +52,11 @@ function setupEventListeners() {
 
     document.getElementById('btnExportExcel')?.addEventListener('click', exportarAExcel);
     document.getElementById('btnExportPDF')?.addEventListener('click', exportarAPDF);
-    document.getElementById('closeDetailModal')?.addEventListener('click', () => ReportesUI.cerrarModalDetalle());
-    document.getElementById('saleDetailModal')?.addEventListener('click', (e) => {
-        if (e.target.id === 'saleDetailModal') ReportesUI.cerrarModalDetalle();
-    });
+    ModalUI.bind('saleDetailModal', { onClose: () => ReportesUI.cerrarModalDetalle() });
 
     // Cierre de Caja
     document.getElementById('btnOpenCierreCaja')?.addEventListener('click', abrirCierreCaja);
-    document.getElementById('closeCierreCajaModal')?.addEventListener('click', () => ReportesUI.cerrarModalCierreCaja());
-    document.getElementById('btnCerrarModalCierre')?.addEventListener('click', () => ReportesUI.cerrarModalCierreCaja());
-    document.getElementById('cierreCajaModal')?.addEventListener('click', (e) => {
-        if (e.target.id === 'cierreCajaModal') ReportesUI.cerrarModalCierreCaja();
-    });
+    ModalUI.bind('cierreCajaModal', { onClose: () => ReportesUI.cerrarModalCierreCaja() });
 
     const inputFondo = document.getElementById('cierreFondoInicial');
     const inputContado = document.getElementById('cierreEfectivoContado');
@@ -168,8 +163,7 @@ async function cargarVentas() {
         paginaActual = 1;
         aplicarFiltrosMemoria();
     } catch (error) {
-        console.error("Error cargando ventas en reportes:", error);
-        Toast.error("No se pudieron cargar los datos del período seleccionado.");
+        ErrorHandler.handle(error, 'al cargar ventas');
         ReportesUI.cambiarEstado('empty');
     }
 }

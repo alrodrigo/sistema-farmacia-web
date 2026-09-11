@@ -1,4 +1,6 @@
 // public/js/ui/producto.ui.js
+import { ModalUI } from './modal.ui.js';
+
 export const ProductoUI = {
     renderTable(productos, paginaActual, productosPorPagina, categoriasMap, proveedoresMap, role) {
         const tbody = document.getElementById('productosTableBody');
@@ -144,17 +146,12 @@ export const ProductoUI = {
             document.getElementById('margenGanancia').value = '0%';
         }
 
-        modal.classList.add('active');
-        document.body.style.overflow = 'hidden';
+        ModalUI.open('productoModal');
     },
 
     closeModal() {
-        document.getElementById('productoModal').classList.remove('active');
-        document.body.style.overflow = 'auto';
-        setTimeout(() => {
-            document.getElementById('productoForm').reset();
-            this.limpiarErrores();
-        }, 300);
+        ModalUI.close('productoModal', true);
+        this.limpiarErrores();
     },
 
     llenarFormulario(producto) {

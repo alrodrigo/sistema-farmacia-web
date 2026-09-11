@@ -124,15 +124,14 @@ export const ProductoService = {
     },
 
     /**
-     * Obtiene mapa de categorías ordenadas por nombre.
+     * Obtiene mapa de categorías ordenadas por nombre (desde CacheService).
      * @returns {Promise<Object>}
      */
     async getCategoriasCache() {
-        const q = query(collection(db, 'categorias'), orderBy('nombre', 'asc'));
-        const snapshot = await getDocs(q);
+        const categoriasArray = await CacheService.getCategorias();
         const categoriasMap = {};
-        snapshot.forEach(docSnap => {
-            categoriasMap[docSnap.id] = { id: docSnap.id, ...docSnap.data() };
+        categoriasArray.forEach(cat => {
+            categoriasMap[cat.id] = { id: cat.id, ...cat };
         });
         return categoriasMap;
     },
@@ -206,6 +205,9 @@ export const ProductoService = {
             if (supplierAnterior !== supplierNuevo) {
                 CacheService.invalidarProveedores();
             }
+            if (categoryAnterior !== categoryNuevo) {
+                CacheService.invalidarCategorias();
+            }
         } else {
             // Crear nuevo producto
             const prodRef = doc(collection(db, 'products'));
@@ -232,6 +234,9 @@ export const ProductoService = {
             await batch.commit();
             if (productoData.supplier) {
                 CacheService.invalidarProveedores();
+            }
+            if (productoData.category) {
+                CacheService.invalidarCategorias();
             }
             CacheService.invalidarProductos();
             return prodRef.id;
@@ -266,6 +271,9 @@ export const ProductoService = {
         if (supplierId) {
             CacheService.invalidarProveedores();
         }
+        if (categoryId) {
+            CacheService.invalidarCategorias();
+        }
         CacheService.invalidarProductos();
     },
 
@@ -282,6 +290,7 @@ export const ProductoService = {
             created_at: serverTimestamp(),
             updated_at: serverTimestamp()
         });
+        CacheService.invalidarCategorias();
         return docRef.id;
     },
 

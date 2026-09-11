@@ -1,6 +1,6 @@
 // =====================================================
 // ARCHIVO: public/js/services/categoria.service.js
-// DESCRIPCIÓN: Servicio de Categorías con conteo optimizado en servidor (Firebase v10 Modular)
+// DESCRIPCIÓN: Servicio de Categorías con conteo optimizado en servidor (Firebase v10 Modular) y Caché
 // =====================================================
 
 import { db } from '../config/firebase.js';
@@ -10,7 +10,6 @@ import {
     doc, 
     query, 
     where, 
-    orderBy, 
     getDocs, 
     addDoc, 
     updateDoc, 
@@ -21,21 +20,15 @@ import {
 
 export const CategoriaService = {
     /**
-     * Obtener todas las categorías ordenadas alfabéticamente
+     * Obtener todas las categorías (aprovechando caché en sessionStorage)
+     * @param {boolean} [forceRefresh=false]
      * @returns {Promise<Array>}
      */
-    async getAll() {
-        try {
-            const q = query(collection(db, 'categorias'), orderBy('nombre', 'asc'));
-            const snapshot = await getDocs(q);
-            return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-        } catch (error) {
-            // Fallback si falta el índice en Firestore
-            console.warn('Fallback al obtener categorías sin índice:', error);
-            const snapshot = await getDocs(collection(db, 'categorias'));
-            const categorias = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-            return categorias.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+    async getAll(forceRefresh = false) {
+        if (forceRefresh) {
+            CacheService.invalidarCategorias();
         }
+        return await CacheService.getCategorias();
     },
 
     /**
@@ -62,7 +55,9 @@ export const CategoriaService = {
     async create(data) {
         data.created_at = serverTimestamp();
         data.productosCount = 0;
-        return await addDoc(collection(db, 'categorias'), data);
+        const res = await addDoc(collection(db, 'categorias'), data);
+        CacheService.invalidarCategorias();
+        return res;
     },
 
     /**
@@ -73,7 +68,9 @@ export const CategoriaService = {
      */
     async update(id, data) {
         data.updated_at = serverTimestamp();
-        return await updateDoc(doc(db, 'categorias', id), data);
+        const res = await updateDoc(doc(db, 'categorias', id), data);
+        CacheService.invalidarCategorias();
+        return res;
     },
 
     /**
@@ -95,6 +92,7 @@ export const CategoriaService = {
         });
 
         await batch.commit();
+        CacheService.invalidarCategorias();
         CacheService.invalidarProductos();
     },
 
@@ -135,6 +133,7 @@ export const CategoriaService = {
             // 4. Confirmar cambios si hubo discrepancias
             if (huboCambios) {
                 await batch.commit();
+                CacheService.invalidarCategorias();
             }
 
             return {

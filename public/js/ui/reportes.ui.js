@@ -1,4 +1,6 @@
 // public/js/ui/reportes.ui.js
+import { ModalUI } from './modal.ui.js';
+
 let salesChart = null;
 let productsChart = null;
 
@@ -207,11 +209,11 @@ export const ReportesUI = {
 
         document.getElementById('detailTotal').textContent = `Bs. ${sale.total.toFixed(2)}`;
         document.getElementById('btnPrintReceipt').dataset.saleId = sale.id;
-        document.getElementById('saleDetailModal').style.display = 'flex';
+        ModalUI.open('saleDetailModal');
     },
 
     cerrarModalDetalle() {
-        document.getElementById('saleDetailModal').style.display = 'none';
+        ModalUI.close('saleDetailModal');
     },
 
     abrirModalCierreCaja(resumen) {
@@ -238,11 +240,11 @@ export const ReportesUI = {
         const diffMsg = document.getElementById('cierreDiferenciaMensaje');
         if (diffMsg) diffMsg.style.display = 'none';
 
-        document.getElementById('cierreCajaModal').style.display = 'flex';
+        ModalUI.open('cierreCajaModal');
     },
 
     cerrarModalCierreCaja() {
-        document.getElementById('cierreCajaModal').style.display = 'none';
+        ModalUI.close('cierreCajaModal');
     },
 
     cambiarEstado(estado) {

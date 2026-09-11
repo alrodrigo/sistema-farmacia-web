@@ -2,9 +2,11 @@
 import { DashboardService } from '../services/dashboard.service.js';
 import { ProductoService } from '../services/producto.service.js';
 import { DashboardUI } from '../ui/dashboard.ui.js';
+import { ModalUI } from '../ui/modal.ui.js';
 import { AuthGuard } from '../middleware/auth.guard.js';
 import { Toast } from '../utils/toast.js';
 import { ConfirmDialog } from '../utils/confirm.js';
+import { ErrorHandler } from '../utils/error-handler.js';
 
 let currentUser = null;
 let todosLosProductos = [];
@@ -60,12 +62,9 @@ function setupEventListeners() {
         abrirModalActualizar(btn.dataset.id);
     });
 
-    // Cierre del modal de actualización
-    document.getElementById('btnCerrarModalActualizar')?.addEventListener('click', cerrarModalActualizar);
-    document.getElementById('btnCancelarModalActualizar')?.addEventListener('click', cerrarModalActualizar);
-    document.getElementById('modalOverlayActualizar')?.addEventListener('click', cerrarModalActualizar);
-    window.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') cerrarModalActualizar();
+    // Vinculación automática del modal de actualización
+    ModalUI.bind('actualizarProductoModal', {
+        form: 'formActualizarProducto'
     });
 
     // Guardado del formulario del modal
@@ -402,13 +401,11 @@ function abrirModalActualizar(id) {
 
     actualizarIndicadoresModal();
 
-    const modal = document.getElementById('actualizarProductoModal');
-    if (modal) modal.style.display = 'flex';
+    ModalUI.open('actualizarProductoModal');
 }
 
 function cerrarModalActualizar() {
-    const modal = document.getElementById('actualizarProductoModal');
-    if (modal) modal.style.display = 'none';
+    ModalUI.close('actualizarProductoModal', true);
 }
 
 function actualizarIndicadoresModal() {
@@ -564,8 +561,7 @@ async function guardarActualizacionProducto(e) {
         cerrarModalActualizar();
         await cargarEstadisticas();
     } catch (error) {
-        console.error("Error al actualizar producto:", error);
-        Toast.error('Error al guardar los cambios del producto');
+        ErrorHandler.handle(error, 'al guardar los cambios del producto');
     } finally {
         if (btnGuardar) {
             btnGuardar.disabled = false;

@@ -1,19 +1,19 @@
 // public/js/controllers/proveedores.js
 import { ProveedorService } from '../services/proveedor.service.js';
 import { ProveedorUI } from '../ui/proveedor.ui.js';
+import { ModalUI } from '../ui/modal.ui.js';
 import { AuthGuard } from '../middleware/auth.guard.js';
 import { Toast } from '../utils/toast.js';
 import { ConfirmDialog } from '../utils/confirm.js';
+import { ErrorHandler } from '../utils/error-handler.js';
 
 let proveedoresGlobal = [];
 let currentUser = null;
 
-// 1. Inicialización protegida por el Guardián
+// Inicialización protegida por el Guardián
 document.addEventListener('DOMContentLoaded', async () => {
     try {
-        // 🛡️ Valida sesión, protege ruta exclusiva de admin y llena el Navbar
         currentUser = await AuthGuard.protect();
-
         setupEventListeners();
         await refreshData();
     } catch (error) {
@@ -22,17 +22,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 function setupEventListeners() {
-    // Logout centralizado con el Guardián
-    document.getElementById('btnLogout')?.addEventListener('click', () => AuthGuard.logout());
+    // Vinculación automática del modal con soporte Escape, overlay y reset
+    ModalUI.bind('modalProveedor', {
+        form: 'formProveedor',
+        onClose: () => ProveedorUI.closeModal()
+    });
 
+    document.getElementById('btnLogout')?.addEventListener('click', () => AuthGuard.logout());
     document.getElementById('searchInput')?.addEventListener('input', applyFilters);
     document.getElementById('filtroEstado')?.addEventListener('change', applyFilters);
     document.getElementById('filtroPais')?.addEventListener('change', applyFilters);
     document.getElementById('formProveedor')?.addEventListener('submit', handleSave);
 
-
-
-    // Delegación de eventos en el grid de tarjetas (Arquitectura Ortogonal)
+    // Delegación de eventos en el grid de tarjetas
     document.getElementById('proveedoresGrid')?.addEventListener('click', (e) => {
         const btn = e.target.closest('button[data-action]');
         if (!btn) return;
@@ -46,14 +48,14 @@ function setupEventListeners() {
         }
     });
 
-    // Funciones globales para botones del modal estático HTML
+    // Interoperabilidad para botones en HTML
     window.abrirModalNuevo = () => ProveedorUI.openModal();
     window.cerrarModal = () => ProveedorUI.closeModal();
 }
 
-async function refreshData() {
+async function refreshData(forceRefresh = false) {
     try {
-        proveedoresGlobal = await ProveedorService.getAll();
+        proveedoresGlobal = await ProveedorService.getAll(forceRefresh);
         ProveedorUI.renderFilters(proveedoresGlobal);
         ProveedorUI.renderStats(proveedoresGlobal);
         applyFilters();
@@ -65,8 +67,7 @@ async function refreshData() {
             applyFilters();
         }).catch(() => {});
     } catch (error) {
-        console.error("Error cargando proveedores:", error);
-        Toast.error("Hubo un problema al cargar los proveedores.");
+        ErrorHandler.handle(error, 'al cargar proveedores');
     }
 }
 
@@ -150,10 +151,9 @@ async function handleSave(e) {
         await ProveedorService.save(id, data, currentUser.uid);
         Toast.success(id ? 'Proveedor actualizado exitosamente' : 'Proveedor creado exitosamente');
         ProveedorUI.closeModal();
-        await refreshData();
+        await refreshData(true);
     } catch (error) {
-        console.error("Error guardando:", error);
-        Toast.error("Error al guardar el proveedor.");
+        ErrorHandler.handle(error, 'al guardar proveedor');
     } finally {
         ProveedorUI.setLoading(false);
     }
@@ -177,9 +177,8 @@ async function handleDelete(id, nombre) {
     try {
         await ProveedorService.delete(id);
         Toast.success('Proveedor eliminado exitosamente');
-        await refreshData();
+        await refreshData(true);
     } catch (error) {
-        console.error("Error eliminando:", error);
-        Toast.error("Error al eliminar el proveedor.");
+        ErrorHandler.handle(error, 'al eliminar proveedor');
     }
 }

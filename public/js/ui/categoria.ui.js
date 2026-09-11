@@ -1,5 +1,6 @@
 // public/js/ui/categoria.ui.js
 import { Toast } from '../utils/toast.js';
+import { ModalUI } from './modal.ui.js';
 
 export const CategoriaUI = {
     renderGrid(categorias, onEdit, onDelete) {
@@ -70,12 +71,11 @@ export const CategoriaUI = {
         document.getElementById('iconoCategoria').value = isEdit ? (categoria.icono || 'fa-tag') : 'fa-tag';
         document.getElementById('activaCategoria').checked = isEdit ? (categoria.activa !== false) : true;
 
-        document.getElementById('modalCategoria').classList.add('active');
+        ModalUI.open('modalCategoria');
     },
 
     closeModal() {
-        document.getElementById('modalCategoria').classList.remove('active');
-        document.getElementById('formCategoria').reset();
+        ModalUI.close('modalCategoria', true);
     },
 
     getFormData() {

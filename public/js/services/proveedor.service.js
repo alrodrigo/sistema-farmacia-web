@@ -18,16 +18,15 @@ import {
 
 export const ProveedorService = {
     /**
-     * Obtiene todos los proveedores ordenados alfabéticamente por nombre
+     * Obtiene todos los proveedores ordenados alfabéticamente por nombre (vía CacheService)
+     * @param {boolean} [forceRefresh=false]
      * @returns {Promise<Array>}
      */
-    async getAll() {
-        const q = query(collection(db, 'proveedores'), orderBy('nombre', 'asc'));
-        const snapshot = await getDocs(q);
-        return snapshot.docs.map(docSnap => ({
-            id: docSnap.id,
-            ...docSnap.data()
-        }));
+    async getAll(forceRefresh = false) {
+        if (forceRefresh) {
+            CacheService.invalidarProveedores();
+        }
+        return await CacheService.getProveedores();
     },
 
     /**

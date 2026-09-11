@@ -1,9 +1,11 @@
 // public/js/controllers/usuarios.js
 import { UsuarioService } from '../services/usuario.service.js';
 import { UsuarioUI } from '../ui/usuario.ui.js';
+import { ModalUI } from '../ui/modal.ui.js';
 import { AuthGuard } from '../middleware/auth.guard.js';
 import { Toast } from '../utils/toast.js';
 import { ConfirmDialog } from '../utils/confirm.js';
+import { ErrorHandler } from '../utils/error-handler.js';
 
 let currentUser = null;
 let todosLosUsuarios = [];
@@ -43,15 +45,10 @@ function setupEventListeners() {
         });
     }
 
-    const btnCerrarModal = document.getElementById('btnCerrarModal');
-    const btnCancelar = document.getElementById('btnCancelar');
-    if (btnCerrarModal) btnCerrarModal.addEventListener('click', () => UsuarioUI.closeUserModal());
-    if (btnCancelar) btnCancelar.addEventListener('click', () => UsuarioUI.closeUserModal());
-
-    const modal = document.getElementById('usuarioModal');
-    if (modal) {
-        modal.addEventListener('click', (e) => { if (e.target === modal) UsuarioUI.closeUserModal(); });
-    }
+    ModalUI.bind('usuarioModal', {
+        form: 'usuarioForm',
+        onClose: () => UsuarioUI.closeUserModal()
+    });
 
     const usuarioForm = document.getElementById('usuarioForm');
     if (usuarioForm) usuarioForm.addEventListener('submit', guardarUsuario);
@@ -131,8 +128,7 @@ async function cargarUsuarios() {
         actualizarVistaTabla();
         UsuarioUI.renderStats(todosLosUsuarios);
     } catch (error) {
-        console.error('Error al cargar usuarios:', error);
-        Toast.error('Error al cargar usuarios. Por favor, recarga la página.');
+        ErrorHandler.handle(error, 'al cargar usuarios');
     }
 }
 
@@ -192,16 +188,7 @@ async function guardarUsuario(event) {
             await cargarUsuarios();
         }
     } catch (error) {
-        console.error('Error al guardar:', error);
-        let msg = 'Error al guardar el usuario: ' + (error.message || error);
-        if (error.code === 'auth/email-already-in-use') {
-            msg = 'Este correo electrónico ya está registrado en Firebase.';
-        } else if (error.code === 'auth/weak-password') {
-            msg = 'La contraseña debe tener al menos 6 caracteres.';
-        } else if (error.code === 'auth/invalid-email') {
-            msg = 'El formato del correo electrónico es inválido.';
-        }
-        Toast.error(msg);
+        ErrorHandler.handle(error, 'al guardar el usuario');
     } finally {
         UsuarioUI.setLoading('btnGuardar', false, '', '<i class="fas fa-save"></i> <span id="btnGuardarText">' + (modoEdicion ? 'Actualizar Usuario' : 'Crear Usuario') + '</span>');
     }
@@ -290,8 +277,7 @@ async function enviarCorreoRecuperacionHandler(email) {
         await UsuarioService.sendPasswordResetEmail(email);
         Toast.success(`Correo de recuperación enviado a ${email}`);
     } catch (error) {
-        console.error('Error al enviar correo de recuperación:', error);
-        Toast.error(`Error al enviar el correo: ${error.message || error}`);
+        ErrorHandler.handle(error, 'al enviar correo de recuperación');
     }
 }
 
@@ -318,7 +304,6 @@ async function eliminarUsuarioHandler(id, nombre) {
         Toast.success(`Usuario "${nombre}" eliminado correctamente`);
         await cargarUsuarios();
     } catch (error) {
-        console.error('Error al eliminar:', error);
-        Toast.error('Error al eliminar el usuario');
+        ErrorHandler.handle(error, 'al eliminar el usuario');
     }
 }

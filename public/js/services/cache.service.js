@@ -11,10 +11,12 @@ const KEYS = {
     products:       'sfs_products',
     products_ts:    'sfs_products_ts',
     proveedores:    'sfs_proveedores',
-    proveedores_ts: 'sfs_proveedores_ts'
+    proveedores_ts: 'sfs_proveedores_ts',
+    categorias:     'sfs_categorias',
+    categorias_ts:  'sfs_categorias_ts'
 };
 
-const TTL = 10 * 60 * 1000; // 10 minutos
+const TTL = 10 * 60 * 1000; // 10 minutos de vigencia en sesión
 
 function _leer(key, tsKey) {
     try {
@@ -47,7 +49,6 @@ function _borrar(...keys) {
 export const CacheService = {
     /**
      * Devuelve la colección 'products' desde sessionStorage o Firestore.
-     * Una sola lectura a Firestore por sesión (o cuando se invalide).
      * @returns {Promise<Array>}
      */
     async getProductos() {
@@ -69,34 +70,77 @@ export const CacheService = {
         const cached = _leer(KEYS.proveedores, KEYS.proveedores_ts);
         if (cached) return cached;
 
-        const snapshot = await getDocs(collection(db, 'proveedores'));
+        let snapshot;
+        try {
+            const q = query(collection(db, 'proveedores'), orderBy('nombre', 'asc'));
+            snapshot = await getDocs(q);
+        } catch (e) {
+            snapshot = await getDocs(collection(db, 'proveedores'));
+        }
         const data = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
+        data.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
         _guardar(KEYS.proveedores, KEYS.proveedores_ts, data);
         return data;
     },
 
-    /** Fuerza recarga de productos en la próxima llamada a getProductos(). */
+    /**
+     * Devuelve la colección 'categorias' desde sessionStorage o Firestore.
+     * @returns {Promise<Array>}
+     */
+    async getCategorias() {
+        const cached = _leer(KEYS.categorias, KEYS.categorias_ts);
+        if (cached) return cached;
+
+        let snapshot;
+        try {
+            const q = query(collection(db, 'categorias'), orderBy('nombre', 'asc'));
+            snapshot = await getDocs(q);
+        } catch (e) {
+            snapshot = await getDocs(collection(db, 'categorias'));
+        }
+        const data = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
+        data.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+        _guardar(KEYS.categorias, KEYS.categorias_ts, data);
+        return data;
+    },
+
+    /** Fuerza recarga de productos en la próxima llamada. */
     invalidarProductos() {
         _borrar(KEYS.products, KEYS.products_ts);
     },
 
-    /**
-     * Sobrescribe el caché de productos en sessionStorage con un array ya modificado.
-     * Usar después de mutaciones en memoria (ej: descuento de stock post-venta).
-     * @param {Array} productosArray
-     */
+    /** Sobrescribe el caché de productos en sessionStorage tras mutaciones en memoria. */
     setProductos(productosArray) {
         _guardar(KEYS.products, KEYS.products_ts, productosArray);
     },
 
-    /** Fuerza recarga de proveedores en la próxima llamada a getProveedores(). */
+    /** Fuerza recarga de proveedores en la próxima llamada. */
     invalidarProveedores() {
         _borrar(KEYS.proveedores, KEYS.proveedores_ts);
     },
 
+    /** Sobrescribe el caché de proveedores. */
+    setProveedores(proveedoresArray) {
+        _guardar(KEYS.proveedores, KEYS.proveedores_ts, proveedoresArray);
+    },
+
+    /** Fuerza recarga de categorías en la próxima llamada. */
+    invalidarCategorias() {
+        _borrar(KEYS.categorias, KEYS.categorias_ts);
+    },
+
+    /** Sobrescribe el caché de categorías. */
+    setCategorias(categoriasArray) {
+        _guardar(KEYS.categorias, KEYS.categorias_ts, categoriasArray);
+    },
+
     /** Limpia todo el caché de la aplicación. */
     invalidarTodo() {
-        _borrar(KEYS.products, KEYS.products_ts, KEYS.proveedores, KEYS.proveedores_ts);
+        _borrar(
+            KEYS.products, KEYS.products_ts,
+            KEYS.proveedores, KEYS.proveedores_ts,
+            KEYS.categorias, KEYS.categorias_ts
+        );
     },
 
     clearAll() {
@@ -104,7 +148,6 @@ export const CacheService = {
     }
 };
 
-// Puente temporal de interoperabilidad
 if (typeof window !== 'undefined') {
     window.AppCache = CacheService;
 }
