@@ -15,15 +15,15 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- Sistema de Diseño Base -->
-    <link rel="stylesheet" href="../css/theme.css?v=4.0.1789143849">
-    <link rel="stylesheet" href="../css/components.css?v=4.0.1789143849">
-    <link rel="stylesheet" href="../css/layout.css?v=4.0.1789143849">
+    <link rel="stylesheet" href="../css/theme.css?v=4.0.1789144559">
+    <link rel="stylesheet" href="../css/components.css?v=4.0.1789144559">
+    <link rel="stylesheet" href="../css/layout.css?v=4.0.1789144559">
 
     <!-- CSS -->
-    <link rel="stylesheet" href="../css/reportes.css?v=4.0.1789143849">
+    <link rel="stylesheet" href="../css/reportes.css?v=4.0.1789144559">
 
     <!-- Responsive (DEBE IR AL FINAL) -->
-    <link rel="stylesheet" href="../css/responsive.css?v=4.0.1789143849">
+    <link rel="stylesheet" href="../css/responsive.css?v=4.0.1789144559">
 </head>
 
 <body>
@@ -45,6 +45,10 @@
                     <p>Análisis y estadísticas de tu farmacia</p>
                 </div>
                 <div class="header-actions">
+                    <button class="btn-export" id="btnOpenCierreCaja" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; font-weight: 600; box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.25);">
+                        <i class="fas fa-cash-register"></i>
+                        Cierre de Caja
+                    </button>
                     <button class="btn-export btn-pdf" id="btnExportPDF">
                         <i class="fas fa-file-pdf"></i>
                         Exportar a PDF
@@ -102,13 +106,27 @@
                     <div class="filter-group">
                         <label for="turnoFilter">
                             <i class="fas fa-clock"></i>
-                            Turno:
+                            Turno / Horario:
                         </label>
                         <select id="turnoFilter" class="form-control">
-                            <option value="all">Todos los turnos</option>
+                            <option value="all">Todo el día (00:00 – 23:59)</option>
                             <option value="manana">Mañana (06:00 – 13:59)</option>
                             <option value="tarde">Tarde (14:00 – 21:59)</option>
+                            <option value="noche">Noche (22:00 – 05:59)</option>
+                            <option value="custom">Personalizado (Horas)...</option>
                         </select>
+                    </div>
+
+                    <div class="filter-group" id="customHourGroup" style="display: none;">
+                        <label for="horaInicio">
+                            <i class="fas fa-hourglass-start"></i>
+                            Rango Horario:
+                        </label>
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <input type="time" id="horaInicio" class="form-control" value="08:00" style="padding: 0.55rem;">
+                            <span style="font-weight: 500; color: #64748b;">a</span>
+                            <input type="time" id="horaFin" class="form-control" value="16:00" style="padding: 0.55rem;">
+                        </div>
                     </div>
 
                     <div class="filter-actions">
@@ -352,6 +370,141 @@
         </div>
     </div>
 
+    <!-- ==================== MODAL CIERRE Y ARQUEO DE CAJA ==================== -->
+    <div id="cierreCajaModal" class="modal" style="display: none;">
+        <div class="modal-overlay"></div>
+        <div class="modal-content modal-large" style="max-width: 620px;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #0d3c61 0%, #1a5c8c 100%); color: white; padding: 1.25rem 1.5rem; border-radius: 12px 12px 0 0;">
+                <h2 style="margin: 0; display: flex; align-items: center; gap: 10px; font-size: 1.25rem;">
+                    <i class="fas fa-cash-register"></i>
+                    Cierre y Arqueo de Caja
+                </h2>
+                <button class="modal-close" id="closeCierreCajaModal" style="color: white; opacity: 0.85;">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 1.5rem;">
+                <!-- Datos del Turno / Período -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 0.75rem; padding: 0.85rem 1rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 1.25rem; font-size: 0.85rem;">
+                    <div>
+                        <span style="color: #64748b; font-weight: 500; display: block;">Período / Rango:</span>
+                        <strong id="cierrePeriodo" style="color: #1e293b;">-</strong>
+                    </div>
+                    <div>
+                        <span style="color: #64748b; font-weight: 500; display: block;">Vendedor / Cajero:</span>
+                        <strong id="cierreVendedor" style="color: #1e293b;">-</strong>
+                    </div>
+                    <div>
+                        <span style="color: #64748b; font-weight: 500; display: block;">Fecha y Hora Cierre:</span>
+                        <strong id="cierreHora" style="color: #1e293b;">-</strong>
+                    </div>
+                </div>
+
+                <!-- Desglose de Ventas por Método de Pago -->
+                <h4 style="margin: 0 0 0.75rem 0; color: #334155; display: flex; align-items: center; gap: 8px; font-size: 0.95rem;">
+                    <i class="fas fa-wallet" style="color: #0d3c61;"></i>
+                    Desglose por Métodos de Pago
+                </h4>
+                <div style="display: flex; flex-direction: column; gap: 0.65rem; margin-bottom: 1.25rem;">
+                    <!-- Efectivo -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 8px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; background: #10b981; color: white; border-radius: 50%;">
+                                <i class="fas fa-money-bill-wave"></i>
+                            </span>
+                            <div>
+                                <strong style="color: #065f46; font-size: 0.95rem;">Efectivo</strong>
+                                <small id="cierreCantEfectivo" style="display: block; color: #047857;">0 ventas</small>
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <span id="cierreMontoEfectivo" style="font-size: 1.15rem; font-weight: 700; color: #065f46;">Bs. 0.00</span>
+                        </div>
+                    </div>
+
+                    <!-- Tarjeta -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; background: #3b82f6; color: white; border-radius: 50%;">
+                                <i class="fas fa-credit-card"></i>
+                            </span>
+                            <div>
+                                <strong style="color: #1e40af; font-size: 0.95rem;">Tarjeta Débito/Crédito</strong>
+                                <small id="cierreCantTarjeta" style="display: block; color: #1d4ed8;">0 ventas</small>
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <span id="cierreMontoTarjeta" style="font-size: 1.15rem; font-weight: 700; color: #1e40af;">Bs. 0.00</span>
+                        </div>
+                    </div>
+
+                    <!-- Transferencia / QR -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; background: #f59e0b; color: white; border-radius: 50%;">
+                                <i class="fas fa-qrcode"></i>
+                            </span>
+                            <div>
+                                <strong style="color: #92400e; font-size: 0.95rem;">Transferencia / QR</strong>
+                                <small id="cierreCantQR" style="display: block; color: #b45309;">0 ventas</small>
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <span id="cierreMontoQR" style="font-size: 1.15rem; font-weight: 700; color: #92400e;">Bs. 0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gran Total Vendido -->
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.9rem 1.25rem; background: #0d3c61; color: white; border-radius: 8px; margin-bottom: 1.25rem;">
+                    <div>
+                        <span style="text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; opacity: 0.9;">Total Vendido (Efectivo + Tarjeta + QR)</span>
+                        <div id="cierreCantTotal" style="font-size: 0.85rem; opacity: 0.85;">0 ventas registradas</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <span id="cierreGranTotal" style="font-size: 1.45rem; font-weight: 800;">Bs. 0.00</span>
+                    </div>
+                </div>
+
+                <!-- Cuadre de Efectivo en Gaveta -->
+                <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 1rem; margin-bottom: 1.25rem;">
+                    <h5 style="margin: 0 0 0.6rem 0; color: #334155; font-size: 0.9rem; display: flex; align-items: center; gap: 6px;">
+                        <i class="fas fa-calculator" style="color: #64748b;"></i>
+                        Cuadre de Efectivo en Gaveta
+                    </h5>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
+                        <div>
+                            <label style="font-size: 0.75rem; color: #475569; font-weight: 500;">Fondo Inicial en Caja:</label>
+                            <div style="display: flex; align-items: center; gap: 6px; margin-top: 2px;">
+                                <span style="font-size: 0.85rem; font-weight: 600; color: #64748b;">Bs.</span>
+                                <input type="number" id="cierreFondoInicial" class="form-control" value="0.00" step="0.5" style="padding: 0.4rem 0.6rem;">
+                            </div>
+                        </div>
+                        <div>
+                            <label style="font-size: 0.75rem; color: #475569; font-weight: 500;">Efectivo Físico Contado:</label>
+                            <div style="display: flex; align-items: center; gap: 6px; margin-top: 2px;">
+                                <span style="font-size: 0.85rem; font-weight: 600; color: #64748b;">Bs.</span>
+                                <input type="number" id="cierreEfectivoContado" class="form-control" placeholder="0.00" step="0.5" style="padding: 0.4rem 0.6rem;">
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Resultado de Diferencia -->
+                    <div id="cierreCuadreResultado" style="padding: 0.55rem 0.85rem; border-radius: 6px; font-size: 0.85rem; font-weight: 600; background: #e2e8f0; color: #475569; display: flex; justify-content: space-between; align-items: center;">
+                        <span>Efectivo esperado en caja:</span>
+                        <strong id="cierreEfectivoEsperado">Bs. 0.00</strong>
+                    </div>
+                    <div id="cierreDiferenciaMensaje" style="display: none; margin-top: 0.5rem; font-size: 0.85rem; font-weight: 600;"></div>
+                </div>
+
+                <!-- Botones del Modal -->
+                <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+                    <button class="btn-reset" id="btnCerrarModalCierre">Cerrar</button>
+                    <button class="btn-primary" id="btnPrintCierreCaja" style="background: #10b981; border: none; padding: 0.65rem 1.25rem; display: flex; align-items: center; gap: 8px; color: white; border-radius: 6px; font-weight: 600; cursor: pointer;">
+                        <i class="fas fa-print"></i> Imprimir Arqueo / Cierre
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
     <!-- SheetJS para exportar Excel -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -364,16 +517,16 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
     <!-- Configuración de Firebase -->
-    <script type="module" src="../js/config/firebase.js?v=4.0.1789143849"></script>
+    <script type="module" src="../js/config/firebase.js?v=4.0.1789144559"></script>
 
     <!-- Utilidades -->
-    <script src="../js/utils/helpers.js?v=4.0.1789143849"></script>
+    <script src="../js/utils/helpers.js?v=4.0.1789144559"></script>
 
     <!-- Scripts de Reportes -->
-    <script type="module" src="../js/controllers/reportes.js?v=4.0.1789143849"></script>
+    <script type="module" src="../js/controllers/reportes.js?v=4.0.1789144559"></script>
 
     <!-- Service Worker para actualización automática -->
-    <script src="../js/sw-register.js?v=4.0.1789143849"></script>
+    <script src="../js/sw-register.js?v=4.0.1789144559"></script>
 </body>
 
 </html>

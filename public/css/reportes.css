@@ -435,7 +435,8 @@ tbody td {
 /* Modal de detalle */
 /* Sobrescribir estilos de components.css */
 
-#saleDetailModal.modal {
+#saleDetailModal.modal,
+#cierreCajaModal.modal {
     position: fixed !important;
     top: 0 !important;
     left: 0 !important;
@@ -452,7 +453,8 @@ tbody td {
     box-shadow: none;
 }
 
-#saleDetailModal .modal-overlay {
+#saleDetailModal .modal-overlay,
+#cierreCajaModal .modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -462,7 +464,8 @@ tbody td {
     z-index: 1;
 }
 
-#saleDetailModal .modal-content {
+#saleDetailModal .modal-content,
+#cierreCajaModal .modal-content {
     position: relative;
     z-index: 2;
     background: white;

@@ -5,9 +5,20 @@ let productsChart = null;
 export const ReportesUI = {
     setFechasPorDefecto() {
         const today = new Date();
-        const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-        document.getElementById('fechaInicio').value = firstDayOfMonth.toISOString().split('T')[0];
-        document.getElementById('fechaFin').value = today.toISOString().split('T')[0];
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        const todayStr = `${yyyy}-${mm}-${dd}`;
+
+        const inputInicio = document.getElementById('fechaInicio');
+        const inputFin = document.getElementById('fechaFin');
+        if (inputInicio) inputInicio.value = todayStr;
+        if (inputFin) inputFin.value = todayStr;
+
+        // Activar visualmente botón 'Hoy'
+        document.querySelectorAll('.btn-quick').forEach(b => {
+            b.classList.toggle('active', b.dataset.period === 'today');
+        });
     },
 
     actualizarUsuario(name, roleText) {
@@ -201,6 +212,37 @@ export const ReportesUI = {
 
     cerrarModalDetalle() {
         document.getElementById('saleDetailModal').style.display = 'none';
+    },
+
+    abrirModalCierreCaja(resumen) {
+        document.getElementById('cierrePeriodo').textContent = resumen.periodo;
+        document.getElementById('cierreVendedor').textContent = resumen.vendedor;
+        document.getElementById('cierreHora').textContent = resumen.hora;
+
+        document.getElementById('cierreMontoEfectivo').textContent = `Bs. ${resumen.efectivo.monto.toFixed(2)}`;
+        document.getElementById('cierreCantEfectivo').textContent = `${resumen.efectivo.cantidad} ${resumen.efectivo.cantidad === 1 ? 'venta' : 'ventas'}`;
+
+        document.getElementById('cierreMontoTarjeta').textContent = `Bs. ${resumen.tarjeta.monto.toFixed(2)}`;
+        document.getElementById('cierreCantTarjeta').textContent = `${resumen.tarjeta.cantidad} ${resumen.tarjeta.cantidad === 1 ? 'venta' : 'ventas'}`;
+
+        document.getElementById('cierreMontoQR').textContent = `Bs. ${resumen.qr.monto.toFixed(2)}`;
+        document.getElementById('cierreCantQR').textContent = `${resumen.qr.cantidad} ${resumen.qr.cantidad === 1 ? 'venta' : 'ventas'}`;
+
+        document.getElementById('cierreGranTotal').textContent = `Bs. ${resumen.totalVendido.toFixed(2)}`;
+        document.getElementById('cierreCantTotal').textContent = `${resumen.totalVentas} ventas registradas (${resumen.totalItems} productos)`;
+
+        document.getElementById('cierreFondoInicial').value = '0.00';
+        document.getElementById('cierreEfectivoContado').value = '';
+        document.getElementById('cierreEfectivoEsperado').textContent = `Bs. ${resumen.efectivo.monto.toFixed(2)}`;
+        
+        const diffMsg = document.getElementById('cierreDiferenciaMensaje');
+        if (diffMsg) diffMsg.style.display = 'none';
+
+        document.getElementById('cierreCajaModal').style.display = 'flex';
+    },
+
+    cerrarModalCierreCaja() {
+        document.getElementById('cierreCajaModal').style.display = 'none';
     },
 
     cambiarEstado(estado) {
