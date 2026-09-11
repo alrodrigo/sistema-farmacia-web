@@ -196,6 +196,13 @@ export const UsuarioUI = {
         ModalUI.open('usuarioModal');
     },
 
+    initModal() {
+        ModalUI.bind('usuarioModal', {
+            form: 'usuarioForm',
+            onClose: () => this.clearErrors()
+        });
+    },
+
     closeUserModal() {
         ModalUI.close('usuarioModal', true);
         this.clearErrors();

@@ -1,7 +1,6 @@
 // public/js/controllers/usuarios.js
 import { UsuarioService } from '../services/usuario.service.js';
 import { UsuarioUI } from '../ui/usuario.ui.js';
-import { ModalUI } from '../ui/modal.ui.js';
 import { AuthGuard } from '../middleware/auth.guard.js';
 import { Toast } from '../utils/toast.js';
 import { ConfirmDialog } from '../utils/confirm.js';
@@ -45,10 +44,7 @@ function setupEventListeners() {
         });
     }
 
-    ModalUI.bind('usuarioModal', {
-        form: 'usuarioForm',
-        onClose: () => UsuarioUI.closeUserModal()
-    });
+    UsuarioUI.initModal();
 
     const usuarioForm = document.getElementById('usuarioForm');
     if (usuarioForm) usuarioForm.addEventListener('submit', guardarUsuario);
