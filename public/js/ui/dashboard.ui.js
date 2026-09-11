@@ -90,21 +90,41 @@ export const DashboardUI = {
         });
     },
 
-    renderProximosVencer(productosPaginados, totalProductos, paginaActual = 1, porPagina = 5) {
+    renderFiltroLaboratoriosExpiring(laboratorios) {
+        const select = document.getElementById('filtroLabExpiring');
+        if (!select) return;
+
+        select.innerHTML = '<option value="TODOS">Todos los Laboratorios</option>';
+        laboratorios.forEach(lab => {
+            const option = document.createElement('option');
+            option.value = lab;
+            option.textContent = lab;
+            select.appendChild(option);
+        });
+    },
+
+    renderProximosVencer(productosPaginados, totalFiltrados, totalGlobal, paginaActual = 1, porPagina = 5) {
         const section = document.getElementById('expiringSection');
         const badge = document.getElementById('badgeExpiring');
         const tbody = document.getElementById('expiringTableBody');
 
         if (!section || !tbody) return;
 
-        if (badge) badge.textContent = totalProductos;
-
-        if (totalProductos === 0) {
+        if (totalGlobal === 0) {
             section.style.display = 'none';
             return;
         }
 
         section.style.display = 'block';
+        if (badge) badge.textContent = totalFiltrados;
+
+        if (totalFiltrados === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center" style="padding: 25px; color: #64748b;"><i class="fas fa-search" style="margin-right: 6px;"></i> No se encontraron productos próximos a vencer con los filtros seleccionados.</td></tr>`;
+            const pag = document.getElementById('expiringPagination');
+            if (pag) pag.style.display = 'none';
+            return;
+        }
+
         tbody.innerHTML = productosPaginados.map(producto => {
             let badgeClass = 'badge-warning';
             let diasTexto = `${producto.diasRestantes} días`;
@@ -136,19 +156,19 @@ export const DashboardUI = {
         }).join('');
 
         // Actualizar controles de paginación
-        const totalPaginas = Math.ceil(totalProductos / porPagina) || 1;
+        const totalPaginas = Math.ceil(totalFiltrados / porPagina) || 1;
         const paginationInfo = document.getElementById('expiringPaginationInfo');
         const btnPrev = document.getElementById('btnPrevExpiring');
         const btnNext = document.getElementById('btnNextExpiring');
         const paginationContainer = document.getElementById('expiringPagination');
 
         if (paginationInfo) {
-            paginationInfo.textContent = `Página ${paginaActual} de ${totalPaginas} (${totalProductos} productos)`;
+            paginationInfo.textContent = `Página ${paginaActual} de ${totalPaginas} (${totalFiltrados} productos)`;
         }
         if (btnPrev) btnPrev.disabled = paginaActual <= 1;
         if (btnNext) btnNext.disabled = paginaActual >= totalPaginas;
         if (paginationContainer) {
-            paginationContainer.style.display = totalProductos > porPagina ? 'flex' : 'none';
+            paginationContainer.style.display = totalFiltrados > porPagina ? 'flex' : 'none';
         }
     }
 };

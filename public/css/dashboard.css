@@ -341,3 +341,32 @@
         font-size: 13px;
     }
 }
+
+/* ===== CONTROLES DE TABLAS EN DASHBOARD ===== */
+.table-controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.table-controls input[type="text"]:focus,
+.table-controls select:focus {
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 0 2px rgba(13, 60, 97, 0.1);
+}
+
+@media (max-width: 768px) {
+    .table-controls {
+        width: 100%;
+    }
+    .table-controls .search-box {
+        width: 100%;
+        min-width: 100% !important;
+    }
+    .table-controls select,
+    .table-controls button {
+        flex: 1;
+        min-width: 130px;
+    }
+}

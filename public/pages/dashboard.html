@@ -15,15 +15,15 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- Sistema de Diseño Base -->
-    <link rel="stylesheet" href="../css/theme.css?v=4.0.1789144559">
-    <link rel="stylesheet" href="../css/components.css?v=4.0.1789144559">
-    <link rel="stylesheet" href="../css/layout.css?v=4.0.1789144559">
+    <link rel="stylesheet" href="../css/theme.css?v=4.0.1789145181">
+    <link rel="stylesheet" href="../css/components.css?v=4.0.1789145181">
+    <link rel="stylesheet" href="../css/layout.css?v=4.0.1789145181">
 
     <!-- CSS del Dashboard -->
-    <link rel="stylesheet" href="../css/dashboard.css?v=4.0.1789144559">
+    <link rel="stylesheet" href="../css/dashboard.css?v=4.0.1789145181">
 
     <!-- Responsive (DEBE IR AL FINAL) -->
-    <link rel="stylesheet" href="../css/responsive.css?v=4.0.1789144559">
+    <link rel="stylesheet" href="../css/responsive.css?v=4.0.1789145181">
 </head>
 
 <body>
@@ -81,10 +81,36 @@
                 </div>
             </div>
 
+            <!-- Acciones rápidas (Posicionadas arriba para máxima comodidad del usuario) -->
+            <div class="quick-actions" style="margin-bottom: 2rem;">
+                <h2 style="font-size: 1.25rem; margin-bottom: 1.25rem; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-bolt" style="color: #f59e0b;"></i>
+                    Acciones Rápidas
+                </h2>
+                <div class="actions-grid">
+                    <button class="action-btn" onclick="window.location.href='ventas.html'">
+                        <i class="fas fa-cash-register"></i>
+                        <span>Nueva Venta</span>
+                    </button>
+                    <button class="action-btn" onclick="window.location.href='productos.html'">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>Agregar Producto</span>
+                    </button>
+                    <button class="action-btn" onclick="window.location.href='reportes.html'">
+                        <i class="fas fa-file-invoice"></i>
+                        <span>Ver Reportes</span>
+                    </button>
+                    <button class="action-btn" id="btnScanQR">
+                        <i class="fas fa-qrcode"></i>
+                        <span>Escanear QR</span>
+                    </button>
+                </div>
+            </div>
+
             <!-- ⚠️ SECCIÓN: Productos con Stock Bajo -->
             <div class="stock-bajo-section" id="stockBajoSection" style="display: none;">
                 <div class="section-header"
-                    style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 15px;">
+                    style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 1.25rem;">
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <h2>
                             <i class="fas fa-exclamation-triangle"></i>
@@ -93,14 +119,27 @@
                         <span class="badge-warning" id="badgeStockBajo">0</span>
                     </div>
 
-                    <!-- Nuevos Controles: Filtro y Exportar -->
-                    <div class="table-controls" style="display: flex; gap: 10px; align-items: center;">
-                        <select id="filtroLabStockBajo" onchange="filtrarStockBajo()"
-                            style="padding: 8px; border-radius: 6px; border: 1px solid #ddd; outline: none; font-family: 'Poppins', sans-serif;">
+                    <!-- Controles: Buscador, Filtros y Exportar -->
+                    <div class="table-controls" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                        <div class="search-box" style="position: relative; min-width: 190px;">
+                            <i class="fas fa-search" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.85rem;"></i>
+                            <input type="text" id="busquedaStockBajo" placeholder="Buscar producto..."
+                                style="padding: 7px 10px 7px 30px; border-radius: 6px; border: 1px solid #cbd5e1; outline: none; width: 100%; font-size: 0.85rem; font-family: inherit;">
+                        </div>
+                        <select id="filtroLabStockBajo"
+                            style="padding: 7px 10px; border-radius: 6px; border: 1px solid #cbd5e1; outline: none; font-family: inherit; font-size: 0.85rem; background: white;">
                             <option value="TODOS">Todos los Laboratorios</option>
                         </select>
-                        <button class="btn-primary" onclick="exportarStockBajoExcel()"
-                            style="padding: 8px 15px; display: flex; align-items: center; gap: 8px; background-color: #10b981; border: none; color: white; border-radius: 6px; cursor: pointer; font-family: 'Poppins', sans-serif; font-weight: 500;">
+                        <select id="filtroNivelStockBajo"
+                            style="padding: 7px 10px; border-radius: 6px; border: 1px solid #cbd5e1; outline: none; font-family: inherit; font-size: 0.85rem; background: white;">
+                            <option value="TODOS">Todos los Stocks</option>
+                            <option value="0">🚨 Agotados (Stock = 0)</option>
+                            <option value="1">⚠️ Crítico (Stock = 1)</option>
+                            <option value="2">Stock ≤ 2</option>
+                            <option value="5">Stock ≤ 5</option>
+                        </select>
+                        <button class="btn-primary" id="btnExportarStockBajo"
+                            style="padding: 7px 14px; display: flex; align-items: center; gap: 6px; background-color: #10b981; border: none; color: white; border-radius: 6px; cursor: pointer; font-family: inherit; font-weight: 500; font-size: 0.85rem; white-space: nowrap;">
                             <i class="fas fa-file-excel"></i> Exportar Excel
                         </button>
                     </div>
@@ -140,12 +179,40 @@
 
             <!-- ⚠️ SECCIÓN: Productos Próximos a Vencer -->
             <div class="expiring-section" id="expiringSection" style="display: none;">
-                <div class="section-header">
-                    <h2>
-                        <i class="fas fa-calendar-times"></i>
-                        Productos Próximos a Vencer
-                    </h2>
-                    <span class="badge-danger" id="badgeExpiring">0</span>
+                <div class="section-header"
+                    style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 1.25rem;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <h2>
+                            <i class="fas fa-calendar-times"></i>
+                            Productos Próximos a Vencer
+                        </h2>
+                        <span class="badge-danger" id="badgeExpiring">0</span>
+                    </div>
+
+                    <!-- Controles: Buscador, Filtros y Exportar -->
+                    <div class="table-controls" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                        <div class="search-box" style="position: relative; min-width: 190px;">
+                            <i class="fas fa-search" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.85rem;"></i>
+                            <input type="text" id="busquedaExpiring" placeholder="Buscar producto o SKU..."
+                                style="padding: 7px 10px 7px 30px; border-radius: 6px; border: 1px solid #cbd5e1; outline: none; width: 100%; font-size: 0.85rem; font-family: inherit;">
+                        </div>
+                        <select id="filtroLabExpiring"
+                            style="padding: 7px 10px; border-radius: 6px; border: 1px solid #cbd5e1; outline: none; font-family: inherit; font-size: 0.85rem; background: white;">
+                            <option value="TODOS">Todos los Laboratorios</option>
+                        </select>
+                        <select id="filtroUrgenciaExpiring"
+                            style="padding: 7px 10px; border-radius: 6px; border: 1px solid #cbd5e1; outline: none; font-family: inherit; font-size: 0.85rem; background: white;">
+                            <option value="TODOS">Todos (≤ 30 días)</option>
+                            <option value="VENCIDOS">⛔ Ya Vencidos</option>
+                            <option value="HOY">🚨 Vencen Hoy</option>
+                            <option value="7">⚠️ Próximos 7 días</option>
+                            <option value="15">Próximos 15 días</option>
+                        </select>
+                        <button class="btn-primary" id="btnExportarExpiring"
+                            style="padding: 7px 14px; display: flex; align-items: center; gap: 6px; background-color: #ef4444; border: none; color: white; border-radius: 6px; cursor: pointer; font-family: inherit; font-weight: 500; font-size: 0.85rem; white-space: nowrap;">
+                            <i class="fas fa-file-excel"></i> Exportar Excel
+                        </button>
+                    </div>
                 </div>
 
                 <div class="expiring-table">
@@ -180,44 +247,21 @@
                 </div>
             </div>
 
-            <!-- Acciones rápidas -->
-            <div class="quick-actions">
-                <h2>Acciones Rápidas</h2>
-                <div class="actions-grid">
-                    <button class="action-btn" onclick="window.location.href='ventas.html'">
-                        <i class="fas fa-cash-register"></i>
-                        <span>Nueva Venta</span>
-                    </button>
-                    <button class="action-btn" onclick="window.location.href='productos.html'">
-                        <i class="fas fa-plus-circle"></i>
-                        <span>Agregar Producto</span>
-                    </button>
-                    <button class="action-btn" onclick="window.location.href='reportes.html'">
-                        <i class="fas fa-file-invoice"></i>
-                        <span>Ver Reportes</span>
-                    </button>
-                    <button class="action-btn" id="btnScanQR">
-                        <i class="fas fa-qrcode"></i>
-                        <span>Escanear QR</span>
-                    </button>
-                </div>
-            </div>
-
         </main>
     </div>
     <!-- Librería para exportar a Excel (SheetJS) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <!-- Configuración de Firebase (Modular v10) -->
-    <script type="module" src="../js/config/firebase.js?v=4.0.1789144559"></script>
+    <script type="module" src="../js/config/firebase.js?v=4.0.1789145181"></script>
 
     <!-- Utilidades -->
-    <script src="../js/utils/helpers.js?v=4.0.1789144559"></script>
+    <script src="../js/utils/helpers.js?v=4.0.1789145181"></script>
 
     <!-- Scripts del Dashboard -->
-    <script type="module" src="../js/controllers/dashboard.js?v=4.0.1789144559"></script>
+    <script type="module" src="../js/controllers/dashboard.js?v=4.0.1789145181"></script>
 
     <!-- Service Worker para actualización automática -->
-    <script src="../js/sw-register.js?v=4.0.1789144559"></script>
+    <script src="../js/sw-register.js?v=4.0.1789145181"></script>
 </body>
 
 </html>

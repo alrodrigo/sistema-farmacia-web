@@ -6,19 +6,23 @@ import { Toast } from '../utils/toast.js';
 import { ConfirmDialog } from '../utils/confirm.js';
 
 let currentUser = null;
+
+// Estado de Stock Bajo
 let stockBajoGlobal = [];
 let stockBajoFiltrados = [];
 let stockBajoPagina = 1;
 const stockBajoPorPagina = 5;
 
+// Estado de Próximos a Vencer
 let proximosGlobal = [];
+let proximosFiltrados = [];
 let proximosPagina = 1;
 const proximosPorPagina = 5;
 
 document.addEventListener('DOMContentLoaded', async () => {
     try {
         currentUser = await AuthGuard.protect();
-        
+
         const displayName = currentUser.name || currentUser.nombre || currentUser.email?.split('@')[0] || 'Usuario';
         const roleText = currentUser.role === 'admin' ? 'Administrador' : 'Empleado';
         DashboardUI.updateUser(displayName, roleText);
@@ -47,7 +51,11 @@ function setupEventListeners() {
         window.location.href = 'productos.html';
     });
 
+    // Filtros interactivos para Stock Bajo
+    document.getElementById('busquedaStockBajo')?.addEventListener('input', filtrarStockBajo);
     document.getElementById('filtroLabStockBajo')?.addEventListener('change', filtrarStockBajo);
+    document.getElementById('filtroNivelStockBajo')?.addEventListener('change', filtrarStockBajo);
+    document.getElementById('btnExportarStockBajo')?.addEventListener('click', exportarStockBajoExcel);
 
     // Controles de paginación Stock Bajo
     document.getElementById('btnPrevStockBajo')?.addEventListener('click', () => {
@@ -65,6 +73,12 @@ function setupEventListeners() {
         }
     });
 
+    // Filtros interactivos para Próximos a Vencer
+    document.getElementById('busquedaExpiring')?.addEventListener('input', filtrarProximosVencer);
+    document.getElementById('filtroLabExpiring')?.addEventListener('change', filtrarProximosVencer);
+    document.getElementById('filtroUrgenciaExpiring')?.addEventListener('change', filtrarProximosVencer);
+    document.getElementById('btnExportarExpiring')?.addEventListener('click', exportarExpiringExcel);
+
     // Controles de paginación Próximos a Vencer
     document.getElementById('btnPrevExpiring')?.addEventListener('click', () => {
         if (proximosPagina > 1) {
@@ -74,15 +88,12 @@ function setupEventListeners() {
     });
 
     document.getElementById('btnNextExpiring')?.addEventListener('click', () => {
-        const totalPaginas = Math.ceil(proximosGlobal.length / proximosPorPagina);
+        const totalPaginas = Math.ceil(proximosFiltrados.length / proximosPorPagina);
         if (proximosPagina < totalPaginas) {
             proximosPagina++;
             actualizarTablaProximos();
         }
     });
-
-    window.filtrarStockBajo = filtrarStockBajo;
-    window.exportarStockBajoExcel = exportarStockBajoExcel;
 }
 
 async function cargarEstadisticas() {
@@ -92,9 +103,8 @@ async function cargarEstadisticas() {
         procesarStockBajo(productos, proveedoresMap);
         procesarProximosVencer(productos, proveedoresMap);
 
-        // Uso del servicio unificado (.get en lugar de .count)
+        // Resumen de ventas de hoy
         const { ventasHoy, ingresosHoy } = await DashboardService.getResumenHoy(currentUser.uid, currentUser.role);
-
         DashboardUI.renderKpis(productos.length, ventasHoy, ingresosHoy, currentUser.role);
 
     } catch (error) {
@@ -123,18 +133,33 @@ function procesarStockBajo(productos, proveedoresMap) {
     actualizarTablaStockBajo();
 }
 
+function filtrarStockBajo() {
+    const q = document.getElementById('busquedaStockBajo')?.value.trim().toLowerCase() || '';
+    const lab = document.getElementById('filtroLabStockBajo')?.value || 'TODOS';
+    const nivel = document.getElementById('filtroNivelStockBajo')?.value || 'TODOS';
+
+    stockBajoFiltrados = stockBajoGlobal.filter(p => {
+        const coincideTexto = !q || p.name.toLowerCase().includes(q) || p.supplier.toLowerCase().includes(q);
+        const coincideLab = lab === 'TODOS' || p.supplier === lab;
+
+        let coincideNivel = true;
+        if (nivel === '0') coincideNivel = p.currentStock === 0;
+        else if (nivel === '1') coincideNivel = p.currentStock === 1;
+        else if (nivel === '2') coincideNivel = p.currentStock <= 2;
+        else if (nivel === '5') coincideNivel = p.currentStock <= 5;
+
+        return coincideTexto && coincideLab && coincideNivel;
+    });
+
+    stockBajoPagina = 1;
+    actualizarTablaStockBajo();
+}
+
 function actualizarTablaStockBajo() {
     const inicio = (stockBajoPagina - 1) * stockBajoPorPagina;
     const fin = inicio + stockBajoPorPagina;
     const paginados = stockBajoFiltrados.slice(inicio, fin);
     DashboardUI.renderStockBajo(paginados, stockBajoFiltrados.length, stockBajoGlobal.length, stockBajoPagina, stockBajoPorPagina);
-}
-
-function filtrarStockBajo() {
-    const lab = document.getElementById('filtroLabStockBajo').value;
-    stockBajoFiltrados = lab === 'TODOS' ? stockBajoGlobal : stockBajoGlobal.filter(p => p.supplier === lab);
-    stockBajoPagina = 1;
-    actualizarTablaStockBajo();
 }
 
 function procesarProximosVencer(productos, proveedoresMap) {
@@ -161,7 +186,7 @@ function procesarProximosVencer(productos, proveedoresMap) {
             return {
                 id: p.id,
                 name: p.name,
-                sku: p.sku,
+                sku: p.sku || 'S/SKU',
                 supplier: proveedoresMap[p.supplier] || p.supplier || p.supplier_name || 'Sin laboratorio',
                 expirationDate: f,
                 diasRestantes,
@@ -170,7 +195,35 @@ function procesarProximosVencer(productos, proveedoresMap) {
         })
         .sort((a, b) => a.diasRestantes - b.diasRestantes);
 
+    if (proximos.length > 0) {
+        const laboratorios = [...new Set(proximos.map(p => p.supplier))].sort();
+        DashboardUI.renderFiltroLaboratoriosExpiring(laboratorios);
+    }
+
     proximosGlobal = proximos;
+    proximosFiltrados = proximos;
+    proximosPagina = 1;
+    actualizarTablaProximos();
+}
+
+function filtrarProximosVencer() {
+    const q = document.getElementById('busquedaExpiring')?.value.trim().toLowerCase() || '';
+    const lab = document.getElementById('filtroLabExpiring')?.value || 'TODOS';
+    const urgencia = document.getElementById('filtroUrgenciaExpiring')?.value || 'TODOS';
+
+    proximosFiltrados = proximosGlobal.filter(p => {
+        const coincideTexto = !q || p.name.toLowerCase().includes(q) || (p.sku && p.sku.toLowerCase().includes(q)) || p.supplier.toLowerCase().includes(q);
+        const coincideLab = lab === 'TODOS' || p.supplier === lab;
+
+        let coincideUrgencia = true;
+        if (urgencia === 'VENCIDOS') coincideUrgencia = p.diasRestantes < 0;
+        else if (urgencia === 'HOY') coincideUrgencia = p.diasRestantes === 0;
+        else if (urgencia === '7') coincideUrgencia = p.diasRestantes <= 7;
+        else if (urgencia === '15') coincideUrgencia = p.diasRestantes <= 15;
+
+        return coincideTexto && coincideLab && coincideUrgencia;
+    });
+
     proximosPagina = 1;
     actualizarTablaProximos();
 }
@@ -178,8 +231,8 @@ function procesarProximosVencer(productos, proveedoresMap) {
 function actualizarTablaProximos() {
     const inicio = (proximosPagina - 1) * proximosPorPagina;
     const fin = inicio + proximosPorPagina;
-    const paginados = proximosGlobal.slice(inicio, fin);
-    DashboardUI.renderProximosVencer(paginados, proximosGlobal.length, proximosPagina, proximosPorPagina);
+    const paginados = proximosFiltrados.slice(inicio, fin);
+    DashboardUI.renderProximosVencer(paginados, proximosFiltrados.length, proximosGlobal.length, proximosPagina, proximosPorPagina);
 }
 
 function exportarStockBajoExcel() {
@@ -188,15 +241,12 @@ function exportarStockBajoExcel() {
         return;
     }
 
-    const lab = document.getElementById('filtroLabStockBajo').value;
-    const datos = lab === 'TODOS' ? stockBajoGlobal : stockBajoGlobal.filter(p => p.supplier === lab);
-
-    if (datos.length === 0) {
-        Toast.warning('No hay datos para exportar.');
+    if (stockBajoFiltrados.length === 0) {
+        Toast.warning('No hay datos filtrados para exportar.');
         return;
     }
 
-    const datosLimpios = datos.map(p => ({
+    const datosLimpios = stockBajoFiltrados.map(p => ({
         "Producto": p.name,
         "Laboratorio": p.supplier,
         "Stock Actual": p.currentStock,
@@ -206,10 +256,45 @@ function exportarStockBajoExcel() {
 
     const hoja = XLSX.utils.json_to_sheet(datosLimpios);
     const libro = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(libro, hoja, "Pedido de Stock");
+    XLSX.utils.book_append_sheet(libro, hoja, "Stock Bajo");
 
     const fecha = new Date().toISOString().split('T')[0];
-    const nombre = lab === 'TODOS' ? `Pedido_General_${fecha}.xlsx` : `Pedido_${lab}_${fecha}.xlsx`;
+    XLSX.writeFile(libro, `Reporte_Stock_Bajo_${fecha}.xlsx`);
+    Toast.success('Reporte de Stock Bajo exportado exitosamente.');
+}
 
-    XLSX.writeFile(libro, nombre);
+function exportarExpiringExcel() {
+    if (typeof XLSX === 'undefined') {
+        Toast.warning('La librería para exportar Excel no está cargada.');
+        return;
+    }
+
+    if (proximosFiltrados.length === 0) {
+        Toast.warning('No hay datos filtrados para exportar.');
+        return;
+    }
+
+    const datosLimpios = proximosFiltrados.map(p => {
+        let estado = `${p.diasRestantes} días`;
+        if (p.diasRestantes < 0) estado = 'VENCIDO';
+        else if (p.diasRestantes === 0) estado = 'VENCE HOY';
+
+        return {
+            "Producto": p.name,
+            "SKU / Lote": p.sku,
+            "Laboratorio": p.supplier,
+            "Fecha Vencimiento": p.expirationDate.toLocaleDateString('es-ES', { year: 'numeric', month: '2-digit', day: '2-digit' }),
+            "Días Restantes": p.diasRestantes,
+            "Estado": estado,
+            "Stock Actual": p.stock
+        };
+    });
+
+    const hoja = XLSX.utils.json_to_sheet(datosLimpios);
+    const libro = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(libro, hoja, "Proximos a Vencer");
+
+    const fecha = new Date().toISOString().split('T')[0];
+    XLSX.writeFile(libro, `Reporte_Proximos_A_Vencer_${fecha}.xlsx`);
+    Toast.success('Reporte de Próximos a Vencer exportado exitosamente.');
 }
