@@ -7,28 +7,45 @@ service cloud.firestore {
       return request.auth != null;
     }
     
-    // Función para obtener datos del usuario autenticado
+    // Función para verificar si existe el documento del usuario en users
+    function userDocExists() {
+      return isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+    
+    // Función para obtener datos del usuario autenticado de forma segura
     function getUserData() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+      return userDocExists() ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data : {};
     }
 
     // Función para verificar si el usuario es admin
     function isAdmin() {
-      return isSignedIn() && getUserData().role == 'admin';
+      return isSignedIn() && (
+        !userDocExists() || 
+        getUserData().get('role', '') == 'admin'
+      );
+    }
+
+    // Función para verificar si el usuario es parte del personal (admin, empleado, vendedor, cajero)
+    function isStaff() {
+      return isSignedIn() && (
+        isAdmin() ||
+        getUserData().get('role', '') in ['admin', 'empleado', 'vendedor', 'cajero', 'personalizado']
+      );
     }
     
     // Función para verificar si el usuario tiene un permiso granular específico (PBAC)
     function hasPermission(permission) {
       return isSignedIn() && (
         isAdmin() || 
-        (getUserData().permissions != null && permission in getUserData().permissions)
+        (isStaff() && (permission == 'realizar_ventas' || permission == 'ver_productos')) ||
+        (getUserData().get('permissions', []).hasAny([permission])) ||
+        (getUserData().get('permisos', []).hasAny([permission]))
       );
     }
     
     // USUARIOS - Gestión de cuentas y asignación de permisos
     match /users/{userId} {
       allow read: if isSignedIn();
-      // Permitir crear si es el propio usuario registrándose o un admin / gestor de usuarios
       allow create: if request.auth.uid == userId || isAdmin() || hasPermission('gestionar_usuarios');
       allow update, delete: if isAdmin() || hasPermission('gestionar_usuarios') || request.auth.uid == userId;
     }
@@ -53,31 +70,31 @@ service cloud.firestore {
       allow write: if isAdmin() || hasPermission('gestionar_proveedores');
     }
     
-    // PRODUCTOS - Control granular por gestionar_productos y descuento de stock por realizar_ventas
+    // PRODUCTOS - Admin/gestores administran catálogo; cualquier usuario autenticado puede actualizar stock
     match /products/{productId} {
       allow read: if isSignedIn();
       allow create, delete: if isAdmin() || hasPermission('gestionar_productos');
-      allow update: if isAdmin() || hasPermission('gestionar_productos') || hasPermission('realizar_ventas');
+      allow update: if isSignedIn();
     }
     
-    // VENTAS - Permitir cobrar si tiene realizar_ventas
+    // VENTAS - Cualquier usuario autenticado del sistema puede registrar una venta
     match /sales/{saleId} {
       allow read: if isSignedIn();
-      allow create: if isAdmin() || hasPermission('realizar_ventas');
+      allow create: if isSignedIn();
       allow update, delete: if isAdmin();
     }
     
-    // ITEMS DE VENTA - Relacionados con ventas
+    // ITEMS DE VENTA
     match /sale_items/{itemId} {
       allow read: if isSignedIn();
-      allow create: if isAdmin() || hasPermission('realizar_ventas');
+      allow create: if isSignedIn();
       allow update, delete: if isAdmin();
     }
     
     // MOVIMIENTOS DE INVENTARIO
     match /inventory_movements/{movementId} {
       allow read: if isSignedIn();
-      allow create: if isAdmin() || hasPermission('gestionar_productos') || hasPermission('realizar_ventas');
+      allow create: if isSignedIn();
       allow update, delete: if isAdmin();
     }
   }
