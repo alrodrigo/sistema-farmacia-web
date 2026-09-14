@@ -84,14 +84,14 @@ function procesarHtml(filePath) {
     let modificado = false;
     const nombre   = path.relative(PUBLIC_DIR, filePath);
 
-    if (contenido.includes(NO_CACHE_COMMENT)) {
-        const RE_BLOQUE = new RegExp(`${escapeRegex(NO_CACHE_COMMENT)}[\\s\\S]*?<meta[^>]+Expires[^>]*>`, 'g');
-        const nuevo = contenido.replace(RE_BLOQUE, NO_CACHE_BLOCK);
-        if (nuevo !== contenido) { contenido = nuevo; modificado = true; }
+    if (contenido.includes('http-equiv="Cache-Control"')) {
+        // Ya tiene los meta tags de no-cache, no reemplazar para no afectar el DOCTYPE
     } else {
         const ancla = contenido.match(/<meta\s+charset[^>]+>/i) ? /<meta\s+charset[^>]+>/i : /<head[^>]*>/i;
-        const nuevo = contenido.replace(ancla, m => `${m}\n    ${NO_CACHE_BLOCK}`);
-        if (nuevo !== contenido) { contenido = nuevo; modificado = true; }
+        if (ancla && ancla.test(contenido)) {
+            const nuevo = contenido.replace(ancla, m => `${m}\n    ${NO_CACHE_BLOCK}`);
+            if (nuevo !== contenido) { contenido = nuevo; modificado = true; }
+        }
     }
 
     contenido = contenido.replace(/(<link\b[^>]*\bhref=")([^"]+)("[^>]*>)/g, (match, pre, url, post) => {

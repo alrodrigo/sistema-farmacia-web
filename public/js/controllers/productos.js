@@ -24,11 +24,23 @@ document.addEventListener('DOMContentLoaded', async () => {
         // 1. 🛡️ AuthGuard valida sesión y pinta el Navbar
         currentUser = await AuthGuard.protect();
 
-        // 2. 🎭 Vista Mixta: Ocultar botón "Nuevo Producto" a empleados
-        if (currentUser.role === 'empleado') {
+        // 2. 🎭 Vista Mixta: Control granular con AuthGuard
+        const actualizarPermisosUI = (user) => {
+            const canManage = AuthGuard.hasPermission('gestionar_productos', user);
             const btnNuevo = document.getElementById('btnNuevoProducto');
-            if (btnNuevo) btnNuevo.style.display = 'none';
-        }
+            if (btnNuevo) {
+                btnNuevo.style.display = canManage ? 'inline-flex' : 'none';
+            }
+        };
+
+        actualizarPermisosUI(currentUser);
+
+        // Si los permisos cambian en tiempo real desde el panel de admin:
+        window.addEventListener('sessionPermissionsUpdated', (e) => {
+            currentUser = e.detail;
+            actualizarPermisosUI(currentUser);
+            actualizarVistaTabla();
+        });
 
         setupEventListeners();
         await cargarDatosIniciales();
@@ -96,8 +108,8 @@ function setupEventListeners() {
             const prod = todosLosProductos.find(p => p.id === id);
             if (prod) ProductoUI.openModal('ver', prod);
         } else if (action === 'editar') {
-            if (currentUser?.role !== 'admin') {
-                Toast.warning('Solo los administradores pueden editar productos');
+            if (!AuthGuard.hasPermission('gestionar_productos', currentUser)) {
+                Toast.warning('No tienes permisos para editar productos');
                 return;
             }
             const prod = todosLosProductos.find(p => p.id === id);
@@ -128,7 +140,20 @@ async function cargarDatosIniciales() {
         ProductoUI.renderSelectOptions('inputProveedor', proveedoresMap, 'Selecciona un laboratorio');
 
         productosFiltrados = [...todosLosProductos];
-        actualizarVistaTabla();
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const searchParam = urlParams.get('search');
+        if (searchParam) {
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.value = searchParam;
+                aplicarFiltros();
+            } else {
+                actualizarVistaTabla();
+            }
+        } else {
+            actualizarVistaTabla();
+        }
         ProductoUI.renderStats(productosFiltrados, todosLosProductos);
     } catch (error) {
         ErrorHandler.handle(error, 'al cargar datos');
@@ -137,7 +162,8 @@ async function cargarDatosIniciales() {
 }
 
 function actualizarVistaTabla() {
-    ProductoUI.renderTable(productosFiltrados, paginaActual, productosPorPagina, categoriasMap, proveedoresMap, currentUser.role);
+    const canManage = AuthGuard.hasPermission('gestionar_productos', currentUser);
+    ProductoUI.renderTable(productosFiltrados, paginaActual, productosPorPagina, categoriasMap, proveedoresMap, canManage);
     ProductoUI.renderPagination(paginaActual, productosFiltrados.length, productosPorPagina);
 }
 
@@ -307,8 +333,8 @@ function calcularMargen() {
 }
 
 async function eliminarProducto(id, nombre) {
-    if (currentUser?.role !== 'admin') {
-        Toast.warning('Solo los administradores pueden eliminar productos');
+    if (!AuthGuard.hasPermission('gestionar_productos', currentUser)) {
+        Toast.warning('No tienes permisos para eliminar productos');
         return;
     }
 

@@ -264,7 +264,7 @@ export const VentaUI = {
         document.getElementById('modalSaleNumber').textContent = '#' + String(numeroVenta).padStart(4, '0');
         document.getElementById('modalTotal').textContent = window.formatCurrency(total);
         document.getElementById('modalItems').textContent = totalItems;
-        document.getElementById('modalPaymentMethod').textContent = paymentMethod === 'cash' ? 'Efectivo' : paymentMethod === 'card' ? 'Tarjeta' : 'Transferencia';
+        document.getElementById('modalPaymentMethod').textContent = paymentMethod === 'cash' ? 'Efectivo' : paymentMethod === 'card' ? 'Tarjeta' : 'Transferencia / QR';
 
         if (discountAmount > 0) {
             document.getElementById('modalDiscountRow').style.display = 'flex';
@@ -364,6 +364,63 @@ export const VentaUI = {
 
         const printContainer = document.getElementById('printReceipt');
         printContainer.innerHTML = reciboHTML;
+        printContainer.style.display = 'block';
+        setTimeout(() => {
+            window.print();
+            setTimeout(() => printContainer.style.display = 'none', 100);
+        }, 100);
+    },
+
+    mostrarModalCorte(datos, cajeroNombre) {
+        const modal = document.getElementById('modalCierreCaja');
+        if (!modal) return;
+        document.getElementById('cierreCajeroNombre').textContent = cajeroNombre || 'Cajero';
+        const ahora = new Date();
+        document.getElementById('cierreFechaHora').textContent = ahora.toLocaleDateString('es-BO', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' ' + ahora.toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' });
+        document.getElementById('cierreTotalEfectivo').textContent = window.formatCurrency(datos.efectivo);
+        document.getElementById('cierreTotalTransferencia').textContent = window.formatCurrency(datos.transferencia);
+        document.getElementById('cierreTotalTarjeta').textContent = window.formatCurrency(datos.tarjeta);
+        document.getElementById('cierreTotalTickets').textContent = datos.totalTickets;
+        document.getElementById('cierreTotalGeneral').textContent = window.formatCurrency(datos.total);
+        modal.style.display = 'flex';
+    },
+
+    ocultarModalCorte() {
+        const modal = document.getElementById('modalCierreCaja');
+        if (modal) modal.style.display = 'none';
+    },
+
+    imprimirCorteTicket(datos, cajeroNombre) {
+        const ahora = new Date();
+        const fecha = ahora.toLocaleDateString('es-BO', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        const hora = ahora.toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit', hour12: true });
+
+        const ticketHTML = `
+            <div class="receipt-header">
+                <div class="receipt-logo"><img src="img/logo-servisalud.png" alt="ServiSalud"></div>
+                <div class="receipt-title">FARMACIA SERVISALUD</div>
+                <div class="receipt-subtitle">CORTE DE TURNO / ARQUEO</div>
+            </div>
+            <div class="receipt-info">
+                <div class="receipt-info-row"><span class="receipt-info-label">Fecha:</span><span>${fecha} - ${hora}</span></div>
+                <div class="receipt-info-row"><span class="receipt-info-label">Cajero:</span><span>${cajeroNombre}</span></div>
+                <div class="receipt-info-row"><span class="receipt-info-label">Tickets:</span><span>${datos.totalTickets}</span></div>
+            </div>
+            <div class="receipt-divider"></div>
+            <div class="receipt-totals">
+                <div class="receipt-total-row"><span>Efectivo:</span><strong>${window.formatCurrency(datos.efectivo)}</strong></div>
+                <div class="receipt-total-row"><span>Transferencia / QR:</span><strong>${window.formatCurrency(datos.transferencia)}</strong></div>
+                <div class="receipt-total-row"><span>Tarjeta:</span><strong>${window.formatCurrency(datos.tarjeta)}</strong></div>
+                <div class="receipt-divider"></div>
+                <div class="receipt-total-row main"><span>TOTAL CAJA:</span><strong>${window.formatCurrency(datos.total)}</strong></div>
+            </div>
+            <div class="receipt-divider"></div>
+            <div class="receipt-footer" style="margin-top: 25px;">
+                <div style="border-top: 1px solid #000; width: 80%; margin: 40px auto 5px; text-align: center; font-size: 11px;">Firma del Cajero</div>
+            </div>`;
+
+        const printContainer = document.getElementById('printReceipt');
+        printContainer.innerHTML = ticketHTML;
         printContainer.style.display = 'block';
         setTimeout(() => {
             window.print();

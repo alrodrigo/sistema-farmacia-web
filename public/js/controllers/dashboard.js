@@ -30,8 +30,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         currentUser = await AuthGuard.protect();
 
         const displayName = currentUser.name || currentUser.nombre || currentUser.email?.split('@')[0] || 'Usuario';
-        const roleText = currentUser.role === 'admin' ? 'Administrador' : 'Empleado';
+        const roleText = currentUser.role === 'admin' ? 'Administrador' : (currentUser.role === 'personalizado' ? 'Personalizado' : 'Empleado');
         DashboardUI.updateUser(displayName, roleText);
+        DashboardUI.renderQuickActions(currentUser);
+
+        // Si cambian los permisos en caliente:
+        window.addEventListener('sessionPermissionsUpdated', async (e) => {
+            currentUser = e.detail;
+            const newDisplayName = currentUser.name || currentUser.nombre || currentUser.email?.split('@')[0] || 'Usuario';
+            const newRoleText = currentUser.role === 'admin' ? 'Administrador' : (currentUser.role === 'personalizado' ? 'Personalizado' : 'Empleado');
+            DashboardUI.updateUser(newDisplayName, newRoleText);
+            DashboardUI.renderQuickActions(currentUser);
+            await cargarEstadisticas();
+        });
 
         setupEventListeners();
         await cargarEstadisticas();
@@ -142,6 +153,8 @@ function setupEventListeners() {
 
 async function cargarEstadisticas() {
     try {
+        const canViewReports = AuthGuard.hasPermission('ver_reportes', currentUser);
+
         const [inventario, categorias, proveedores] = await Promise.all([
             DashboardService.getInventario(),
             ProductoService.getCategoriasCache(),
@@ -161,9 +174,9 @@ async function cargarEstadisticas() {
             return status.isUrgent && (p.current_stock || 0) > 0;
         }).length;
 
-        // Resumen de ventas de hoy
-        const { ventasHoy, ingresosHoy } = await DashboardService.getResumenHoy(currentUser.uid, currentUser.role);
-        DashboardUI.renderKpis(inventario.productos.length, ventasHoy, ingresosHoy, currentUser.role, salidaPrioritaria);
+        // Resumen de ventas de hoy optimizado (solo consulta Firestore si tiene permiso de ver reportes)
+        const { ventasHoy, ingresosHoy } = await DashboardService.getResumenHoy(currentUser.uid, currentUser.role, canViewReports);
+        DashboardUI.renderKpis(inventario.productos.length, ventasHoy, ingresosHoy, currentUser.role, salidaPrioritaria, canViewReports);
 
     } catch (error) {
         console.error("Error al cargar estadísticas", error);
@@ -217,7 +230,8 @@ function actualizarTablaStockBajo() {
     const inicio = (stockBajoPagina - 1) * stockBajoPorPagina;
     const fin = inicio + stockBajoPorPagina;
     const paginados = stockBajoFiltrados.slice(inicio, fin);
-    DashboardUI.renderStockBajo(paginados, stockBajoFiltrados.length, stockBajoGlobal.length, stockBajoPagina, stockBajoPorPagina);
+    const canManage = AuthGuard.hasPermission('gestionar_productos', currentUser);
+    DashboardUI.renderStockBajo(paginados, stockBajoFiltrados.length, stockBajoGlobal.length, stockBajoPagina, stockBajoPorPagina, canManage);
 }
 
 function procesarProximosVencer(productos, proveedoresMap) {
@@ -299,7 +313,8 @@ function actualizarTablaProximos() {
     const inicio = (proximosPagina - 1) * proximosPorPagina;
     const fin = inicio + proximosPorPagina;
     const paginados = proximosFiltrados.slice(inicio, fin);
-    DashboardUI.renderProximosVencer(paginados, proximosFiltrados.length, proximosGlobal.length, proximosPagina, proximosPorPagina);
+    const canManage = AuthGuard.hasPermission('gestionar_productos', currentUser);
+    DashboardUI.renderProximosVencer(paginados, proximosFiltrados.length, proximosGlobal.length, proximosPagina, proximosPorPagina, canManage);
 }
 
 function exportarStockBajoExcel() {
@@ -411,6 +426,21 @@ function abrirModalActualizar(id) {
 
     actualizarIndicadoresModal();
 
+    // Adaptar modal a modo lectura o edición según permisos
+    const canManage = AuthGuard.hasPermission('gestionar_productos', currentUser);
+    const btnGuardar = document.getElementById('btnGuardarActualizacion');
+    const quickStockButtons = document.querySelectorAll('.btn-incrementar-stock');
+    const btnReponer = document.getElementById('btnReponerFaltante');
+
+    if (btnGuardar) btnGuardar.style.display = canManage ? 'inline-flex' : 'none';
+    if (btnReponer) btnReponer.style.display = canManage ? 'inline-flex' : 'none';
+    quickStockButtons.forEach(b => b.style.display = canManage ? 'inline-flex' : 'none');
+
+    const inputsModal = document.querySelectorAll('#formActualizarProducto input, #formActualizarProducto select');
+    inputsModal.forEach(inp => {
+        inp.disabled = !canManage;
+    });
+
     ModalUI.open('actualizarProductoModal');
 }
 
@@ -485,7 +515,12 @@ function poblarSelectProveedores(proveedorActual) {
 }
 
 async function guardarActualizacionProducto(e) {
-    e.preventDefault();
+    if (e) e.preventDefault();
+
+    if (!AuthGuard.hasPermission('gestionar_productos', currentUser)) {
+        Toast.warning('No tienes permisos para modificar productos');
+        return;
+    }
 
     const id = document.getElementById('editModalProdId')?.value;
     if (!id) return;

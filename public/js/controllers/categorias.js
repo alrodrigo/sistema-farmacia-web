@@ -36,12 +36,63 @@ function setupEventListeners() {
 
     // Envío del formulario
     document.getElementById('formCategoria')?.addEventListener('submit', handleSave);
+
+    // Filtros y búsqueda en tiempo real
+    document.getElementById('searchInputCategorias')?.addEventListener('input', aplicarFiltrosYRenderizar);
+    document.getElementById('filterEstadoCategorias')?.addEventListener('change', aplicarFiltrosYRenderizar);
+    document.getElementById('sortCategorias')?.addEventListener('change', aplicarFiltrosYRenderizar);
+}
+
+function aplicarFiltrosYRenderizar() {
+    const searchVal = document.getElementById('searchInputCategorias')?.value.trim().toLowerCase() || '';
+    const estadoVal = document.getElementById('filterEstadoCategorias')?.value || 'todas';
+    const sortVal = document.getElementById('sortCategorias')?.value || 'nombre_asc';
+
+    let filtradas = [...categoriasGlobal];
+
+    // 1. Búsqueda por texto (nombre o descripción)
+    if (searchVal) {
+        filtradas = filtradas.filter(c =>
+            (c.nombre && c.nombre.toLowerCase().includes(searchVal)) ||
+            (c.descripcion && c.descripcion.toLowerCase().includes(searchVal))
+        );
+    }
+
+    // 2. Filtro por estado
+    if (estadoVal === 'activas') {
+        filtradas = filtradas.filter(c => c.activa !== false);
+    } else if (estadoVal === 'inactivas') {
+        filtradas = filtradas.filter(c => c.activa === false);
+    }
+
+    // 3. Ordenación
+    if (sortVal === 'nombre_asc') {
+        filtradas.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+    } else if (sortVal === 'nombre_desc') {
+        filtradas.sort((a, b) => (b.nombre || '').localeCompare(a.nombre || ''));
+    } else if (sortVal === 'productos_desc') {
+        filtradas.sort((a, b) => (b.productosCount || 0) - (a.productosCount || 0));
+    } else if (sortVal === 'productos_asc') {
+        filtradas.sort((a, b) => (a.productosCount || 0) - (b.productosCount || 0));
+    }
+
+    CategoriaUI.renderGrid(filtradas, handleEdit, handleDelete, categoriasGlobal.length, resetFiltros);
+}
+
+function resetFiltros() {
+    const searchInput = document.getElementById('searchInputCategorias');
+    const filterEstado = document.getElementById('filterEstadoCategorias');
+    const sort = document.getElementById('sortCategorias');
+    if (searchInput) searchInput.value = '';
+    if (filterEstado) filterEstado.value = 'todas';
+    if (sort) sort.value = 'nombre_asc';
+    aplicarFiltrosYRenderizar();
 }
 
 async function refreshData(forceRefresh = false) {
     try {
         categoriasGlobal = await CategoriaService.getAll(forceRefresh);
-        CategoriaUI.renderGrid(categoriasGlobal, handleEdit, handleDelete);
+        aplicarFiltrosYRenderizar();
 
         // Sincronizar contadores de productos en segundo plano
         const stats = await CategoriaService.syncCounters(categoriasGlobal);
@@ -49,7 +100,7 @@ async function refreshData(forceRefresh = false) {
         const activas = categoriasGlobal.filter(c => c.activa !== false).length;
         CategoriaUI.updateStats(categoriasGlobal.length, activas, stats.totalProductos);
 
-        CategoriaUI.renderGrid(categoriasGlobal, handleEdit, handleDelete);
+        aplicarFiltrosYRenderizar();
     } catch (error) {
         ErrorHandler.handle(error, 'al cargar categorías');
     }

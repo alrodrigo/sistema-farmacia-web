@@ -3,19 +3,39 @@ import { Toast } from '../utils/toast.js';
 import { ModalUI } from './modal.ui.js';
 
 export const CategoriaUI = {
-    renderGrid(categorias, onEdit, onDelete) {
+    renderGrid(categorias, onEdit, onDelete, totalGlobal = 0, onResetFilters = null) {
         const grid = document.getElementById('categoriasGrid');
         const emptyState = document.getElementById('emptyState');
 
-        if (!categorias || categorias.length === 0) {
+        // Si no hay categorías en la base de datos en absoluto
+        if (totalGlobal === 0) {
             grid.style.display = 'none';
             emptyState.style.display = 'block';
             return;
         }
 
-        grid.style.display = 'grid';
         emptyState.style.display = 'none';
+        grid.style.display = 'grid';
         grid.innerHTML = ''; // Limpiar grilla
+
+        // Si hay categorías globales pero ninguna coincide con la búsqueda/filtro
+        if (!categorias || categorias.length === 0) {
+            const noResults = document.createElement('div');
+            noResults.style.cssText = 'grid-column: 1 / -1; text-align: center; padding: 48px 16px; background: white; border-radius: 12px; border: 1px dashed #cbd5e1;';
+            noResults.innerHTML = `
+                <i class="fas fa-search" style="font-size: 2.2rem; color: #94a3b8; margin-bottom: 12px; display: block;"></i>
+                <h3 style="font-size: 1.1rem; color: #1e293b; margin-bottom: 6px;">No se encontraron categorías</h3>
+                <p style="font-size: 0.88rem; color: #64748b; margin-bottom: 16px;">Ninguna categoría coincide con los filtros de búsqueda aplicados.</p>
+                <button type="button" class="btn btn-secondary" id="btnResetFiltersCat" style="padding: 8px 16px; font-size: 0.85rem; border-radius: 8px; border: 1px solid #cbd5e1; background: #f8fafc; color: #334155; font-weight: 500; cursor: pointer;">
+                    <i class="fas fa-undo"></i> Restablecer Filtros
+                </button>
+            `;
+            if (onResetFilters) {
+                noResults.querySelector('#btnResetFiltersCat')?.addEventListener('click', onResetFilters);
+            }
+            grid.appendChild(noResults);
+            return;
+        }
 
         categorias.forEach(cat => {
             const div = document.createElement('div');

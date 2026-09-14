@@ -236,4 +236,12 @@ function aplicarRestriccionesMenu(user) {
 // Aplicar restricciones inmediatamente al cargar (usa caché si está disponible)
 aplicarRestriccionesMenu();
 
-
+// Prevenir cambio accidental de valores al mover la rueda del ratón en campos numéricos
+document.addEventListener('wheel', function (e) {
+    if (e.target && e.target.tagName === 'INPUT' && e.target.type === 'number') {
+        e.target.blur();
+    }
+    if (document.activeElement && document.activeElement.tagName === 'INPUT' && document.activeElement.type === 'number') {
+        document.activeElement.blur();
+    }
+});

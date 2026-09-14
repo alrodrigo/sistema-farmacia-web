@@ -7,24 +7,63 @@ export const DashboardUI = {
         if (userRoleElement) userRoleElement.textContent = roleText;
     },
 
-    renderKpis(totalProductos, ventasHoy, ingresosHoy, role, salidaPrioritaria = 0) {
+    renderKpis(totalProductos, ventasHoy, ingresosHoy, role, salidaPrioritaria = 0, canViewReports = false) {
         document.getElementById('totalProductos').textContent = totalProductos;
-        document.getElementById('ventasHoy').textContent = ventasHoy;
 
         const elPrioritaria = document.getElementById('salidaPrioritariaCount');
         if (elPrioritaria) elPrioritaria.textContent = salidaPrioritaria;
 
+        const cardVentas = document.getElementById('cardVentasHoy');
         const cardIngresos = document.getElementById('cardIngresosHoy');
-        if (role === 'admin') {
+
+        // Las métricas de ventas y dinero hoy solo son visibles si tiene permiso ver_reportes o es admin
+        if (role === 'admin' || canViewReports) {
+            if (cardVentas) cardVentas.style.display = 'flex';
             if (cardIngresos) cardIngresos.style.display = 'flex';
+
+            document.getElementById('ventasHoy').textContent = ventasHoy;
             const formatted = new Intl.NumberFormat('es-BO', { style: 'currency', currency: 'BOB' }).format(ingresosHoy || 0);
             document.getElementById('ingresosHoy').textContent = ingresosHoy === null ? 'Bs. -' : formatted;
         } else {
+            if (cardVentas) cardVentas.style.display = 'none';
             if (cardIngresos) cardIngresos.style.display = 'none';
         }
     },
 
-    renderStockBajo(productosPaginados, totalFiltrados, totalGlobal, paginaActual = 1, porPagina = 5) {
+    renderQuickActions(user) {
+        const canVentas = user.role === 'admin' || user.permissions?.includes('realizar_ventas');
+        const canGestionarProd = user.role === 'admin' || user.permissions?.includes('gestionar_productos');
+        const canVerProd = canGestionarProd || user.permissions?.includes('ver_productos');
+        const canReportes = user.role === 'admin' || user.permissions?.includes('ver_reportes');
+
+        const btnVentas = document.getElementById('btnActionVentas');
+        const btnProd = document.getElementById('btnActionProductos');
+        const iconProd = document.getElementById('iconActionProductos');
+        const textProd = document.getElementById('textActionProductos');
+        const btnReportes = document.getElementById('btnActionReportes');
+        const btnQR = document.getElementById('btnScanQR');
+
+        if (btnVentas) btnVentas.style.display = canVentas ? 'flex' : 'none';
+
+        if (btnProd) {
+            if (canGestionarProd) {
+                btnProd.style.display = 'flex';
+                if (iconProd) iconProd.className = 'fas fa-plus-circle';
+                if (textProd) textProd.textContent = 'Agregar Producto';
+            } else if (canVerProd) {
+                btnProd.style.display = 'flex';
+                if (iconProd) iconProd.className = 'fas fa-pills';
+                if (textProd) textProd.textContent = 'Ver Catálogo';
+            } else {
+                btnProd.style.display = 'none';
+            }
+        }
+
+        if (btnReportes) btnReportes.style.display = canReportes ? 'flex' : 'none';
+        if (btnQR) btnQR.style.display = (canVentas || canVerProd) ? 'flex' : 'none';
+    },
+
+    renderStockBajo(productosPaginados, totalFiltrados, totalGlobal, paginaActual = 1, porPagina = 5, canManage = false) {
         const section = document.getElementById('stockBajoSection');
         const badge = document.getElementById('badgeStockBajo');
         const tbody = document.getElementById('stockBajoTableBody');
@@ -57,7 +96,7 @@ export const DashboardUI = {
                 <td><strong style="color: var(--danger-color);">Faltan ${producto.faltante} unidades</strong></td>
                 <td>
                     <button class="btn-small" data-action="actualizar-producto" data-id="${producto.id}">
-                        <i class="fas fa-edit"></i> Actualizar
+                        <i class="fas fa-${canManage ? 'edit' : 'eye'}"></i> ${canManage ? 'Actualizar' : 'Ver'}
                     </button>
                 </td>
             </tr>
@@ -106,7 +145,7 @@ export const DashboardUI = {
         });
     },
 
-    renderProximosVencer(productosPaginados, totalFiltrados, totalGlobal, paginaActual = 1, porPagina = 5) {
+    renderProximosVencer(productosPaginados, totalFiltrados, totalGlobal, paginaActual = 1, porPagina = 5, canManage = false) {
         const section = document.getElementById('expiringSection');
         const badge = document.getElementById('badgeExpiring');
         const tbody = document.getElementById('expiringTableBody');
@@ -156,7 +195,7 @@ export const DashboardUI = {
                     <td>${producto.stock} unidades</td>
                     <td class="text-center">
                         <button class="btn-small" data-action="actualizar-producto" data-id="${producto.id}">
-                            <i class="fas fa-edit"></i> Actualizar
+                            <i class="fas fa-${canManage ? 'edit' : 'eye'}"></i> ${canManage ? 'Actualizar' : 'Ver'}
                         </button>
                     </td>
                 </tr>

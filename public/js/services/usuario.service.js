@@ -56,7 +56,7 @@ export const UsuarioService = {
      * @param {Object} param0
      * @returns {Promise<string>} UID del nuevo usuario
      */
-    async create({ name, email, password, role }) {
+    async create({ name, email, password, role, permissions = [] }) {
         const config = window.firebaseConfig;
         if (!config) throw new Error('Configuración de Firebase no disponible.');
 
@@ -76,6 +76,7 @@ export const UsuarioService = {
                 nombre: name,
                 email: email,
                 role: role,
+                permissions: permissions,
                 active: true,
                 created_at: serverTimestamp()
             });

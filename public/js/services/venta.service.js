@@ -9,6 +9,7 @@ import {
     collection, 
     doc, 
     query, 
+    where,
     orderBy, 
     limit, 
     getDocs, 
@@ -21,6 +22,64 @@ import {
 export const VentaService = {
     async getProductos() {
         return await CacheService.getProductos();
+    },
+
+    async getCorteTurnoHoy(userId, role) {
+        const hoy = new Date();
+        hoy.setHours(0, 0, 0, 0);
+        const finDia = new Date();
+        finDia.setHours(23, 59, 59, 999);
+
+        let snapshot;
+        try {
+            const q = query(
+                collection(db, 'sales'),
+                where('created_at', '>=', hoy),
+                where('created_at', '<=', finDia)
+            );
+            snapshot = await getDocs(q);
+        } catch (e) {
+            try {
+                const q2 = query(
+                    collection(db, 'sales'),
+                    where('fecha', '>=', hoy),
+                    where('fecha', '<=', finDia)
+                );
+                snapshot = await getDocs(q2);
+            } catch (err2) {
+                console.warn("No se pudo obtener ventas del día para corte:", err2);
+                return { totalTickets: 0, efectivo: 0, transferencia: 0, tarjeta: 0, total: 0 };
+            }
+        }
+
+        let totalTickets = 0;
+        let efectivo = 0;
+        let transferencia = 0;
+        let tarjeta = 0;
+        let total = 0;
+
+        snapshot.forEach(docSnap => {
+            const d = docSnap.data();
+            if (role !== 'admin' && d.seller_id && d.seller_id !== userId) {
+                return;
+            }
+            totalTickets++;
+            const monto = parseFloat(d.total) || 0;
+            total += monto;
+
+            const pm = (d.payment_method || '').toLowerCase();
+            if (pm === 'cash' || pm === 'efectivo') {
+                efectivo += monto;
+            } else if (pm === 'transfer' || pm === 'transferencia' || pm.includes('qr')) {
+                transferencia += monto;
+            } else if (pm === 'card' || pm === 'tarjeta') {
+                tarjeta += monto;
+            } else {
+                efectivo += monto;
+            }
+        });
+
+        return { totalTickets, efectivo, transferencia, tarjeta, total };
     },
 
     async getNextSaleNumber() {

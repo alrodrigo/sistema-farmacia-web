@@ -18,6 +18,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   try {
     currentUser = await AuthGuard.protect();
 
+    aplicarPermisosDescuento(currentUser);
+
+    // Reaccionar en caliente si el admin concede o revoca permisos
+    window.addEventListener('sessionPermissionsUpdated', (e) => {
+      currentUser = e.detail;
+      aplicarPermisosDescuento(currentUser);
+      calcularCambioYTotales();
+    });
+
     setupEventListeners();
     await cargarDatosIniciales();
 
@@ -27,6 +36,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.warn("Ejecución detenida por AuthGuard:", error);
   }
 });
+
+function aplicarPermisosDescuento(user) {
+  const canDiscount = AuthGuard.hasPermission('aplicar_descuentos', user);
+  const discountSection = document.querySelector('.discount-section');
+  const discountValueInput = document.getElementById('discountValue');
+  const discountTypeSelect = document.getElementById('discountType');
+
+  if (discountSection) {
+    discountSection.style.display = canDiscount ? 'block' : 'none';
+  }
+  if (discountValueInput) {
+    discountValueInput.disabled = !canDiscount;
+    if (!canDiscount) discountValueInput.value = '';
+  }
+  if (discountTypeSelect) {
+    discountTypeSelect.disabled = !canDiscount;
+  }
+}
 
 function setupEventListeners() {
   document.getElementById('btnLogout')?.addEventListener('click', () => AuthGuard.logout());
@@ -70,11 +97,36 @@ function setupEventListeners() {
   document.getElementById('amountReceived')?.addEventListener('input', calcularCambioYTotales);
   document.getElementById('btnPrintReceipt')?.addEventListener('click', imprimirTicket);
 
+  // Corte de turno / Arqueo diario
+  document.getElementById('btnCorteTurno')?.addEventListener('click', abrirCierreCaja);
+  document.getElementById('btnCloseCierreCaja')?.addEventListener('click', () => VentaUI.ocultarModalCorte());
+  document.getElementById('btnCerrarCierreModal')?.addEventListener('click', () => VentaUI.ocultarModalCorte());
+  document.getElementById('btnPrintCierreCaja')?.addEventListener('click', () => {
+    if (corteActualData) {
+      const nombreCajero = currentUser?.name || currentUser?.nombre || currentUser?.email?.split('@')[0] || 'Cajero';
+      VentaUI.imprimirCorteTicket(corteActualData, nombreCajero);
+    }
+  });
+
   // Exposiciones globales para onclick en UI
   window.agregarAlCarrito = agregarAlCarrito;
   window.cambiarCantidad = cambiarCantidad;
   window.actualizarCantidadDirecta = actualizarCantidadDirecta;
   window.quitarDelCarrito = quitarDelCarrito;
+}
+
+let corteActualData = null;
+
+async function abrirCierreCaja() {
+  try {
+    const datos = await VentaService.getCorteTurnoHoy(currentUser?.uid, currentUser?.role);
+    corteActualData = datos;
+    const nombreCajero = currentUser?.name || currentUser?.nombre || currentUser?.email?.split('@')[0] || 'Cajero';
+    VentaUI.mostrarModalCorte(datos, nombreCajero);
+  } catch (err) {
+    console.error("Error al abrir corte de caja:", err);
+    Toast.show("Error al obtener datos del corte de turno", "error");
+  }
 }
 
 async function cargarDatosIniciales() {
@@ -234,13 +286,17 @@ function calcularCambioYTotales() {
   const totalItems = carrito.reduce((sum, i) => sum + i.cantidad, 0);
   const subtotal = carrito.reduce((sum, i) => sum + (i.price * i.cantidad), 0);
 
-  const discountValue = parseFloat(document.getElementById('discountValue').value) || 0;
-  const discountType = document.getElementById('discountType').value;
+  const canDiscount = AuthGuard.hasPermission('aplicar_descuentos', currentUser);
   let discountAmount = 0;
 
-  if (discountValue > 0) {
-    discountAmount = discountType === 'percent' ? subtotal * (discountValue / 100) : discountValue;
-    if (discountAmount > subtotal) discountAmount = subtotal;
+  if (canDiscount) {
+    const discountValue = parseFloat(document.getElementById('discountValue')?.value) || 0;
+    const discountType = document.getElementById('discountType')?.value || 'percent';
+
+    if (discountValue > 0) {
+      discountAmount = discountType === 'percent' ? subtotal * (discountValue / 100) : discountValue;
+      if (discountAmount > subtotal) discountAmount = subtotal;
+    }
   }
 
   const total = subtotal - discountAmount;
@@ -296,7 +352,7 @@ async function procesarVenta() {
       discount_amount: calc.discountAmount,
       total: calc.total,
       payment_method: calc.paymentMethod,
-      payment_method_label: calc.paymentMethod === 'cash' ? 'Efectivo' : calc.paymentMethod === 'card' ? 'Tarjeta' : 'Transferencia',
+      payment_method_label: calc.paymentMethod === 'cash' ? 'Efectivo' : calc.paymentMethod === 'card' ? 'Tarjeta' : 'Transferencia / QR',
       amount_received: amountReceived,
       change: change,
       seller_id: currentUser.uid,

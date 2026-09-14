@@ -53,9 +53,17 @@ const devConfig = {
   appId: "1:958591889656:web:9ef6c704e85673e73e0b0d"
 };
 
-// 3. El Switch Automático (localhost = dev; producción = prod)
+// 3. El Switch de Entorno (Producción real por defecto, con opción de activar búnker de pruebas con ?env=dev)
+const urlParams = new URLSearchParams(window.location.search);
+const paramEnv = urlParams.get('env');
+if (paramEnv) {
+    localStorage.setItem('sfs_force_env', paramEnv);
+}
+const forcedEnv = localStorage.getItem('sfs_force_env'); // 'prod' | 'dev'
 const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-const firebaseConfig = isLocalhost ? devConfig : prodConfig;
+// Si está en la nube o no se ha pedido explícitamente dev, usa PRODUCCIÓN (sistema-farmacia-web)
+const isProd = !isLocalhost || forcedEnv !== 'dev';
+const firebaseConfig = isProd ? prodConfig : devConfig;
 
 // ==================== INICIALIZACIÓN MODULAR ====================
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
@@ -176,7 +184,7 @@ window.firebaseStorage = storage;
 // Guard para registrar el log solo una vez
 if (!window.__firebaseModularInitLogged) {
     window.__firebaseModularInitLogged = true;
-    console.log(`🔥 [Firebase v10 Modular] Conectado a: ${isLocalhost ? 'DESARROLLO (Búnker)' : 'PRODUCCIÓN (Real)'}`);
+    console.log(`🔥 [Firebase v10 Modular] Conectado a: ${isProd ? 'PRODUCCIÓN (Real) [sistema-farmacia-web]' : 'DESARROLLO (Búnker) [servisalud-dev]'}`);
 }
 
 export { app, auth, db, storage, firebaseConfig };

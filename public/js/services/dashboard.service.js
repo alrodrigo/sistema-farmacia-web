@@ -27,28 +27,23 @@ export const DashboardService = {
         return { productos: productosArray, proveedoresMap };
     },
 
-    async getResumenHoy(userId, role) {
+    async getResumenHoy(userId, role, canViewReports = false) {
+        // Si no es admin y no tiene permiso de ver reportes, evitar lecturas innecesarias en Firestore
+        if (role !== 'admin' && !canViewReports) {
+            return { ventasHoy: 0, ingresosHoy: null };
+        }
+
         try {
             const hoy = new Date();
             hoy.setHours(0, 0, 0, 0);
             const finDia = new Date();
             finDia.setHours(23, 59, 59, 999);
 
-            let q;
-            if (role !== 'admin') {
-                q = query(
-                    collection(db, 'sales'),
-                    where('created_at', '>=', hoy),
-                    where('created_at', '<=', finDia),
-                    where('seller_id', '==', userId)
-                );
-            } else {
-                q = query(
-                    collection(db, 'sales'),
-                    where('created_at', '>=', hoy),
-                    where('created_at', '<=', finDia)
-                );
-            }
+            const q = query(
+                collection(db, 'sales'),
+                where('created_at', '>=', hoy),
+                where('created_at', '<=', finDia)
+            );
 
             const snapshot = await getDocs(q);
 
@@ -59,7 +54,7 @@ export const DashboardService = {
 
             return {
                 ventasHoy: snapshot.size,
-                ingresosHoy: role === 'admin' ? totalIngresos : null
+                ingresosHoy: totalIngresos
             };
         } catch (error) {
             console.warn('Error al obtener el resumen de ventas de hoy', error);

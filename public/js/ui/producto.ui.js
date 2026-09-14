@@ -21,7 +21,7 @@ export const ProductoUI = {
         `).join('');
     },
 
-    renderTable(productos, paginaActual, productosPorPagina, categoriasMap, proveedoresMap, role) {
+    renderTable(productos, paginaActual, productosPorPagina, categoriasMap, proveedoresMap, canManage = false) {
         const tbody = document.getElementById('productosTableBody');
         if (!tbody) return;
 
@@ -53,9 +53,9 @@ export const ProductoUI = {
                 ? proveedoresMap[producto.supplier].nombre
                 : (producto.supplier || 'Sin proveedor');
 
-            const isAdmin = role === 'admin';
+            const canEdit = typeof canManage === 'boolean' ? canManage : (canManage === 'admin');
             const safeName = encodeURIComponent(producto.name || '');
-            const botonesAccion = isAdmin ? `
+            const botonesAccion = canEdit ? `
                 <div class="action-buttons">
                     <button class="btn-action btn-view" data-action="ver" data-id="${producto.id}" title="Ver detalles">
                         <i class="fas fa-eye"></i>

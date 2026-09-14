@@ -1,6 +1,6 @@
 // public/js/controllers/usuarios.js
 import { UsuarioService } from '../services/usuario.service.js';
-import { UsuarioUI } from '../ui/usuario.ui.js';
+import { UsuarioUI, ROLE_PRESETS } from '../ui/usuario.ui.js';
 import { AuthGuard } from '../middleware/auth.guard.js';
 import { Toast } from '../utils/toast.js';
 import { ConfirmDialog } from '../utils/confirm.js';
@@ -52,9 +52,48 @@ function setupEventListeners() {
     const inputRol = document.getElementById('inputRol');
     if (inputRol) {
         inputRol.addEventListener('change', () => {
-            UsuarioUI.renderRolePermissions(inputRol.value);
+            UsuarioUI.applyRolePreset(inputRol.value);
         });
     }
+
+    const btnSelectAllPerms = document.getElementById('btnSelectAllPerms');
+    if (btnSelectAllPerms) {
+        btnSelectAllPerms.addEventListener('click', () => {
+            UsuarioUI.selectAllPermissions(true);
+            if (inputRol && inputRol.value !== 'admin') {
+                inputRol.value = 'personalizado';
+                UsuarioUI.applyRolePreset('personalizado');
+            }
+        });
+    }
+
+    const btnDeselectAllPerms = document.getElementById('btnDeselectAllPerms');
+    if (btnDeselectAllPerms) {
+        btnDeselectAllPerms.addEventListener('click', () => {
+            UsuarioUI.selectAllPermissions(false);
+            if (inputRol && inputRol.value !== 'admin') {
+                inputRol.value = 'personalizado';
+                UsuarioUI.applyRolePreset('personalizado');
+            }
+        });
+    }
+
+    // Al interactuar con cualquier casilla individual de permiso
+    document.getElementById('permissionsGrid')?.addEventListener('change', (e) => {
+        if (e.target.classList.contains('perm-checkbox')) {
+            // Sincronizar jerarquía (gestionar requiere ver)
+            UsuarioUI.syncHierarchy(e.target);
+
+            if (inputRol && inputRol.value !== 'admin') {
+                inputRol.value = 'personalizado';
+                const badge = document.getElementById('badgeRolPreset');
+                if (badge) {
+                    badge.className = 'badge-preset personalizado';
+                    badge.textContent = '⚙️ Configuración Personalizada';
+                }
+            }
+        }
+    });
 
     const btnTogglePassword = document.getElementById('btnTogglePassword');
     if (btnTogglePassword) {
@@ -160,24 +199,27 @@ async function guardarUsuario(event) {
         const nombre = document.getElementById('inputNombre').value.trim();
         const email = document.getElementById('inputEmail').value.trim().toLowerCase();
         const rol = document.getElementById('inputRol').value;
+        const permisos = rol === 'admin' ? ROLE_PRESETS.admin : UsuarioUI.getPermissions();
 
         if (modoEdicion) {
             await UsuarioService.update(usuarioEditandoId, {
                 nombre: nombre,
                 name: nombre,
-                role: rol
+                role: rol,
+                permissions: permisos
             });
-            Toast.success('Usuario actualizado correctamente');
+            Toast.success('Usuario y permisos actualizados correctamente');
             UsuarioUI.closeUserModal();
             await cargarUsuarios();
         } else {
             const password = document.getElementById('inputPassword').value;
-            console.log('🚀 Creando nuevo usuario...', { nombre, email, rol });
+            console.log('🚀 Creando nuevo usuario con permisos...', { nombre, email, rol, permisos });
             await UsuarioService.create({
                 name: nombre,
                 email: email,
                 password: password,
-                role: rol
+                role: rol,
+                permissions: permisos
             });
             Toast.success(`Usuario "${nombre}" creado exitosamente`);
             UsuarioUI.closeUserModal();
@@ -221,9 +263,15 @@ function validarFormulario() {
     }
 
     const rol = document.getElementById('inputRol').value;
-    if (!rol || (rol !== 'admin' && rol !== 'empleado')) {
-        document.getElementById('errorRol').textContent = 'Selecciona un rol válido';
-        errores.push('Rol: selecciona Administrador o Empleado');
+    if (!rol || (rol !== 'admin' && rol !== 'empleado' && rol !== 'personalizado')) {
+        document.getElementById('errorRol').textContent = 'Selecciona un rol o plantilla';
+        errores.push('Rol: selecciona una opción válida');
+    } else if (rol !== 'admin') {
+        const perms = UsuarioUI.getPermissions();
+        if (perms.length === 0) {
+            Toast.warning('Debes asignar al menos 1 permiso a este usuario');
+            errores.push('Permisos: se requiere al menos uno');
+        }
     }
 
     if (errores.length > 0) {

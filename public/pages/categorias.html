@@ -1,5 +1,8 @@
-
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,15 +18,15 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- Sistema de Diseño Base -->
-    <link rel="stylesheet" href="../css/theme.css?v=4.0.1789161340">
-    <link rel="stylesheet" href="../css/components.css?v=4.0.1789161340">
-    <link rel="stylesheet" href="../css/layout.css?v=4.0.1789161340">
+    <link rel="stylesheet" href="../css/theme.css?v=4.0.1789416738">
+    <link rel="stylesheet" href="../css/components.css?v=4.0.1789416738">
+    <link rel="stylesheet" href="../css/layout.css?v=4.0.1789416738">
 
     <!-- CSS -->
-    <link rel="stylesheet" href="../css/categorias.css?v=4.0.1789161340">
+    <link rel="stylesheet" href="../css/categorias.css?v=4.0.1789416738">
 
     <!-- Responsive (DEBE IR AL FINAL) -->
-    <link rel="stylesheet" href="../css/responsive.css?v=4.0.1789161340">
+    <link rel="stylesheet" href="../css/responsive.css?v=4.0.1789416738">
 </head>
 
 <body>
@@ -81,6 +84,35 @@
                 </div>
             </div>
 
+            <!-- Filtros y Búsqueda en Vivo -->
+            <div class="card" style="margin-bottom: 24px; padding: 16px 20px; background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #e2e8f0;">
+                <div style="display: flex; flex-wrap: wrap; gap: 14px; align-items: center; justify-content: space-between;">
+                    <div style="flex: 1; min-width: 260px; position: relative;">
+                        <i class="fas fa-search" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.9rem;"></i>
+                        <input type="text" id="searchInputCategorias" placeholder="Buscar categoría por nombre o descripción..." style="width: 100%; padding: 10px 14px 10px 38px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.9rem; outline: none; transition: border-color 0.2s;">
+                    </div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <label for="filterEstadoCategorias" style="font-size: 0.85rem; color: #64748b; font-weight: 500; white-space: nowrap;"><i class="fas fa-filter"></i> Estado:</label>
+                            <select id="filterEstadoCategorias" style="padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.88rem; outline: none; background: white; cursor: pointer;">
+                                <option value="todas">Todas</option>
+                                <option value="activas">Solo Activas</option>
+                                <option value="inactivas">Solo Inactivas</option>
+                            </select>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <label for="sortCategorias" style="font-size: 0.85rem; color: #64748b; font-weight: 500; white-space: nowrap;"><i class="fas fa-sort-amount-down"></i> Ordenar:</label>
+                            <select id="sortCategorias" style="padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.88rem; outline: none; background: white; cursor: pointer;">
+                                <option value="nombre_asc">Nombre (A - Z)</option>
+                                <option value="nombre_desc">Nombre (Z - A)</option>
+                                <option value="productos_desc">Más productos</option>
+                                <option value="productos_asc">Menos productos</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Grid de categorías -->
             <div class="categorias-grid" id="categoriasGrid">
                 <!-- Las categorías se cargarán aquí dinámicamente -->
@@ -94,10 +126,6 @@
                 <button class="btn btn-primary" onclick="document.getElementById('btnNuevaCategoria').click()">
                     <i class="fas fa-plus"></i>
                     <span>Crear Primera Categoría</span>
-                </button>
-                <button class="btn btn-secondary" onclick="crearCategoriasPredefinidas()" style="margin-left: 10px;">
-                    <i class="fas fa-magic"></i>
-                    <span>Crear Categorías Predefinidas</span>
                 </button>
             </div>
         </main>
@@ -200,14 +228,14 @@
 
 
     <!-- Configuración e inicialización del proyecto dev -->
-    <script type="module" src="../js/config/firebase.js?v=4.0.1789161340"></script>
-    <script src="../js/utils/helpers.js?v=4.0.1789161340"></script>
+    <script type="module" src="../js/config/firebase.js?v=4.0.1789416738"></script>
+    <script src="../js/utils/helpers.js?v=4.0.1789416738"></script>
 
     <!-- Controlador Modular de Categorías -->
-    <script type="module" src="../js/controllers/categorias.js?v=4.0.1789161340"></script>
+    <script type="module" src="../js/controllers/categorias.js?v=4.0.1789416738"></script>
 
     <!-- Service Worker -->
-    <script src="../js/sw-register.js?v=4.0.1789161340"></script>
+    <script src="../js/sw-register.js?v=4.0.1789416738"></script>
 </body>
 
 </html>

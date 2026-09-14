@@ -7,75 +7,84 @@ service cloud.firestore {
       return request.auth != null;
     }
     
+    // Función para obtener datos del usuario autenticado
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
     // Función para verificar si el usuario es admin
     function isAdmin() {
-      return isSignedIn() && 
-             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      return isSignedIn() && getUserData().role == 'admin';
     }
     
+    // Función para verificar si el usuario tiene un permiso granular específico (PBAC)
+    function hasPermission(permission) {
+      return isSignedIn() && (
+        isAdmin() || 
+        (getUserData().permissions != null && permission in getUserData().permissions)
+      );
+    }
+
     // Función para verificar si el usuario es empleado o admin
     function isEmployee() {
-      return isSignedIn() && 
-             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'empleado'];
+      return isSignedIn() && (
+        getUserData().role in ['admin', 'empleado', 'personalizado']
+      );
     }
     
-    // USUARIOS - Permitir auto-registro y que admin gestione
+    // USUARIOS - Gestión de cuentas y asignación de permisos
     match /users/{userId} {
       allow read: if isSignedIn();
-      // Permitir crear si el usuario se está registrando a sí mismo
-      allow create: if request.auth.uid == userId || isAdmin();
-      allow update, delete: if isAdmin() || request.auth.uid == userId;
+      // Permitir crear si es el propio usuario registrándose o un admin / gestor de usuarios
+      allow create: if request.auth.uid == userId || isAdmin() || hasPermission('gestionar_usuarios');
+      allow update, delete: if isAdmin() || hasPermission('gestionar_usuarios') || request.auth.uid == userId;
     }
     
-    // CATEGORÍAS - Admin crea, todos leen
+    // CATEGORÍAS
     match /categories/{categoryId} {
       allow read: if isSignedIn();
-      allow write: if isAdmin();
+      allow write: if isAdmin() || hasPermission('gestionar_categorias');
     }
-    
-    // CATEGORÍAS (español) - Admin crea, todos leen
     match /categorias/{categoryId} {
       allow read: if isSignedIn();
-      allow write: if isAdmin();
+      allow write: if isAdmin() || hasPermission('gestionar_categorias');
     }
     
-    // PROVEEDORES/LABORATORIOS - Admin crea, todos leen
+    // PROVEEDORES / LABORATORIOS
     match /suppliers/{supplierId} {
       allow read: if isSignedIn();
-      allow write: if isAdmin();
+      allow write: if isAdmin() || hasPermission('gestionar_proveedores');
     }
-    
-    // PROVEEDORES (español) - Admin crea, todos leen
     match /proveedores/{proveedorId} {
       allow read: if isSignedIn();
-      allow write: if isAdmin();
+      allow write: if isAdmin() || hasPermission('gestionar_proveedores');
     }
     
-    // PRODUCTOS - Admin gestiona, empleados leen
+    // PRODUCTOS - Control granular por gestionar_productos y descuento de stock por realizar_ventas
     match /products/{productId} {
       allow read: if isSignedIn();
-      allow create, update: if isEmployee();
-      allow delete: if isAdmin();
+      allow create, delete: if isAdmin() || hasPermission('gestionar_productos');
+      allow update: if isAdmin() || hasPermission('gestionar_productos') || hasPermission('realizar_ventas');
     }
     
-    // VENTAS - Empleados pueden crear y leer
+    // VENTAS - Permitir cobrar si tiene realizar_ventas
     match /sales/{saleId} {
       allow read: if isSignedIn();
-      allow create: if isEmployee();
+      allow create: if isAdmin() || hasPermission('realizar_ventas');
       allow update, delete: if isAdmin();
     }
     
     // ITEMS DE VENTA - Relacionados con ventas
     match /sale_items/{itemId} {
       allow read: if isSignedIn();
-      allow create: if isEmployee();
+      allow create: if isAdmin() || hasPermission('realizar_ventas');
       allow update, delete: if isAdmin();
     }
     
-    // MOVIMIENTOS DE INVENTARIO - Solo lectura para empleados
+    // MOVIMIENTOS DE INVENTARIO
     match /inventory_movements/{movementId} {
       allow read: if isSignedIn();
-      allow create: if isEmployee();
+      allow create: if isAdmin() || hasPermission('gestionar_productos') || hasPermission('realizar_ventas');
       allow update, delete: if isAdmin();
     }
   }

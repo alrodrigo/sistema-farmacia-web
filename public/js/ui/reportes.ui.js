@@ -55,7 +55,7 @@ export const ReportesUI = {
         const tbody = document.getElementById('salesTableBody');
         if (!tbody) return;
 
-        const labelsPago = { 'cash': 'Efectivo', 'card': 'Tarjeta', 'transfer': 'Transferencia' };
+        const labelsPago = { 'cash': 'Efectivo', 'card': 'Tarjeta', 'transfer': 'Transferencia / QR' };
         const inicioIndex = (paginaActual - 1) * ventasPorPagina;
 
         const rowsHtml = ventasPaginadas.map((sale, index) => {
@@ -185,7 +185,7 @@ export const ReportesUI = {
         document.getElementById('detailSaleDate').textContent = sale.fecha.toLocaleDateString('es-BO', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
         document.getElementById('detailSeller').textContent = sale.vendedor || sale.seller_name || 'N/A';
 
-        const labels = { 'cash': 'Efectivo', 'card': 'Tarjeta', 'transfer': 'Transferencia' };
+        const labels = { 'cash': 'Efectivo', 'card': 'Tarjeta', 'transfer': 'Transferencia / QR' };
         document.getElementById('detailPaymentMethod').textContent = labels[sale.payment_method] || 'Efectivo';
 
         const subtotal = sale.subtotal || sale.total;

@@ -1,5 +1,8 @@
-
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,15 +18,15 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- Sistema de Diseño Base -->
-    <link rel="stylesheet" href="../css/theme.css?v=4.0.1789161340">
-    <link rel="stylesheet" href="../css/components.css?v=4.0.1789161340">
-    <link rel="stylesheet" href="../css/layout.css?v=4.0.1789161340">
+    <link rel="stylesheet" href="../css/theme.css?v=4.0.1789416738">
+    <link rel="stylesheet" href="../css/components.css?v=4.0.1789416738">
+    <link rel="stylesheet" href="../css/layout.css?v=4.0.1789416738">
 
     <!-- CSS -->
-    <link rel="stylesheet" href="../css/usuarios.css?v=4.0.1789161340">
+    <link rel="stylesheet" href="../css/usuarios.css?v=4.0.1789416738">
 
     <!-- Responsive (DEBE IR AL FINAL) -->
-    <link rel="stylesheet" href="../css/responsive.css?v=4.0.1789161340">
+    <link rel="stylesheet" href="../css/responsive.css?v=4.0.1789416738">
 </head>
 
 <body>
@@ -106,6 +109,7 @@
                         <option value="">Todos los roles</option>
                         <option value="admin">Administradores</option>
                         <option value="empleado">Empleados</option>
+                        <option value="personalizado">Personalizados</option>
                     </select>
                 </div>
             </div>
@@ -222,26 +226,124 @@
                     </div>
                 </div>
 
-                <!-- Rol y Permisos -->
+                <!-- Rol y Permisos Granulares -->
                 <div class="form-section">
-                    <h3><i class="fas fa-user-shield"></i> Rol y Permisos</h3>
-
-                    <div class="form-group">
-                        <label class="form-label" for="inputRol">
-                            Rol <span class="required">*</span>
-                        </label>
-                        <select class="form-control" id="inputRol" required>
-                            <option value="">Selecciona un rol</option>
-                            <option value="admin">Administrador</option>
-                            <option value="empleado">Empleado</option>
-                        </select>
-                        <span class="error-message" id="errorRol"></span>
+                    <div class="section-header-inline">
+                        <h3><i class="fas fa-user-shield"></i> Rol y Permisos Granulares</h3>
+                        <span class="badge-preset" id="badgeRolPreset">Selecciona un rol</span>
                     </div>
 
-                    <div class="info-box" id="infoRol">
-                        <i class="fas fa-info-circle"></i>
-                        <div>
-                            <strong>Selecciona un rol para ver los permisos</strong>
+                    <div class="form-row">
+                        <div class="form-group" style="flex: 1;">
+                            <label class="form-label" for="inputRol">
+                                Plantilla de Rol <span class="required">*</span>
+                            </label>
+                            <select class="form-control" id="inputRol" required>
+                                <option value="">Selecciona un rol</option>
+                                <option value="admin">Administrador (Acceso Total)</option>
+                                <option value="empleado">Empleado Estándar (Ventas)</option>
+                                <option value="personalizado">Personalizado (Control Manual)</option>
+                            </select>
+                            <span class="error-message" id="errorRol"></span>
+                        </div>
+                    </div>
+
+                    <!-- Panel de Permisos Dinámicos -->
+                    <div class="permissions-container" id="permissionsContainer">
+                        <div class="permissions-header">
+                            <div>
+                                <span class="permissions-title"><i class="fas fa-key"></i> Matriz de Permisos</span>
+                                <p class="permissions-subtitle">Configura los accesos y restricciones específicas para este usuario.</p>
+                            </div>
+                            <div class="permissions-quick-actions" id="permQuickActions">
+                                <button type="button" class="btn-link-action" id="btnSelectAllPerms">Marcar todos</button>
+                                <span>•</span>
+                                <button type="button" class="btn-link-action" id="btnDeselectAllPerms">Desmarcar todos</button>
+                            </div>
+                        </div>
+
+                        <div class="permissions-grid" id="permissionsGrid">
+                            <!-- Módulo Ventas -->
+                            <div class="permission-group">
+                                <div class="permission-group-title">
+                                    <i class="fas fa-cash-register text-success"></i> Ventas & Caja
+                                </div>
+                                <label class="permission-card" for="perm_realizar_ventas">
+                                    <input type="checkbox" id="perm_realizar_ventas" value="realizar_ventas" class="perm-checkbox">
+                                    <div class="permission-info">
+                                        <div class="perm-name">Realizar Ventas</div>
+                                        <div class="perm-desc">Acceso a cobrar y emitir ventas (POS)</div>
+                                    </div>
+                                </label>
+                                <label class="permission-card" for="perm_aplicar_descuentos">
+                                    <input type="checkbox" id="perm_aplicar_descuentos" value="aplicar_descuentos" class="perm-checkbox">
+                                    <div class="permission-info">
+                                        <div class="perm-name">Aplicar Descuentos</div>
+                                        <div class="perm-desc">Rebajas o precios promocionales en carrito</div>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <!-- Módulo Inventario -->
+                            <div class="permission-group">
+                                <div class="permission-group-title">
+                                    <i class="fas fa-pills text-primary"></i> Inventario & Fármacos
+                                </div>
+                                <label class="permission-card" for="perm_ver_productos">
+                                    <input type="checkbox" id="perm_ver_productos" value="ver_productos" class="perm-checkbox">
+                                    <div class="permission-info">
+                                        <div class="perm-name">Consultar Catálogo</div>
+                                        <div class="perm-desc">Ver catálogo, buscador y detalles de fármacos</div>
+                                    </div>
+                                </label>
+                                <label class="permission-card" for="perm_gestionar_productos">
+                                    <input type="checkbox" id="perm_gestionar_productos" value="gestionar_productos" class="perm-checkbox">
+                                    <div class="permission-info">
+                                        <div class="perm-name">Gestionar Productos</div>
+                                        <div class="perm-desc">Crear, editar, ajustar stock y borrar fármacos</div>
+                                    </div>
+                                </label>
+                                <label class="permission-card" for="perm_gestionar_categorias">
+                                    <input type="checkbox" id="perm_gestionar_categorias" value="gestionar_categorias" class="perm-checkbox">
+                                    <div class="permission-info">
+                                        <div class="perm-name">Gestionar Categorías</div>
+                                        <div class="perm-desc">Crear y modificar categorías</div>
+                                    </div>
+                                </label>
+                                <label class="permission-card" for="perm_gestionar_proveedores">
+                                    <input type="checkbox" id="perm_gestionar_proveedores" value="gestionar_proveedores" class="perm-checkbox">
+                                    <div class="permission-info">
+                                        <div class="perm-name">Gestionar Proveedores</div>
+                                        <div class="perm-desc">Administrar laboratorios asociados</div>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <!-- Módulo Reportes & Sistema -->
+                            <div class="permission-group">
+                                <div class="permission-group-title">
+                                    <i class="fas fa-shield-alt text-warning"></i> Reportes & Sistema
+                                </div>
+                                <label class="permission-card" for="perm_ver_reportes">
+                                    <input type="checkbox" id="perm_ver_reportes" value="ver_reportes" class="perm-checkbox">
+                                    <div class="permission-info">
+                                        <div class="perm-name">Ver Reportes</div>
+                                        <div class="perm-desc">Métricas financieras y exportar CSV/PDF</div>
+                                    </div>
+                                </label>
+                                <label class="permission-card" for="perm_gestionar_usuarios">
+                                    <input type="checkbox" id="perm_gestionar_usuarios" value="gestionar_usuarios" class="perm-checkbox">
+                                    <div class="permission-info">
+                                        <div class="perm-name">Gestionar Usuarios</div>
+                                        <div class="perm-desc">Control de cuentas y accesos del personal</div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="permissions-admin-notice" id="permissionsAdminNotice" style="display: none;">
+                            <i class="fas fa-crown"></i>
+                            <span>Los <strong>Administradores</strong> son Superusuarios y tienen acceso total a todos los módulos y operaciones del sistema.</span>
                         </div>
                     </div>
                 </div>
@@ -263,13 +365,13 @@
 
 
     <!-- Scripts -->
-    <script type="module" src="../js/config/firebase.js?v=4.0.1789161340"></script>
-    <script src="../js/utils/helpers.js?v=4.0.1789161340"></script>
+    <script type="module" src="../js/config/firebase.js?v=4.0.1789416738"></script>
+    <script src="../js/utils/helpers.js?v=4.0.1789416738"></script>
 
-    <script type="module" src="../js/controllers/usuarios.js?v=4.0.1789161340"></script>
+    <script type="module" src="../js/controllers/usuarios.js?v=4.0.1789416738"></script>
 
     <!-- Service Worker para actualización automática -->
-    <script src="../js/sw-register.js?v=4.0.1789161340"></script>
+    <script src="../js/sw-register.js?v=4.0.1789416738"></script>
 </body>
 
 </html>
