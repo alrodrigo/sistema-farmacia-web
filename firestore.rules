@@ -24,13 +24,6 @@ service cloud.firestore {
         (getUserData().permissions != null && permission in getUserData().permissions)
       );
     }
-
-    // Función para verificar si el usuario es empleado o admin
-    function isEmployee() {
-      return isSignedIn() && (
-        getUserData().role in ['admin', 'empleado', 'personalizado']
-      );
-    }
     
     // USUARIOS - Gestión de cuentas y asignación de permisos
     match /users/{userId} {
