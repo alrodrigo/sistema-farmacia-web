@@ -123,6 +123,50 @@ function setupEventListeners() {
             eliminarProducto(id, nombre);
         }
     });
+
+    // Alternar favorito / fijado en mostrador rápido (KISS)
+    document.getElementById('productosTableBody')?.addEventListener('click', async (e) => {
+        const starBtn = e.target.closest('.btn-toggle-favorite');
+        if (!starBtn) return;
+
+        if (!AuthGuard.hasPermission('gestionar_productos', currentUser)) {
+            Toast.warning('Solo personal autorizado puede fijar fármacos en mostrador');
+            return;
+        }
+
+        const id = starBtn.dataset.id;
+        const prod = todosLosProductos.find(p => p.id === id);
+        if (!prod) return;
+
+        const nuevoEstado = !(prod.is_favorite === true);
+
+        // Actualización optimista inmediata en DOM
+        prod.is_favorite = nuevoEstado;
+        const icon = starBtn.querySelector('i');
+        if (icon) {
+            icon.className = nuevoEstado ? 'fas fa-star' : 'far fa-star';
+            icon.style.color = nuevoEstado ? '#f59e0b' : '#cbd5e1';
+            starBtn.dataset.fav = nuevoEstado;
+            starBtn.title = nuevoEstado ? 'Fijado en mostrador rápido (clic para quitar)' : 'Fijar en mostrador rápido (clic para fijar)';
+        }
+
+        try {
+            await ProductoService.toggleFavorite(id, nuevoEstado);
+            if (nuevoEstado) {
+                Toast.success(`"${prod.name}" fijado en mostrador rápido`);
+            } else {
+                Toast.info(`"${prod.name}" quitado de mostrador rápido`);
+            }
+        } catch (err) {
+            console.error('Error al alternar favorito:', err);
+            prod.is_favorite = !nuevoEstado;
+            if (icon) {
+                icon.className = !nuevoEstado ? 'fas fa-star' : 'far fa-star';
+                icon.style.color = !nuevoEstado ? '#f59e0b' : '#cbd5e1';
+            }
+            Toast.error('No se pudo actualizar el estado de favorito');
+        }
+    });
 }
 
 async function cargarDatosIniciales() {

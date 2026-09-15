@@ -269,11 +269,15 @@ function actualizarPanelRapido() {
   if (activeQuickTab === 'prioridad') {
     VentaUI.renderQuickProducts(prioritarios, 'prioridad');
   } else {
-    // Frecuentes: primeros 8 productos con stock disponible
-    const frecuentes = todosLosProductos
-      .filter(p => (p.current_stock || 0) > 0)
-      .slice(0, 8);
-    VentaUI.renderQuickProducts(frecuentes, 'frecuentes');
+    // Mostrador ⭐: Primero aquellos productos que el admin marcó con la estrella ⭐
+    const conEstrella = todosLosProductos.filter(p => p.is_favorite === true && (p.current_stock || 0) > 0);
+
+    // Si aún no hay ninguno marcado con estrella, mostrar los primeros con stock como respaldo (KISS)
+    const productosAMostrar = conEstrella.length > 0
+      ? conEstrella
+      : todosLosProductos.filter(p => (p.current_stock || 0) > 0).slice(0, 8);
+
+    VentaUI.renderQuickProducts(productosAMostrar, 'frecuentes');
   }
 }
 

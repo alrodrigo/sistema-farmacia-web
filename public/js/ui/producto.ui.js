@@ -80,10 +80,26 @@ export const ProductoUI = {
                 ? `<span class="badge badge-danger" title="${priority.label}" style="font-size: 0.7rem; padding: 2px 6px; margin-left: 6px; vertical-align: middle;"><i class="fas fa-fire"></i> ${priority.label}</span>`
                 : (priority.isPromo ? `<span class="badge badge-warning" style="font-size: 0.7rem; padding: 2px 6px; margin-left: 6px; vertical-align: middle;"><i class="fas fa-tag"></i> Promo</span>` : '');
 
+            const isFav = producto.is_favorite === true;
+            const starIcon = isFav ? 'fas fa-star' : 'far fa-star';
+            const starColor = isFav ? '#f59e0b' : '#cbd5e1';
+            const starTitle = isFav ? 'Fijado en mostrador rápido (clic para quitar)' : 'Fijar en mostrador rápido (clic para fijar)';
+            const starButton = canManage ? `
+                <button type="button" class="btn-toggle-favorite" data-id="${producto.id}" data-fav="${isFav}" title="${starTitle}" style="background: none; border: none; cursor: pointer; padding: 2px 4px; margin-right: 6px; font-size: 0.95rem; vertical-align: middle; transition: transform 0.15s ease;">
+                    <i class="${starIcon}" style="color: ${starColor};"></i>
+                </button>
+            ` : (isFav ? `<i class="fas fa-star" style="color: #f59e0b; margin-right: 6px; font-size: 0.85rem;" title="En mostrador rápido"></i>` : '');
+
             return `
             <tr data-id="${producto.id}">
                 <td><strong>${producto.sku || 'N/A'}</strong></td>
-                <td>${producto.name} ${priorityBadge}</td>
+                <td>
+                    <div style="display: flex; align-items: center;">
+                        ${starButton}
+                        <span>${producto.name}</span>
+                        ${priorityBadge}
+                    </div>
+                </td>
                 <td>${categoriaNombre}</td>
                 <td>${proveedorNombre}</td>
                 <td><strong>${producto.current_stock || 0}</strong></td>

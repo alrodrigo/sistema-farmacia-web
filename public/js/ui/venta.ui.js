@@ -76,10 +76,10 @@ export const VentaUI = {
             } else {
                 container.innerHTML = `
                     <div class="quick-empty-state">
-                        <i class="fas fa-box-open" style="color: #94a3b8; font-size: 1.3rem;"></i>
+                        <i class="fas fa-star" style="color: #f59e0b; font-size: 1.3rem;"></i>
                         <div>
-                            <strong>Sin productos disponibles</strong>
-                            <p style="margin: 0; font-size: 0.8rem; color: #64748b;">No se encontraron productos frecuentes en stock.</p>
+                            <strong>Sin productos en mostrador</strong>
+                            <p style="margin: 0; font-size: 0.8rem; color: #64748b;">Marca con una estrella ⭐ los productos en el catálogo para tenerlos aquí a 1 clic.</p>
                         </div>
                     </div>`;
             }
@@ -98,12 +98,16 @@ export const VentaUI = {
                 ? `<span class="quick-badge urgent"><i class="fas fa-fire"></i> ${priority.label}</span>`
                 : (priority.isPromo ? `<span class="quick-badge promo"><i class="fas fa-tag"></i> Promo</span>` : '');
 
+            const starIcon = producto.is_favorite
+                ? `<i class="fas fa-star" style="color: #f59e0b; font-size: 0.75rem; margin-right: 4px;" title="Producto en Mostrador"></i>`
+                : '';
+
             return `
                 <button type="button" class="quick-prod-card ${isUrgent ? 'priority-card' : ''} ${sinStock ? 'out-of-stock' : ''}"
                     onclick="window.agregarAlCarrito('${producto.id}')"
                     ${sinStock ? 'disabled title="Sin stock disponible"' : `title="Agregar 1 unidad de ${this.escapeHtml(producto.name)}"`}>
                     <div class="quick-prod-top">
-                        <span class="quick-prod-name">${this.escapeHtml(producto.name)}</span>
+                        <span class="quick-prod-name">${starIcon}${this.escapeHtml(producto.name)}</span>
                         ${badgeHtml}
                     </div>
                     <div class="quick-prod-bottom">

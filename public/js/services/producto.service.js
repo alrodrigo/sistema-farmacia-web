@@ -450,7 +450,20 @@ export const ProductoService = {
             created_at: serverTimestamp(),
             updated_at: serverTimestamp()
         });
-        CacheService.invalidarProveedores();
-        return docRef.id;
+    /**
+     * Alterna el estado de favorito (fijado en mostrador) de un producto.
+     * Invalida caché y emite notificación BroadcastChannel a todas las pestañas de ventas.
+     * @param {string} id
+     * @param {boolean} nuevoEstado
+     * @returns {Promise<boolean>}
+     */
+    async toggleFavorite(id, nuevoEstado) {
+        const prodRef = doc(db, 'products', id);
+        await updateDoc(prodRef, {
+            is_favorite: nuevoEstado,
+            updated_at: serverTimestamp()
+        });
+        CacheService.invalidarProductos(true);
+        return nuevoEstado;
     }
 };
