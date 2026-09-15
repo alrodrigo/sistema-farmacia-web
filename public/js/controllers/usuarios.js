@@ -199,7 +199,12 @@ async function guardarUsuario(event) {
         const nombre = document.getElementById('inputNombre').value.trim();
         const email = document.getElementById('inputEmail').value.trim().toLowerCase();
         const rol = document.getElementById('inputRol').value;
-        const permisos = rol === 'admin' ? ROLE_PRESETS.admin : UsuarioUI.getPermissions();
+        let permisos = rol === 'admin' ? [...ROLE_PRESETS.admin] : UsuarioUI.getPermissions();
+
+        // Jerarquía lógica: No se puede gestionar productos sin poder verlos
+        if (permisos.includes('gestionar_productos') && !permisos.includes('ver_productos')) {
+            permisos.push('ver_productos');
+        }
 
         if (modoEdicion) {
             await UsuarioService.update(usuarioEditandoId, {

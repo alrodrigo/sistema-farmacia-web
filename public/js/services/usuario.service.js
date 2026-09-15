@@ -66,6 +66,12 @@ export const UsuarioService = {
         const secondaryAuth = getAuth(secondaryApp);
 
         try {
+            // Garantizar jerarquía lógica de permisos (gestionar requiere ver productos)
+            let sanitizedPerms = Array.isArray(permissions) ? [...permissions] : [];
+            if (sanitizedPerms.includes('gestionar_productos') && !sanitizedPerms.includes('ver_productos')) {
+                sanitizedPerms.push('ver_productos');
+            }
+
             // 1. Crear usuario en Firebase Auth en la app aislada
             const userCredential = await createUserWithEmailAndPassword(secondaryAuth, email, password);
             const uid = userCredential.user.uid;
@@ -76,7 +82,7 @@ export const UsuarioService = {
                 nombre: name,
                 email: email,
                 role: role,
-                permissions: permissions,
+                permissions: sanitizedPerms,
                 active: true,
                 created_at: serverTimestamp()
             });
@@ -94,8 +100,14 @@ export const UsuarioService = {
      * @param {Object} data
      */
     async update(id, data) {
+        const updateData = { ...data };
+        if (updateData.permissions && Array.isArray(updateData.permissions)) {
+            if (updateData.permissions.includes('gestionar_productos') && !updateData.permissions.includes('ver_productos')) {
+                updateData.permissions = [...updateData.permissions, 'ver_productos'];
+            }
+        }
         await updateDoc(doc(db, 'users', id), {
-            ...data,
+            ...updateData,
             updated_at: serverTimestamp()
         });
     },
