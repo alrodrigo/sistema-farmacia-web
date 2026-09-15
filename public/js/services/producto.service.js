@@ -6,6 +6,7 @@ import {
     doc,
     getDocs,
     addDoc,
+    updateDoc,
     query,
     where,
     orderBy,
@@ -450,6 +451,10 @@ export const ProductoService = {
             created_at: serverTimestamp(),
             updated_at: serverTimestamp()
         });
+        CacheService.invalidarProveedores();
+        return docRef.id;
+    },
+
     /**
      * Alterna el estado de favorito (fijado en mostrador) de un producto.
      * Invalida caché y emite notificación BroadcastChannel a todas las pestañas de ventas.
