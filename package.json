@@ -7,7 +7,7 @@
     "firebase": "firebase",
     "login": "firebase login",
     "init": "firebase init",
-    "serve": "firebase serve",
+    "serve": "firebase serve --only hosting",
     "deploy": "firebase deploy",
     "deploy:hosting": "firebase deploy --only hosting --project sistema-farmacia-web",
     "deploy:rules": "firebase deploy --only firestore:rules",
