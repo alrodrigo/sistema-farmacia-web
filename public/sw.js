@@ -1,5 +1,5 @@
 // Service Worker para actualización automática del sistema
-const CACHE_VERSION = 'v4.0.1789488940';
+const CACHE_VERSION = 'v4.0.1789491427';
 const CACHE_NAME = `farmacia-${CACHE_VERSION}`;
 
 // Archivos a cachear (Rutas corregidas para Firebase Hosting)

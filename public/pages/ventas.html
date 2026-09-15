@@ -18,16 +18,16 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- Sistema de Diseño Base -->
-    <link rel="stylesheet" href="../css/theme.css?v=4.0.1789488940">
-    <link rel="stylesheet" href="../css/components.css?v=4.0.1789488940">
-    <link rel="stylesheet" href="../css/layout.css?v=4.0.1789488940">
+    <link rel="stylesheet" href="../css/theme.css?v=4.0.1789491427">
+    <link rel="stylesheet" href="../css/components.css?v=4.0.1789491427">
+    <link rel="stylesheet" href="../css/layout.css?v=4.0.1789491427">
 
     <!-- CSS -->
-    <link rel="stylesheet" href="../css/ventas.css?v=4.0.1789488940">
-    <link rel="stylesheet" href="../css/print.css?v=4.0.1789488940">
+    <link rel="stylesheet" href="../css/ventas.css?v=4.0.1789491427">
+    <link rel="stylesheet" href="../css/print.css?v=4.0.1789491427">
 
     <!-- Responsive (DEBE IR AL FINAL) -->
-    <link rel="stylesheet" href="../css/responsive.css?v=4.0.1789488940">
+    <link rel="stylesheet" href="../css/responsive.css?v=4.0.1789491427">
 </head>
 
 <body>
@@ -49,6 +49,9 @@
                     <p>Registra las ventas de tu farmacia</p>
                 </div>
                 <div class="header-actions" style="display: flex; align-items: center; gap: 12px;">
+                    <button class="btn" id="btnSyncCatalogo" type="button" title="Sincronizar catálogo con los últimos productos y existencias" style="padding: 8px 14px; font-size: 0.88rem; display: inline-flex; align-items: center; gap: 8px; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff; color: #1e293b; cursor: pointer; font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: all 0.2s;">
+                        <i class="fas fa-sync-alt" style="color: #0284c7;"></i> <span class="sync-text">Sincronizar</span>
+                    </button>
                     <button class="btn" id="btnCorteTurno" type="button" style="padding: 8px 16px; font-size: 0.88rem; display: inline-flex; align-items: center; gap: 8px; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff; color: #1e293b; cursor: pointer; font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: all 0.2s;">
                         <i class="fas fa-calculator text-primary" style="color: #0284c7;"></i> Corte de Turno
                     </button>
@@ -291,9 +294,19 @@
                 <button class="modal-close" id="btnCloseCierreCaja" type="button" style="color: white; opacity: 0.8;"><i class="fas fa-times"></i></button>
             </div>
             <div class="modal-body" style="padding: 24px;">
+                <!-- Selector de Modo: Personal vs General (visible para Administradores) -->
+                <div id="corteModoContainer" style="display: none; background: #f1f5f9; border-radius: 10px; padding: 4px; margin-bottom: 16px; gap: 6px; border: 1px solid #e2e8f0;">
+                    <button type="button" id="btnCorteModoPersonal" class="corte-tab-btn active" style="flex: 1; border: none; padding: 8px 14px; border-radius: 8px; font-weight: 600; font-size: 0.86rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; background: white; color: #0284c7; box-shadow: 0 1px 3px rgba(0,0,0,0.08); transition: all 0.2s;">
+                        <i class="fas fa-user-check"></i> Mi Corte Personal
+                    </button>
+                    <button type="button" id="btnCorteModoGeneral" class="corte-tab-btn" style="flex: 1; border: none; padding: 8px 14px; border-radius: 8px; font-weight: 600; font-size: 0.86rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; background: transparent; color: #64748b; transition: all 0.2s;">
+                        <i class="fas fa-store-alt"></i> Corte General (Farmacia)
+                    </button>
+                </div>
+
                 <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 16px; margin-bottom: 20px;">
                     <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 0.88rem;">
-                        <span style="color: #64748b;"><i class="fas fa-user-circle"></i> Cajero:</span>
+                        <span style="color: #64748b;"><i class="fas fa-user-circle"></i> Alcance / Cajero:</span>
                         <strong id="cierreCajeroNombre" style="color: #1e293b;">-</strong>
                     </div>
                     <div style="display: flex; justify-content: space-between; font-size: 0.88rem;">
@@ -314,6 +327,17 @@
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; background: #eff6ff; border-radius: 8px; border: 1px solid #bfdbfe;">
                         <span style="color: #1e40af; font-weight: 500;"><i class="fas fa-credit-card"></i> Tarjeta:</span>
                         <strong id="cierreTotalTarjeta" style="color: #1d4ed8; font-size: 1.05rem;">Bs. 0.00</strong>
+                    </div>
+                </div>
+
+                <!-- Desglose por Categorías -->
+                <div id="cierreCategoriasContainer" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 14px; margin-bottom: 18px;">
+                    <div style="font-size: 0.8rem; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between;">
+                        <span><i class="fas fa-tags" style="color: #0284c7;"></i> Desglose por Categorías</span>
+                        <small id="cierreTotalCategoriasContador" style="color: #94a3b8; font-weight: 500; text-transform: none;">0 categorías</small>
+                    </div>
+                    <div id="cierreCategoriasList" style="display: flex; flex-direction: column; gap: 6px; max-height: 120px; overflow-y: auto; padding-right: 4px;">
+                        <span style="font-size: 0.82rem; color: #94a3b8; font-style: italic;">Sin ventas registradas</span>
                     </div>
                 </div>
 
@@ -347,16 +371,16 @@
 
 
     <!-- Configuración de Firebase -->
-    <script type="module" src="../js/config/firebase.js?v=4.0.1789488940"></script>
+    <script type="module" src="../js/config/firebase.js?v=4.0.1789491427"></script>
 
     <!-- Utilidades -->
-    <script src="../js/utils/helpers.js?v=4.0.1789488940"></script>
+    <script src="../js/utils/helpers.js?v=4.0.1789491427"></script>
 
     <!-- Scripts de Ventas -->
-    <script type="module" src="../js/controllers/ventas.js?v=4.0.1789488940"></script>
+    <script type="module" src="../js/controllers/ventas.js?v=4.0.1789491427"></script>
 
     <!-- Service Worker para actualización automática -->
-    <script src="../js/sw-register.js?v=4.0.1789488940"></script>
+    <script src="../js/sw-register.js?v=4.0.1789491427"></script>
 </body>
 
 </html>

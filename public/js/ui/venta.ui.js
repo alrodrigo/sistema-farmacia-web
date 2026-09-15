@@ -371,17 +371,70 @@ export const VentaUI = {
         }, 100);
     },
 
-    mostrarModalCorte(datos, cajeroNombre) {
+    mostrarModalCorte(datos, cajeroNombre, esAdmin = false, modoActivo = 'personal') {
         const modal = document.getElementById('modalCierreCaja');
         if (!modal) return;
-        document.getElementById('cierreCajeroNombre').textContent = cajeroNombre || 'Cajero';
+
+        const modoContainer = document.getElementById('corteModoContainer');
+        const btnPersonal = document.getElementById('btnCorteModoPersonal');
+        const btnGeneral = document.getElementById('btnCorteModoGeneral');
+
+        if (modoContainer) {
+            modoContainer.style.display = esAdmin ? 'flex' : 'none';
+        }
+
+        if (btnPersonal && btnGeneral) {
+            if (modoActivo === 'personal') {
+                btnPersonal.style.background = 'white';
+                btnPersonal.style.color = '#0284c7';
+                btnPersonal.style.boxShadow = '0 1px 3px rgba(0,0,0,0.08)';
+                btnGeneral.style.background = 'transparent';
+                btnGeneral.style.color = '#64748b';
+                btnGeneral.style.boxShadow = 'none';
+            } else {
+                btnGeneral.style.background = 'white';
+                btnGeneral.style.color = '#0284c7';
+                btnGeneral.style.boxShadow = '0 1px 3px rgba(0,0,0,0.08)';
+                btnPersonal.style.background = 'transparent';
+                btnPersonal.style.color = '#64748b';
+                btnPersonal.style.boxShadow = 'none';
+            }
+        }
+
+        const subDatos = datos[modoActivo] || datos;
+        const nombreVisual = modoActivo === 'general' 
+            ? '🏢 Toda la Farmacia (Todos los cajeros)' 
+            : `${cajeroNombre} (Tus ventas)`;
+
+        document.getElementById('cierreCajeroNombre').textContent = nombreVisual;
         const ahora = new Date();
         document.getElementById('cierreFechaHora').textContent = ahora.toLocaleDateString('es-BO', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' ' + ahora.toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' });
-        document.getElementById('cierreTotalEfectivo').textContent = window.formatCurrency(datos.efectivo);
-        document.getElementById('cierreTotalTransferencia').textContent = window.formatCurrency(datos.transferencia);
-        document.getElementById('cierreTotalTarjeta').textContent = window.formatCurrency(datos.tarjeta);
-        document.getElementById('cierreTotalTickets').textContent = datos.totalTickets;
-        document.getElementById('cierreTotalGeneral').textContent = window.formatCurrency(datos.total);
+        document.getElementById('cierreTotalEfectivo').textContent = window.formatCurrency(subDatos.efectivo || 0);
+        document.getElementById('cierreTotalTransferencia').textContent = window.formatCurrency(subDatos.transferencia || 0);
+        document.getElementById('cierreTotalTarjeta').textContent = window.formatCurrency(subDatos.tarjeta || 0);
+        document.getElementById('cierreTotalTickets').textContent = subDatos.totalTickets || 0;
+        document.getElementById('cierreTotalGeneral').textContent = window.formatCurrency(subDatos.total || 0);
+
+        // Desglose por categorías
+        const catList = document.getElementById('cierreCategoriasList');
+        const catCounter = document.getElementById('cierreTotalCategoriasContador');
+        if (catList) {
+            const cats = Object.entries(subDatos.porCategoria || {});
+            if (cats.length === 0) {
+                catList.innerHTML = '<span style="font-size: 0.82rem; color: #94a3b8; font-style: italic;">Sin ventas registradas en categorías</span>';
+                if (catCounter) catCounter.textContent = '0 categorías';
+            } else {
+                if (catCounter) catCounter.textContent = `${cats.length} categoría${cats.length > 1 ? 's' : ''}`;
+                cats.sort((a, b) => b[1] - a[1]);
+                catList.innerHTML = cats.map(([catName, monto]) => `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 5px 8px; border-radius: 6px; background: white; border: 1px solid #e2e8f0; font-size: 0.82rem;">
+                        <span style="color: #334155; font-weight: 500;">${catName}</span>
+                        <strong style="color: #0284c7;">${window.formatCurrency(monto)}</strong>
+                    </div>
+                `).join('');
+            }
+        }
+
         modal.style.display = 'flex';
     },
 
@@ -390,33 +443,52 @@ export const VentaUI = {
         if (modal) modal.style.display = 'none';
     },
 
-    imprimirCorteTicket(datos, cajeroNombre) {
+    imprimirCorteTicket(datos, cajeroNombre, modoActivo = 'personal') {
+        const subDatos = datos[modoActivo] || datos;
         const ahora = new Date();
         const fecha = ahora.toLocaleDateString('es-BO', { day: '2-digit', month: '2-digit', year: 'numeric' });
         const hora = ahora.toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit', hour12: true });
+        const subtitulo = modoActivo === 'general' ? 'CORTE GENERAL DE FARMACIA' : 'CORTE INDIVIDUAL DE TURNO';
+        const cajeroTexto = modoActivo === 'general' ? 'Todos los Cajeros' : cajeroNombre;
+
+        const categorias = Object.entries(subDatos.porCategoria || {});
+        let categoriasHTML = '';
+        if (categorias.length > 0) {
+            categorias.sort((a, b) => b[1] - a[1]);
+            categoriasHTML = `
+                <div class="receipt-divider"></div>
+                <div style="font-size: 10px; font-weight: bold; margin-bottom: 4px; text-transform: uppercase;">Por Categorías:</div>
+                ${categorias.map(([cat, m]) => `
+                    <div class="receipt-info-row" style="font-size: 10px;">
+                        <span>${cat}:</span><span>${window.formatCurrency(m)}</span>
+                    </div>
+                `).join('')}
+            `;
+        }
 
         const ticketHTML = `
             <div class="receipt-header">
                 <div class="receipt-logo"><img src="img/logo-servisalud.png" alt="ServiSalud"></div>
                 <div class="receipt-title">FARMACIA SERVISALUD</div>
-                <div class="receipt-subtitle">CORTE DE TURNO / ARQUEO</div>
+                <div class="receipt-subtitle">${subtitulo}</div>
             </div>
             <div class="receipt-info">
                 <div class="receipt-info-row"><span class="receipt-info-label">Fecha:</span><span>${fecha} - ${hora}</span></div>
-                <div class="receipt-info-row"><span class="receipt-info-label">Cajero:</span><span>${cajeroNombre}</span></div>
-                <div class="receipt-info-row"><span class="receipt-info-label">Tickets:</span><span>${datos.totalTickets}</span></div>
+                <div class="receipt-info-row"><span class="receipt-info-label">Alcance:</span><span>${cajeroTexto}</span></div>
+                <div class="receipt-info-row"><span class="receipt-info-label">Tickets:</span><span>${subDatos.totalTickets}</span></div>
             </div>
             <div class="receipt-divider"></div>
             <div class="receipt-totals">
-                <div class="receipt-total-row"><span>Efectivo:</span><strong>${window.formatCurrency(datos.efectivo)}</strong></div>
-                <div class="receipt-total-row"><span>Transferencia / QR:</span><strong>${window.formatCurrency(datos.transferencia)}</strong></div>
-                <div class="receipt-total-row"><span>Tarjeta:</span><strong>${window.formatCurrency(datos.tarjeta)}</strong></div>
+                <div class="receipt-total-row"><span>Efectivo:</span><strong>${window.formatCurrency(subDatos.efectivo)}</strong></div>
+                <div class="receipt-total-row"><span>Transferencia / QR:</span><strong>${window.formatCurrency(subDatos.transferencia)}</strong></div>
+                <div class="receipt-total-row"><span>Tarjeta:</span><strong>${window.formatCurrency(subDatos.tarjeta)}</strong></div>
+                ${categoriasHTML}
                 <div class="receipt-divider"></div>
-                <div class="receipt-total-row main"><span>TOTAL CAJA:</span><strong>${window.formatCurrency(datos.total)}</strong></div>
+                <div class="receipt-total-row main"><span>TOTAL CAJA:</span><strong>${window.formatCurrency(subDatos.total)}</strong></div>
             </div>
             <div class="receipt-divider"></div>
             <div class="receipt-footer" style="margin-top: 25px;">
-                <div style="border-top: 1px solid #000; width: 80%; margin: 40px auto 5px; text-align: center; font-size: 11px;">Firma del Cajero</div>
+                <div style="border-top: 1px solid #000; width: 80%; margin: 40px auto 5px; text-align: center; font-size: 11px;">Firma del Responsable</div>
             </div>`;
 
         const printContainer = document.getElementById('printReceipt');

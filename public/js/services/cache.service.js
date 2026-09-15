@@ -18,6 +18,11 @@ const KEYS = {
 
 const TTL = 10 * 60 * 1000; // 10 minutos de vigencia en sesión
 
+// Canal de mensajería asíncrona entre pestañas para sincronización en tiempo real
+const syncChannel = typeof window !== 'undefined' && 'BroadcastChannel' in window 
+    ? new BroadcastChannel('sfs_inventory_channel') 
+    : null;
+
 function _leer(key, tsKey) {
     try {
         const ts = sessionStorage.getItem(tsKey);
@@ -104,9 +109,33 @@ export const CacheService = {
         return data;
     },
 
-    /** Fuerza recarga de productos en la próxima llamada. */
-    invalidarProductos() {
+    /** Fuerza recarga de productos en la próxima llamada y notifica a otras pestañas. */
+    invalidarProductos(broadcast = true) {
         _borrar(KEYS.products, KEYS.products_ts);
+        if (broadcast && syncChannel) {
+            try {
+                syncChannel.postMessage({ type: 'INVENTORY_CHANGED', timestamp: Date.now() });
+            } catch (e) {
+                console.warn('CacheService: error al emitir BroadcastChannel', e);
+            }
+        }
+    },
+
+    /**
+     * Escucha notificaciones en tiempo real cuando otra pestaña actualiza productos/inventario.
+     * @param {Function} callback 
+     * @returns {Function} Función para desuscribirse
+     */
+    onInventoryChange(callback) {
+        if (!syncChannel || typeof callback !== 'function') return () => {};
+        const handler = (event) => {
+            if (event.data?.type === 'INVENTORY_CHANGED') {
+                _borrar(KEYS.products, KEYS.products_ts);
+                callback(event.data);
+            }
+        };
+        syncChannel.addEventListener('message', handler);
+        return () => syncChannel.removeEventListener('message', handler);
     },
 
     /** Sobrescribe el caché de productos en sessionStorage tras mutaciones en memoria. */

@@ -30,14 +30,15 @@ export const VentaService = {
         const finDia = new Date();
         finDia.setHours(23, 59, 59, 999);
 
-        let snapshot;
+        let snapshotDocs = [];
         try {
             const q = query(
                 collection(db, 'sales'),
                 where('created_at', '>=', hoy),
                 where('created_at', '<=', finDia)
             );
-            snapshot = await getDocs(q);
+            const snapshot = await getDocs(q);
+            snapshotDocs = snapshot.docs;
         } catch (e) {
             try {
                 const q2 = query(
@@ -45,41 +46,62 @@ export const VentaService = {
                     where('fecha', '>=', hoy),
                     where('fecha', '<=', finDia)
                 );
-                snapshot = await getDocs(q2);
+                const snapshot2 = await getDocs(q2);
+                snapshotDocs = snapshot2.docs;
             } catch (err2) {
                 console.warn("No se pudo obtener ventas del día para corte:", err2);
-                return { totalTickets: 0, efectivo: 0, transferencia: 0, tarjeta: 0, total: 0 };
             }
         }
 
-        let totalTickets = 0;
-        let efectivo = 0;
-        let transferencia = 0;
-        let tarjeta = 0;
-        let total = 0;
+        const procesarVentas = (soloUsuario) => {
+            let totalTickets = 0;
+            let efectivo = 0;
+            let transferencia = 0;
+            let tarjeta = 0;
+            let total = 0;
+            const porCategoria = {};
 
-        snapshot.forEach(docSnap => {
-            const d = docSnap.data();
-            if (role !== 'admin' && d.seller_id && d.seller_id !== userId) {
-                return;
-            }
-            totalTickets++;
-            const monto = parseFloat(d.total) || 0;
-            total += monto;
+            snapshotDocs.forEach(docSnap => {
+                const d = docSnap.data();
+                if (soloUsuario && d.seller_id !== userId) {
+                    return;
+                }
+                totalTickets++;
+                const monto = parseFloat(d.total) || 0;
+                total += monto;
 
-            const pm = (d.payment_method || '').toLowerCase();
-            if (pm === 'cash' || pm === 'efectivo') {
-                efectivo += monto;
-            } else if (pm === 'transfer' || pm === 'transferencia' || pm.includes('qr')) {
-                transferencia += monto;
-            } else if (pm === 'card' || pm === 'tarjeta') {
-                tarjeta += monto;
-            } else {
-                efectivo += monto;
-            }
-        });
+                const pm = (d.payment_method || '').toLowerCase();
+                if (pm === 'cash' || pm === 'efectivo') {
+                    efectivo += monto;
+                } else if (pm === 'transfer' || pm === 'transferencia' || pm.includes('qr')) {
+                    transferencia += monto;
+                } else if (pm === 'card' || pm === 'tarjeta') {
+                    tarjeta += monto;
+                } else {
+                    efectivo += monto;
+                }
 
-        return { totalTickets, efectivo, transferencia, tarjeta, total };
+                if (Array.isArray(d.items)) {
+                    d.items.forEach(item => {
+                        const cat = item.category || item.categoria || 'General';
+                        const sub = parseFloat(item.subtotal) || (parseFloat(item.unit_price || 0) * (item.quantity || 1));
+                        porCategoria[cat] = (porCategoria[cat] || 0) + sub;
+                    });
+                }
+            });
+
+            return { totalTickets, efectivo, transferencia, tarjeta, total, porCategoria };
+        };
+
+        const personal = procesarVentas(true);
+        const general = procesarVentas(false);
+
+        return {
+            personal,
+            general,
+            // Mantiene compatibilidad con propiedades en raíz
+            ...(role === 'admin' ? general : personal)
+        };
     },
 
     async getNextSaleNumber() {
@@ -145,6 +167,9 @@ export const VentaService = {
                 }
             });
 
+            // Notificar a todas las pestañas que el stock cambió tras la venta
+            CacheService.invalidarProductos(true);
+
         } catch (error) {
             if (error.type === 'STOCK_ERROR') {
                 throw error;
@@ -166,6 +191,9 @@ export const VentaService = {
                     _fallback: true
                 });
                 await batch.commit();
+
+                // Notificar a todas las pestañas que el stock cambió tras la venta
+                CacheService.invalidarProductos(true);
             } catch (fallbackError) {
                 console.error("Fallo crítico en ambos métodos de persistencia", fallbackError);
                 throw new Error("Error de conexión. La venta no pudo registrarse.");

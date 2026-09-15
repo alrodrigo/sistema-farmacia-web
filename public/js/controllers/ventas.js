@@ -97,14 +97,37 @@ function setupEventListeners() {
   document.getElementById('amountReceived')?.addEventListener('input', calcularCambioYTotales);
   document.getElementById('btnPrintReceipt')?.addEventListener('click', imprimirTicket);
 
+  // Sincronización manual de catálogo
+  document.getElementById('btnSyncCatalogo')?.addEventListener('click', () => sincronizarCatalogo(true));
+
   // Corte de turno / Arqueo diario
   document.getElementById('btnCorteTurno')?.addEventListener('click', abrirCierreCaja);
   document.getElementById('btnCloseCierreCaja')?.addEventListener('click', () => VentaUI.ocultarModalCorte());
   document.getElementById('btnCerrarCierreModal')?.addEventListener('click', () => VentaUI.ocultarModalCorte());
+
+  // Selector de modo de corte (Personal vs General para Admin)
+  document.getElementById('btnCorteModoPersonal')?.addEventListener('click', () => {
+    modoCorteActivo = 'personal';
+    const esAdmin = currentUser?.role === 'admin';
+    const nombreCajero = currentUser?.name || currentUser?.nombre || currentUser?.email?.split('@')[0] || 'Cajero';
+    if (corteActualData) {
+      VentaUI.mostrarModalCorte(corteActualData, nombreCajero, esAdmin, modoCorteActivo);
+    }
+  });
+
+  document.getElementById('btnCorteModoGeneral')?.addEventListener('click', () => {
+    modoCorteActivo = 'general';
+    const esAdmin = currentUser?.role === 'admin';
+    const nombreCajero = currentUser?.name || currentUser?.nombre || currentUser?.email?.split('@')[0] || 'Cajero';
+    if (corteActualData) {
+      VentaUI.mostrarModalCorte(corteActualData, nombreCajero, esAdmin, modoCorteActivo);
+    }
+  });
+
   document.getElementById('btnPrintCierreCaja')?.addEventListener('click', () => {
     if (corteActualData) {
       const nombreCajero = currentUser?.name || currentUser?.nombre || currentUser?.email?.split('@')[0] || 'Cajero';
-      VentaUI.imprimirCorteTicket(corteActualData, nombreCajero);
+      VentaUI.imprimirCorteTicket(corteActualData, nombreCajero, modoCorteActivo);
     }
   });
 
@@ -113,19 +136,55 @@ function setupEventListeners() {
   window.cambiarCantidad = cambiarCantidad;
   window.actualizarCantidadDirecta = actualizarCantidadDirecta;
   window.quitarDelCarrito = quitarDelCarrito;
+
+  // Escuchar sincronización en tiempo real desde otras pestañas (BroadcastChannel)
+  CacheService.onInventoryChange(async () => {
+    console.log('🔄 Sincronización automática de inventario recibida desde otra pestaña.');
+    await sincronizarCatalogo(false);
+  });
 }
 
 let corteActualData = null;
+let modoCorteActivo = 'personal';
 
 async function abrirCierreCaja() {
   try {
+    const esAdmin = currentUser?.role === 'admin';
     const datos = await VentaService.getCorteTurnoHoy(currentUser?.uid, currentUser?.role);
     corteActualData = datos;
     const nombreCajero = currentUser?.name || currentUser?.nombre || currentUser?.email?.split('@')[0] || 'Cajero';
-    VentaUI.mostrarModalCorte(datos, nombreCajero);
+    VentaUI.mostrarModalCorte(datos, nombreCajero, esAdmin, modoCorteActivo);
   } catch (err) {
     console.error("Error al abrir corte de caja:", err);
     Toast.show("Error al obtener datos del corte de turno", "error");
+  }
+}
+
+async function sincronizarCatalogo(mostrarToast = true) {
+  const btnSync = document.getElementById('btnSyncCatalogo');
+  const icon = btnSync?.querySelector('i');
+  if (icon) icon.classList.add('fa-spin');
+
+  try {
+    CacheService.invalidarProductos(false);
+    todosLosProductos = await VentaService.getProductos();
+    actualizarPanelRapido();
+
+    const searchInput = document.getElementById('searchProductInput');
+    if (searchInput && searchInput.value.trim().length >= 2) {
+      buscarProductos(searchInput.value.trim());
+    }
+
+    if (mostrarToast) {
+      Toast.show("Catálogo sincronizado exitosamente", "success");
+    }
+  } catch (err) {
+    console.error("Error al sincronizar catálogo:", err);
+    if (mostrarToast) Toast.show("Error al sincronizar catálogo", "error");
+  } finally {
+    setTimeout(() => {
+      if (icon) icon.classList.remove('fa-spin');
+    }, 500);
   }
 }
 
