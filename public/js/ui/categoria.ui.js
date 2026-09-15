@@ -51,8 +51,8 @@ export const CategoriaUI = {
                     </span>
                 </div>
                 <div class="cat-body">
-                    <h3>${cat.nombre}</h3>
-                    <p>${cat.descripcion || 'Sin descripción'}</p>
+                    <h3>${cat.nombre || cat.name || 'Sin nombre'}</h3>
+                    <p>${cat.descripcion || cat.description || 'Sin descripción'}</p>
                 </div>
                 <div class="cat-footer">
                     <div class="cat-count">

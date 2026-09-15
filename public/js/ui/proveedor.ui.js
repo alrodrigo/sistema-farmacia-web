@@ -25,7 +25,7 @@ export const ProveedorUI = {
                         <i class="fas fa-truck"></i>
                     </div>
                     <div class="proveedor-info">
-                        <h3>${prov.nombre}</h3>
+                        <h3>${prov.nombre || prov.name || 'Sin nombre'}</h3>
                         ${prov.pais ? `<div class="pais"><i class="fas fa-globe"></i> ${prov.pais}</div>` : ''}
                     </div>
                 </div>

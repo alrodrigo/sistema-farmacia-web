@@ -52,10 +52,11 @@ function aplicarFiltrosYRenderizar() {
 
     // 1. Búsqueda por texto (nombre o descripción)
     if (searchVal) {
-        filtradas = filtradas.filter(c =>
-            (c.nombre && c.nombre.toLowerCase().includes(searchVal)) ||
-            (c.descripcion && c.descripcion.toLowerCase().includes(searchVal))
-        );
+        filtradas = filtradas.filter(c => {
+            const nom = (c.nombre || c.name || '').toLowerCase();
+            const desc = (c.descripcion || c.description || '').toLowerCase();
+            return nom.includes(searchVal) || desc.includes(searchVal);
+        });
     }
 
     // 2. Filtro por estado

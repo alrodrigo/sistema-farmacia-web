@@ -39,21 +39,41 @@ export const DashboardService = {
             const finDia = new Date();
             finDia.setHours(23, 59, 59, 999);
 
-            const q = query(
-                collection(db, 'sales'),
-                where('created_at', '>=', hoy),
-                where('created_at', '<=', finDia)
-            );
-
-            const snapshot = await getDocs(q);
+            let snapshotDocs = [];
+            try {
+                const q = query(
+                    collection(db, 'sales'),
+                    where('created_at', '>=', hoy),
+                    where('created_at', '<=', finDia)
+                );
+                const snapshot = await getDocs(q);
+                snapshotDocs = snapshot.docs;
+            } catch (e1) {
+                try {
+                    const q2 = query(
+                        collection(db, 'sales'),
+                        where('fecha', '>=', hoy),
+                        where('fecha', '<=', finDia)
+                    );
+                    const snapshot2 = await getDocs(q2);
+                    snapshotDocs = snapshot2.docs;
+                } catch (e2) {
+                    snapshotDocs = [];
+                }
+            }
 
             let totalIngresos = 0;
-            snapshot.forEach(doc => {
-                totalIngresos += doc.data().total || 0;
+            let ventasValidas = 0;
+            snapshotDocs.forEach(doc => {
+                const data = doc.data();
+                if (data.status !== 'anulada' && data.status !== 'cancelled') {
+                    ventasValidas++;
+                    totalIngresos += parseFloat(data.total) || 0;
+                }
             });
 
             return {
-                ventasHoy: snapshot.size,
+                ventasHoy: ventasValidas,
                 ingresosHoy: totalIngresos
             };
         } catch (error) {

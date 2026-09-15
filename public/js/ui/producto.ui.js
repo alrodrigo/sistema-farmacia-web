@@ -46,11 +46,11 @@ export const ProductoUI = {
 
         tbody.innerHTML = productosActuales.map(producto => {
             const categoriaNombre = producto.category && categoriasMap[producto.category]
-                ? categoriasMap[producto.category].nombre
+                ? (categoriasMap[producto.category].nombre || categoriasMap[producto.category].name || 'Sin nombre')
                 : (producto.category || 'Sin categoría');
 
             const proveedorNombre = producto.supplier && proveedoresMap[producto.supplier]
-                ? proveedoresMap[producto.supplier].nombre
+                ? (proveedoresMap[producto.supplier].nombre || proveedoresMap[producto.supplier].name || 'Sin nombre')
                 : (producto.supplier || 'Sin proveedor');
 
             const canEdit = typeof canManage === 'boolean' ? canManage : (canManage === 'admin');

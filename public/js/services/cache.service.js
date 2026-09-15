@@ -60,9 +60,23 @@ export const CacheService = {
         const cached = _leer(KEYS.products, KEYS.products_ts);
         if (cached) return cached;
 
-        const q = query(collection(db, 'products'), orderBy('created_at', 'asc'));
-        const snapshot = await getDocs(q);
+        let snapshot;
+        try {
+            snapshot = await getDocs(collection(db, 'products'));
+        } catch (e) {
+            console.warn('Error al cargar productos de Firestore:', e);
+            throw e;
+        }
+
         const data = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
+        // Ordenar en memoria sin depender de indices o de la existencia del campo created_at
+        data.sort((a, b) => {
+            const dateA = a.created_at ? (a.created_at.toMillis ? a.created_at.toMillis() : new Date(a.created_at).getTime()) : 0;
+            const dateB = b.created_at ? (b.created_at.toMillis ? b.created_at.toMillis() : new Date(b.created_at).getTime()) : 0;
+            if (dateA && dateB) return dateA - dateB;
+            return (a.name || a.nombre || '').localeCompare(b.name || b.nombre || '');
+        });
+
         _guardar(KEYS.products, KEYS.products_ts, data);
         return data;
     },
@@ -83,7 +97,7 @@ export const CacheService = {
             snapshot = await getDocs(collection(db, 'proveedores'));
         }
         const data = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
-        data.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+        data.sort((a, b) => (a.nombre || a.name || '').localeCompare(b.nombre || b.name || ''));
         _guardar(KEYS.proveedores, KEYS.proveedores_ts, data);
         return data;
     },
@@ -104,7 +118,7 @@ export const CacheService = {
             snapshot = await getDocs(collection(db, 'categorias'));
         }
         const data = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
-        data.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+        data.sort((a, b) => (a.nombre || a.name || '').localeCompare(b.nombre || b.name || ''));
         _guardar(KEYS.categorias, KEYS.categorias_ts, data);
         return data;
     },

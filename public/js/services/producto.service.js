@@ -24,21 +24,31 @@ export const ProductoService = {
      */
     normalize(raw) {
         if (!raw) return null;
+        const parseNum = (v, def = 0) => {
+            const n = typeof v === 'number' ? v : parseFloat(v || 0);
+            return isNaN(n) ? def : n;
+        };
+        const parseIntNum = (v, def = 0) => {
+            const n = typeof v === 'number' ? Math.floor(v) : parseInt(v || 0, 10);
+            return isNaN(n) ? def : n;
+        };
+
         return {
             id: raw.id,
             name: raw.name || raw.nombre || 'Sin nombre',
             sku: (raw.sku || '').toUpperCase(),
-            category: raw.category || raw.categoriaId || '',
-            supplier: raw.supplier || raw.laboratorio || raw.proveedorId || '',
-            price: typeof raw.price === 'number' ? raw.price : parseFloat(raw.price || 0),
-            price_per_box: raw.price_per_box ? parseFloat(raw.price_per_box) : null,
-            cost: typeof raw.cost === 'number' ? raw.cost : parseFloat(raw.cost || 0),
-            current_stock: typeof raw.current_stock === 'number' ? raw.current_stock : parseInt(raw.current_stock || 0, 10),
-            min_stock: typeof raw.min_stock === 'number' ? raw.min_stock : parseInt(raw.min_stock || 0, 10),
-            expiration_date: raw.expiration_date || null,
+            category: raw.category || raw.categoriaId || raw.categoria || '',
+            supplier: raw.supplier || raw.laboratorio || raw.proveedorId || raw.proveedor || '',
+            price: parseNum(raw.price || raw.precio),
+            price_per_box: raw.price_per_box ? parseNum(raw.price_per_box) : null,
+            cost: parseNum(raw.cost || raw.costo),
+            current_stock: parseIntNum(raw.current_stock !== undefined ? raw.current_stock : (raw.stock !== undefined ? raw.stock : 0)),
+            min_stock: parseIntNum(raw.min_stock !== undefined ? raw.min_stock : (raw.stock_minimo !== undefined ? raw.stock_minimo : 0)),
+            expiration_date: raw.expiration_date || raw.due_date || raw.fecha_vencimiento || null,
             priority_flag: raw.priority_flag || 'auto',
-            description: raw.description || '',
-            created_at: raw.created_at || null,
+            is_favorite: raw.is_favorite === true,
+            description: raw.description || raw.descripcion || '',
+            created_at: raw.created_at || raw.fecha_creacion || null,
             updated_at: raw.updated_at || null
         };
     },
