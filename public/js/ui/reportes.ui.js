@@ -51,7 +51,7 @@ export const ReportesUI = {
         document.getElementById('resultsCount').textContent = `${totalVentas} ${totalVentas === 1 ? 'venta' : 'ventas'}`;
     },
 
-    renderTablaVentas(ventasPaginadas, totalFiltradas, paginaActual = 1, ventasPorPagina = 10) {
+    renderTablaVentas(ventasPaginadas, totalFiltradas, paginaActual = 1, ventasPorPagina = 10, esAdmin = false) {
         const tbody = document.getElementById('salesTableBody');
         if (!tbody) return;
 
@@ -59,7 +59,7 @@ export const ReportesUI = {
         const inicioIndex = (paginaActual - 1) * ventasPorPagina;
 
         const rowsHtml = ventasPaginadas.map((sale, index) => {
-            const saleNumber = totalFiltradas - (inicioIndex + index);
+            const saleNumber = sale.sale_number || (totalFiltradas - (inicioIndex + index));
             const fecha = sale.fecha.toLocaleDateString('es-BO', {
                 day: '2-digit', month: '2-digit', year: 'numeric',
                 hour: '2-digit', minute: '2-digit'
@@ -68,20 +68,32 @@ export const ReportesUI = {
             const subtotal = sale.subtotal || sale.total;
             const discountText = sale.discount_amount > 0 ? `Bs. ${sale.discount_amount.toFixed(2)}` : '-';
             const paymentLabel = labelsPago[sale.payment_method] || 'Efectivo';
+            const esAnulada = sale.status === 'anulada' || sale.status === 'cancelled';
+
+            const badgeEstado = esAnulada
+                ? `<span class="badge" style="background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; font-weight: 700;">🚫 Anulada</span>`
+                : `<span class="badge badge-${sale.payment_method || 'cash'}">${paymentLabel}</span>`;
+
+            const botonAnular = (!esAnulada && esAdmin)
+                ? `<button class="btn-cancel-sale" data-action="anular-venta" data-id="${sale.id}" data-number="${saleNumber}" data-total="${sale.total.toFixed(2)}" style="background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; padding: 6px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; margin-left: 6px; transition: all 0.2s;" title="Anular venta y reponer stock">
+                    <i class="fas fa-ban"></i> Anular
+                   </button>`
+                : '';
 
             return `
-                <tr>
+                <tr style="${esAnulada ? 'background-color: #fff7ed; opacity: 0.85;' : ''}">
                     <td><strong>#${saleNumber}</strong></td>
                     <td>${fecha}</td>
-                    <td><span class="badge badge-${sale.payment_method || 'cash'}">${paymentLabel}</span></td>
+                    <td>${badgeEstado}</td>
                     <td>${totalItems}</td>
                     <td>Bs. ${subtotal.toFixed(2)}</td>
                     <td class="text-success">${discountText}</td>
-                    <td><strong>Bs. ${sale.total.toFixed(2)}</strong></td>
+                    <td><strong style="${esAnulada ? 'text-decoration: line-through; color: #94a3b8;' : ''}">Bs. ${sale.total.toFixed(2)}</strong></td>
                     <td>
                         <button class="btn-view-detail" data-action="ver-detalle" data-id="${sale.id}">
                             <i class="fas fa-eye"></i> Ver
                         </button>
+                        ${botonAnular}
                     </td>
                 </tr>
             `;

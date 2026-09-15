@@ -6,6 +6,7 @@ import { AuthGuard } from '../middleware/auth.guard.js';
 import { Toast } from '../utils/toast.js';
 import { ConfirmDialog } from '../utils/confirm.js';
 import { ErrorHandler } from '../utils/error-handler.js';
+import { VentaService } from '../services/venta.service.js';
 
 let currentUser = null;
 let currentUserData = null;
@@ -133,16 +134,54 @@ function setupEventListeners() {
     });
 
     // Delegación de eventos en la tabla de ventas (Arquitectura Ortogonal)
-    document.getElementById('salesTableBody')?.addEventListener('click', (e) => {
-        const btn = e.target.closest('button[data-action="ver-detalle"]');
-        if (!btn) return;
+    document.getElementById('salesTableBody')?.addEventListener('click', async (e) => {
+        const btnVer = e.target.closest('button[data-action="ver-detalle"]');
+        if (btnVer) {
+            const id = btnVer.dataset.id;
+            const sale = filteredSales.find(s => s.id === id);
+            if (!sale) return;
+            const saleIndex = filteredSales.indexOf(sale);
+            const saleNumber = filteredSales.length - saleIndex;
+            ReportesUI.abrirModalDetalle(sale, saleNumber);
+            return;
+        }
 
-        const id = btn.dataset.id;
-        const sale = filteredSales.find(s => s.id === id);
-        if (!sale) return;
-        const saleIndex = filteredSales.indexOf(sale);
-        const saleNumber = filteredSales.length - saleIndex;
-        ReportesUI.abrirModalDetalle(sale, saleNumber);
+        const btnAnular = e.target.closest('button[data-action="anular-venta"]');
+        if (btnAnular) {
+            if (currentUser?.role !== 'admin') {
+                Toast.warning('Solo los administradores pueden anular ventas');
+                return;
+            }
+
+            const id = btnAnular.dataset.id;
+            const number = btnAnular.dataset.number;
+            const total = btnAnular.dataset.total;
+
+            const confirmar = await ConfirmDialog.show(
+                '¿Anular esta Venta?',
+                `¿Confirmas anular la Venta #${number} por Bs. ${total}? Los productos regresarán automáticamente al inventario y el dinero se descontará de los ingresos.`,
+                'danger',
+                'Sí, Anular Venta'
+            );
+
+            if (!confirmar) return;
+
+            try {
+                btnAnular.disabled = true;
+                btnAnular.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Anulando...';
+                const userName = currentUser?.name || currentUser?.nombre || 'Administrador';
+                await VentaService.anularVenta(id, currentUser?.uid, userName);
+                Toast.success(`Venta #${number} anulada y stock devuelto exitosamente`);
+
+                // Recargar las ventas
+                await cargarVentas();
+            } catch (err) {
+                console.error('Error al anular venta en reportes:', err);
+                Toast.error(err.message || 'Error al anular la venta');
+                btnAnular.disabled = false;
+                btnAnular.innerHTML = '<i class="fas fa-ban"></i> Anular';
+            }
+        }
     });
 
     document.getElementById('btnPrintReceipt')?.addEventListener('click', function () {
@@ -231,18 +270,19 @@ function actualizarVistaCompleta() {
 
     ReportesUI.cambiarEstado('data');
 
-    // 1. Cálculos de KPIs
-    const totalVentas = filteredSales.length;
-    const ingresosTotales = filteredSales.reduce((sum, sale) => sum + sale.total, 0);
-    const productosVendidos = filteredSales.reduce((sum, sale) => sum + sale.items.reduce((itemSum, item) => itemSum + (item.quantity || item.cantidad || 0), 0), 0);
+    // 1. Cálculos de KPIs (excluyendo ventas anuladas para no alterar ingresos reales)
+    const ventasActivas = filteredSales.filter(sale => sale.status !== 'anulada' && sale.status !== 'cancelled');
+    const totalVentas = ventasActivas.length;
+    const ingresosTotales = ventasActivas.reduce((sum, sale) => sum + sale.total, 0);
+    const productosVendidos = ventasActivas.reduce((sum, sale) => sum + sale.items.reduce((itemSum, item) => itemSum + (item.quantity || item.cantidad || 0), 0), 0);
     const ticketPromedio = totalVentas > 0 ? ingresosTotales / totalVentas : 0;
     ReportesUI.actualizarKPIs(totalVentas, ingresosTotales, productosVendidos, ticketPromedio);
 
-    // 2. Cálculos para Gráficos
+    // 2. Cálculos para Gráficos (solo ventas activas válidas)
     const productsMap = {};
     const salesByDate = {};
 
-    filteredSales.forEach(sale => {
+    ventasActivas.forEach(sale => {
         const dateKey = sale.fecha.toISOString().split('T')[0];
         if (!salesByDate[dateKey]) salesByDate[dateKey] = { fecha: dateKey, total: 0 };
         salesByDate[dateKey].total += sale.total;
@@ -287,8 +327,9 @@ function actualizarTablaPaginada() {
     const inicio = (paginaActual - 1) * ventasPorPagina;
     const fin = inicio + ventasPorPagina;
     const ventasPaginadas = filteredSales.slice(inicio, fin);
+    const esAdmin = currentUser?.role === 'admin';
 
-    ReportesUI.renderTablaVentas(ventasPaginadas, filteredSales.length, paginaActual, ventasPorPagina);
+    ReportesUI.renderTablaVentas(ventasPaginadas, filteredSales.length, paginaActual, ventasPorPagina, esAdmin);
 }
 
 function aplicarFiltroRapido(period) {

@@ -59,13 +59,35 @@ export const VentaService = {
             let transferencia = 0;
             let tarjeta = 0;
             let total = 0;
-            const porCategoria = {};
+            const tickets = [];
 
             snapshotDocs.forEach(docSnap => {
                 const d = docSnap.data();
                 if (soloUsuario && d.seller_id !== userId) {
                     return;
                 }
+
+                const fecha = d.created_at || d.fecha;
+                const horaStr = fecha ? (fecha.toDate ? fecha.toDate() : new Date(fecha)).toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' }) : '--:--';
+                const esAnulada = d.status === 'anulada' || d.status === 'cancelled';
+
+                tickets.push({
+                    id: docSnap.id,
+                    sale_number: d.sale_number || '---',
+                    total: parseFloat(d.total) || 0,
+                    seller_name: d.seller_name || 'Cajero',
+                    seller_id: d.seller_id,
+                    payment_method_label: d.payment_method_label || d.payment_method || 'Efectivo',
+                    status: d.status || 'completed',
+                    hora: horaStr,
+                    items: d.items || []
+                });
+
+                // Si la venta está anulada, NO suma en los totales ni en los tickets
+                if (esAnulada) {
+                    return;
+                }
+
                 totalTickets++;
                 const monto = parseFloat(d.total) || 0;
                 total += monto;
@@ -80,17 +102,12 @@ export const VentaService = {
                 } else {
                     efectivo += monto;
                 }
-
-                if (Array.isArray(d.items)) {
-                    d.items.forEach(item => {
-                        const cat = item.category || item.categoria || 'General';
-                        const sub = parseFloat(item.subtotal) || (parseFloat(item.unit_price || 0) * (item.quantity || 1));
-                        porCategoria[cat] = (porCategoria[cat] || 0) + sub;
-                    });
-                }
             });
 
-            return { totalTickets, efectivo, transferencia, tarjeta, total, porCategoria };
+            // Ordenar tickets más recientes primero
+            tickets.reverse();
+
+            return { totalTickets, efectivo, transferencia, tarjeta, total, tickets };
         };
 
         const personal = procesarVentas(true);
@@ -102,6 +119,70 @@ export const VentaService = {
             // Mantiene compatibilidad con propiedades en raíz
             ...(role === 'admin' ? general : personal)
         };
+    },
+
+    /**
+     * Anula una venta de forma atómica:
+     * 1. Reintegra las existencias de todos los items al inventario
+     * 2. Marca la venta como 'anulada' con auditoría de quién y cuándo
+     * 3. Emite señal BroadcastChannel para actualizar el stock en caliente en todas las pantallas
+     * @param {string} saleId 
+     * @param {string} userId 
+     * @param {string} userName 
+     * @param {string} motivo 
+     */
+    async anularVenta(saleId, userId, userName, motivo = 'Anulación solicitada por error en cobro') {
+        const saleRef = doc(db, 'sales', saleId);
+
+        await runTransaction(db, async (transaction) => {
+            const saleSnap = await transaction.get(saleRef);
+            if (!saleSnap.exists()) {
+                throw new Error('La venta no existe o ya fue eliminada.');
+            }
+
+            const saleData = saleSnap.data();
+            if (saleData.status === 'anulada' || saleData.status === 'cancelled') {
+                throw new Error('Esta venta ya fue anulada previamente.');
+            }
+
+            const items = saleData.items || [];
+
+            // 1. Leer los documentos de productos a restaurar
+            const prodSnaps = [];
+            for (const item of items) {
+                const pId = item.product_id || item.id;
+                if (pId) {
+                    const prodRef = doc(db, 'products', pId);
+                    const snap = await transaction.get(prodRef);
+                    prodSnaps.push({ ref: prodRef, snap, item });
+                }
+            }
+
+            // 2. Reponer el stock en cada producto
+            for (const { ref, snap, item } of prodSnaps) {
+                if (snap.exists()) {
+                    const currentStock = snap.data().current_stock ?? 0;
+                    const cantidadDevuelta = parseInt(item.quantity || item.cantidad || 0, 10);
+                    transaction.update(ref, {
+                        current_stock: currentStock + cantidadDevuelta,
+                        updated_at: serverTimestamp()
+                    });
+                }
+            }
+
+            // 3. Marcar la venta con estado 'anulada'
+            transaction.update(saleRef, {
+                status: 'anulada',
+                cancelled_at: serverTimestamp(),
+                cancelled_by: userId,
+                cancelled_by_name: userName || 'Administrador',
+                cancel_reason: motivo,
+                updated_at: serverTimestamp()
+            });
+        });
+
+        // 4. Notificar a todas las pestañas vía BroadcastChannel para que refresquen existencias
+        CacheService.invalidarProductos(true);
     },
 
     async getNextSaleNumber() {

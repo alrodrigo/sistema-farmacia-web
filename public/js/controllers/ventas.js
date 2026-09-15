@@ -131,6 +131,47 @@ function setupEventListeners() {
     }
   });
 
+  // Anulación de ventas desde el modal de corte (Exclusivo Admin)
+  document.getElementById('cierreTicketsLista')?.addEventListener('click', async (e) => {
+    const btn = e.target.closest('.btn-anular-ticket');
+    if (!btn) return;
+
+    if (currentUser?.role !== 'admin') {
+      Toast.show('Solo los administradores pueden anular ventas', 'warning');
+      return;
+    }
+
+    const saleId = btn.dataset.id;
+    const saleNumber = btn.dataset.number;
+    const total = btn.dataset.total;
+
+    const confirmar = await ConfirmDialog.show(
+      '¿Anular esta Venta?',
+      `¿Confirmas anular el Ticket #${saleNumber} por Bs. ${total}? Los productos regresarán automáticamente al inventario y el monto se descontará de la caja.`,
+      'danger',
+      'Sí, Anular Venta'
+    );
+
+    if (!confirmar) return;
+
+    try {
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Anulando...';
+      const userName = currentUser?.name || currentUser?.nombre || 'Administrador';
+      await VentaService.anularVenta(saleId, currentUser?.uid, userName);
+      Toast.show(`Ticket #${saleNumber} anulado y existencias restauradas`, 'success');
+
+      // Refrescar el corte y el catálogo
+      await abrirCierreCaja();
+      await sincronizarCatalogo(false);
+    } catch (err) {
+      console.error('Error al anular venta:', err);
+      Toast.show(err.message || 'Error al anular la venta', 'error');
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-ban"></i> Anular';
+    }
+  });
+
   // Exposiciones globales para onclick en UI
   window.agregarAlCarrito = agregarAlCarrito;
   window.cambiarCantidad = cambiarCantidad;

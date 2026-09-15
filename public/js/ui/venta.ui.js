@@ -415,23 +415,51 @@ export const VentaUI = {
         document.getElementById('cierreTotalTickets').textContent = subDatos.totalTickets || 0;
         document.getElementById('cierreTotalGeneral').textContent = window.formatCurrency(subDatos.total || 0);
 
-        // Desglose por categorías
-        const catList = document.getElementById('cierreCategoriasList');
-        const catCounter = document.getElementById('cierreTotalCategoriasContador');
-        if (catList) {
-            const cats = Object.entries(subDatos.porCategoria || {});
-            if (cats.length === 0) {
-                catList.innerHTML = '<span style="font-size: 0.82rem; color: #94a3b8; font-style: italic;">Sin ventas registradas en categorías</span>';
-                if (catCounter) catCounter.textContent = '0 categorías';
+        // Renderizar lista de tickets del día
+        const ticketsList = document.getElementById('cierreTicketsLista');
+        const ticketsContador = document.getElementById('cierreTicketsContador');
+        const tickets = subDatos.tickets || [];
+
+        if (ticketsContador) {
+            ticketsContador.textContent = `${tickets.length} ticket${tickets.length !== 1 ? 's' : ''}`;
+        }
+
+        if (ticketsList) {
+            if (tickets.length === 0) {
+                ticketsList.innerHTML = '<span style="font-size: 0.82rem; color: #94a3b8; font-style: italic; text-align: center; padding: 8px 0;">No hay ventas registradas en este período</span>';
             } else {
-                if (catCounter) catCounter.textContent = `${cats.length} categoría${cats.length > 1 ? 's' : ''}`;
-                cats.sort((a, b) => b[1] - a[1]);
-                catList.innerHTML = cats.map(([catName, monto]) => `
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 5px 8px; border-radius: 6px; background: white; border: 1px solid #e2e8f0; font-size: 0.82rem;">
-                        <span style="color: #334155; font-weight: 500;">${catName}</span>
-                        <strong style="color: #0284c7;">${window.formatCurrency(monto)}</strong>
-                    </div>
-                `).join('');
+                ticketsList.innerHTML = tickets.map(t => {
+                    const esAnulada = t.status === 'anulada' || t.status === 'cancelled';
+                    const badgeEstado = esAnulada 
+                        ? '<span style="background: #fee2e2; color: #dc2626; padding: 2px 6px; border-radius: 4px; font-size: 0.72rem; font-weight: 700;">🚫 ANULADA</span>'
+                        : '<span style="background: #dcfce7; color: #15803d; padding: 2px 6px; border-radius: 4px; font-size: 0.72rem; font-weight: 600;">COBRADA</span>';
+
+                    const botonAnular = (!esAnulada && esAdmin)
+                        ? `<button class="btn-anular-ticket" data-id="${t.id}" data-number="${t.sale_number}" data-total="${t.total.toFixed(2)}" style="background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; padding: 3px 8px; border-radius: 6px; font-size: 0.76rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s;">
+                            <i class="fas fa-ban"></i> Anular
+                           </button>`
+                        : '';
+
+                    return `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; border-radius: 8px; background: ${esAnulada ? '#fff1f2' : '#ffffff'}; border: 1px solid ${esAnulada ? '#fecdd3' : '#e2e8f0'}; font-size: 0.83rem;">
+                            <div>
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <strong style="color: #0f172a;">Ticket #${t.sale_number}</strong>
+                                    ${badgeEstado}
+                                </div>
+                                <div style="color: #64748b; font-size: 0.75rem; margin-top: 2px;">
+                                    <span>${t.hora}</span> • <span>${t.seller_name}</span> • <span>${t.payment_method_label}</span>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <strong style="color: ${esAnulada ? '#94a3b8' : '#0284c7'}; font-size: 0.92rem; ${esAnulada ? 'text-decoration: line-through;' : ''}">
+                                    ${window.formatCurrency(t.total)}
+                                </strong>
+                                ${botonAnular}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
             }
         }
 
@@ -451,21 +479,6 @@ export const VentaUI = {
         const subtitulo = modoActivo === 'general' ? 'CORTE GENERAL DE FARMACIA' : 'CORTE INDIVIDUAL DE TURNO';
         const cajeroTexto = modoActivo === 'general' ? 'Todos los Cajeros' : cajeroNombre;
 
-        const categorias = Object.entries(subDatos.porCategoria || {});
-        let categoriasHTML = '';
-        if (categorias.length > 0) {
-            categorias.sort((a, b) => b[1] - a[1]);
-            categoriasHTML = `
-                <div class="receipt-divider"></div>
-                <div style="font-size: 10px; font-weight: bold; margin-bottom: 4px; text-transform: uppercase;">Por Categorías:</div>
-                ${categorias.map(([cat, m]) => `
-                    <div class="receipt-info-row" style="font-size: 10px;">
-                        <span>${cat}:</span><span>${window.formatCurrency(m)}</span>
-                    </div>
-                `).join('')}
-            `;
-        }
-
         const ticketHTML = `
             <div class="receipt-header">
                 <div class="receipt-logo"><img src="img/logo-servisalud.png" alt="ServiSalud"></div>
@@ -482,7 +495,6 @@ export const VentaUI = {
                 <div class="receipt-total-row"><span>Efectivo:</span><strong>${window.formatCurrency(subDatos.efectivo)}</strong></div>
                 <div class="receipt-total-row"><span>Transferencia / QR:</span><strong>${window.formatCurrency(subDatos.transferencia)}</strong></div>
                 <div class="receipt-total-row"><span>Tarjeta:</span><strong>${window.formatCurrency(subDatos.tarjeta)}</strong></div>
-                ${categoriasHTML}
                 <div class="receipt-divider"></div>
                 <div class="receipt-total-row main"><span>TOTAL CAJA:</span><strong>${window.formatCurrency(subDatos.total)}</strong></div>
             </div>
