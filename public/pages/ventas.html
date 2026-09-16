@@ -18,16 +18,16 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- Sistema de Diseño Base -->
-    <link rel="stylesheet" href="../css/theme.css?v=4.0.1789511817">
-    <link rel="stylesheet" href="../css/components.css?v=4.0.1789511817">
-    <link rel="stylesheet" href="../css/layout.css?v=4.0.1789511817">
+    <link rel="stylesheet" href="../css/theme.css?v=4.0.1789570163">
+    <link rel="stylesheet" href="../css/components.css?v=4.0.1789570163">
+    <link rel="stylesheet" href="../css/layout.css?v=4.0.1789570163">
 
     <!-- CSS -->
-    <link rel="stylesheet" href="../css/ventas.css?v=4.0.1789511817">
-    <link rel="stylesheet" href="../css/print.css?v=4.0.1789511817">
+    <link rel="stylesheet" href="../css/ventas.css?v=4.0.1789570163">
+    <link rel="stylesheet" href="../css/print.css?v=4.0.1789570163">
 
     <!-- Responsive (DEBE IR AL FINAL) -->
-    <link rel="stylesheet" href="../css/responsive.css?v=4.0.1789511817">
+    <link rel="stylesheet" href="../css/responsive.css?v=4.0.1789570163">
 </head>
 
 <body>
@@ -66,6 +66,18 @@
                 <!-- ===== COLUMNA IZQUIERDA: Búsqueda de productos ===== -->
                 <div class="pos-left">
 
+                    <!-- Búsqueda de Productos (Arriba para máxima ergonomía) -->
+                    <div class="search-section">
+                        <h3><i class="fas fa-search"></i> Buscar Producto</h3>
+                        <div class="search-box">
+                            <input type="text" id="searchProductInput"
+                                placeholder="Escribe nombre, SKU o escanea código..." autofocus autocomplete="off">
+                            <button class="btn-search" id="btnSearch" type="button" title="Buscar producto">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+
                     <!-- Panel de Venta Rápida (1-Clic) y Salida Prioritaria (FEFO) -->
                     <div class="quick-sale-card">
                         <div class="quick-sale-top">
@@ -82,21 +94,6 @@
                         </div>
                         <div class="quick-sale-items" id="quickSaleContainer">
                             <!-- Cargado dinámicamente -->
-                        </div>
-                    </div>
-
-                    <!-- Búsqueda -->
-                    <div class="search-section">
-                        <h3>Buscar Producto</h3>
-                        <div class="search-box">
-                            <input type="text" id="searchProductInput"
-                                placeholder="Buscar por nombre, SKU o descripción..." autofocus>
-                            <button class="btn-search" id="btnSearch">
-                                <i class="fas fa-search"></i>
-                            </button>
-                        </div>
-                        <div class="search-tips">
-                            💡 <strong>Tip:</strong> Presiona Enter o click en buscar
                         </div>
                     </div>
 
@@ -373,16 +370,16 @@
 
 
     <!-- Configuración de Firebase -->
-    <script type="module" src="../js/config/firebase.js?v=4.0.1789511817"></script>
+    <script type="module" src="../js/config/firebase.js?v=4.0.1789570163"></script>
 
     <!-- Utilidades -->
-    <script src="../js/utils/helpers.js?v=4.0.1789511817"></script>
+    <script src="../js/utils/helpers.js?v=4.0.1789570163"></script>
 
     <!-- Scripts de Ventas -->
-    <script type="module" src="../js/controllers/ventas.js?v=4.0.1789511817"></script>
+    <script type="module" src="../js/controllers/ventas.js?v=4.0.1789570163"></script>
 
     <!-- Service Worker para actualización automática -->
-    <script src="../js/sw-register.js?v=4.0.1789511817"></script>
+    <script src="../js/sw-register.js?v=4.0.1789570163"></script>
 </body>
 
 </html>
