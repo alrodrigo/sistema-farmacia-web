@@ -63,7 +63,7 @@ function setupEventListeners() {
     if (salir) AuthGuard.logout();
   });
 
-  // Pestañas de venta rápida
+  // Pestañas del mini aviso / caja rápida de mostrador en el header
   document.getElementById('tabQuickTop')?.addEventListener('click', () => cambiarPestañaRapida('frecuentes'));
   document.getElementById('tabQuickPriority')?.addEventListener('click', () => cambiarPestañaRapida('prioridad'));
 
@@ -231,14 +231,19 @@ async function sincronizarCatalogo(mostrarToast = true) {
 
 async function cargarDatosIniciales() {
   VentaUI.renderSkeletonQuick();
-  VentaUI.renderSkeletonSearch(3);
+  VentaUI.renderSkeletonSearch(6);
 
   todosLosProductos = await VentaService.getProductos();
   numeroVentaActual = await VentaService.getNextSaleNumber();
   document.getElementById('saleNumber').textContent = String(numeroVentaActual).padStart(4, '0');
 
   actualizarPanelRapido();
-  VentaUI.renderEmptySearch();
+  mostrarProductosIniciales();
+}
+
+function mostrarProductosIniciales() {
+  const conStock = todosLosProductos.filter(p => (p.current_stock || 0) > 0).slice(0, 30);
+  VentaUI.renderSearchResults(conStock, '');
 }
 
 function cambiarPestañaRapida(tab) {
@@ -271,8 +276,6 @@ function actualizarPanelRapido() {
   } else {
     // Mostrador ⭐: Primero aquellos productos que el admin marcó con la estrella ⭐
     const conEstrella = todosLosProductos.filter(p => p.is_favorite === true && (p.current_stock || 0) > 0);
-
-    // Si aún no hay ninguno marcado con estrella, mostrar los primeros con stock como respaldo (KISS)
     const productosAMostrar = conEstrella.length > 0
       ? conEstrella
       : todosLosProductos.filter(p => (p.current_stock || 0) > 0).slice(0, 8);
@@ -284,9 +287,10 @@ function actualizarPanelRapido() {
 function buscarProductos(termino) {
   const terminoLower = termino.toLowerCase().trim();
   if (!terminoLower) {
-    VentaUI.renderEmptySearch();
+    mostrarProductosIniciales();
     return;
   }
+
   let resultados = todosLosProductos.filter(p =>
     p.name.toLowerCase().includes(terminoLower) ||
     (p.sku && p.sku.toLowerCase().includes(terminoLower))

@@ -144,6 +144,10 @@ export const VentaUI = {
             const stockBajo = producto.current_stock < producto.min_stock;
             const sinStock = producto.current_stock === 0;
             const priority = ProductoService.getPriorityStatus(producto);
+            const isFav = producto.is_favorite === true;
+            const starBadge = isFav
+                ? `<i class="fas fa-star" style="color: #f59e0b; margin-right: 4px;" title="En mostrador"></i>`
+                : '';
 
             const priorityBadge = priority.isUrgent
                 ? `<span class="badge-priority badge-urgent" title="${priority.label}"><i class="fas fa-fire"></i> ${priority.label}</span>`
@@ -153,7 +157,7 @@ export const VentaUI = {
                 <div class="product-card ${priority.isUrgent ? 'product-card-urgent' : ''}" data-id="${producto.id}">
                     <div class="product-info">
                         <div class="product-name">
-                            ${this.highlightMatch(producto.name, searchQuery)}
+                            ${starBadge}${this.highlightMatch(producto.name, searchQuery)}
                             ${priorityBadge}
                         </div>
                         <div class="product-details">
@@ -169,6 +173,20 @@ export const VentaUI = {
                     </button>
                 </div>`;
         }).join('');
+    },
+
+    renderEmptyMessage(title, subtitle = '') {
+        const container = document.getElementById('searchResults');
+        if (container) {
+            container.innerHTML = `
+                <div class="empty-results">
+                    <i class="fas fa-info-circle" style="font-size: 2rem; color: #94a3b8; margin-bottom: 8px;"></i>
+                    <p>${this.escapeHtml(title)}</p>
+                    <small>${this.escapeHtml(subtitle)}</small>
+                </div>`;
+        }
+        const countEl = document.getElementById('resultsCount');
+        if (countEl) countEl.textContent = '0 productos';
     },
 
     renderEmptySearch() {

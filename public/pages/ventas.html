@@ -18,16 +18,16 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- Sistema de Diseño Base -->
-    <link rel="stylesheet" href="../css/theme.css?v=4.0.1789570163">
-    <link rel="stylesheet" href="../css/components.css?v=4.0.1789570163">
-    <link rel="stylesheet" href="../css/layout.css?v=4.0.1789570163">
+    <link rel="stylesheet" href="../css/theme.css?v=4.0.1789654912">
+    <link rel="stylesheet" href="../css/components.css?v=4.0.1789654912">
+    <link rel="stylesheet" href="../css/layout.css?v=4.0.1789654912">
 
     <!-- CSS -->
-    <link rel="stylesheet" href="../css/ventas.css?v=4.0.1789570163">
-    <link rel="stylesheet" href="../css/print.css?v=4.0.1789570163">
+    <link rel="stylesheet" href="../css/ventas.css?v=4.0.1789654912">
+    <link rel="stylesheet" href="../css/print.css?v=4.0.1789654912">
 
     <!-- Responsive (DEBE IR AL FINAL) -->
-    <link rel="stylesheet" href="../css/responsive.css?v=4.0.1789570163">
+    <link rel="stylesheet" href="../css/responsive.css?v=4.0.1789654912">
 </head>
 
 <body>
@@ -44,10 +44,32 @@
         <main class="content">
             <!-- Header de la página -->
             <div class="content-header">
-                <div>
-                    <h1><i class="fas fa-cash-register"></i> Punto de Venta (POS)</h1>
-                    <p>Registra las ventas de tu farmacia</p>
+                <div class="header-left-cluster">
+                    <div class="pos-title-block">
+                        <h1><i class="fas fa-cash-register"></i> Punto de Venta (POS)</h1>
+                        <p>Registra las ventas de tu farmacia</p>
+                    </div>
+
+                    <!-- Mini Aviso / Caja Rápida de Mostrador y Salida Prioritaria -->
+                    <div class="quick-sale-card" id="quickSaleWidget">
+                        <div class="quick-sale-top">
+                            <div class="quick-sale-tabs">
+                                <button type="button" class="quick-tab-btn active" id="tabQuickTop" data-tab="frecuentes" title="Productos fijados con estrella ⭐ en el catálogo">
+                                    <i class="fas fa-star" style="color: #f59e0b;"></i> Mostrador ⭐
+                                </button>
+                                <button type="button" class="quick-tab-btn" id="tabQuickPriority" data-tab="prioridad" title="Medicamentos con salida prioritaria o vencimiento próximo (FEFO)">
+                                    <i class="fas fa-fire" style="color: #ef4444;"></i> Salida Prioritaria
+                                    <span class="badge-priority-counter" id="priorityCountBadge" style="display: none;">0</span>
+                                </button>
+                            </div>
+                            <small class="quick-sale-hint"><i class="fas fa-hand-pointer"></i> 1 Clic para agregar</small>
+                        </div>
+                        <div class="quick-sale-items" id="quickSaleContainer">
+                            <!-- Tarjetas de producto cargadas dinámicamente -->
+                        </div>
+                    </div>
                 </div>
+
                 <div class="header-actions" style="display: flex; align-items: center; gap: 12px;">
                     <button class="btn" id="btnSyncCatalogo" type="button" title="Sincronizar catálogo con los últimos productos y existencias" style="padding: 8px 14px; font-size: 0.88rem; display: inline-flex; align-items: center; gap: 8px; border-radius: 8px; border: 1px solid #cbd5e1; background: #ffffff; color: #1e293b; cursor: pointer; font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: all 0.2s;">
                         <i class="fas fa-sync-alt" style="color: #0284c7;"></i> <span class="sync-text">Sincronizar</span>
@@ -63,44 +85,24 @@
             <!-- Layout de 2 columnas: Búsqueda + Carrito -->
             <div class="pos-layout">
 
-                <!-- ===== COLUMNA IZQUIERDA: Búsqueda de productos ===== -->
+                <!-- ===== COLUMNA IZQUIERDA: Búsqueda y Resultados ===== -->
                 <div class="pos-left">
 
                     <!-- Búsqueda de Productos (Arriba para máxima ergonomía) -->
                     <div class="search-section">
-                        <h3><i class="fas fa-search"></i> Buscar Producto</h3>
                         <div class="search-box">
                             <input type="text" id="searchProductInput"
-                                placeholder="Escribe nombre, SKU o escanea código..." autofocus autocomplete="off">
+                                placeholder="🔍 Escribe nombre, SKU o escanea código de barras..." autofocus autocomplete="off">
                             <button class="btn-search" id="btnSearch" type="button" title="Buscar producto">
                                 <i class="fas fa-search"></i>
                             </button>
                         </div>
                     </div>
 
-                    <!-- Panel de Venta Rápida (1-Clic) y Salida Prioritaria (FEFO) -->
-                    <div class="quick-sale-card">
-                        <div class="quick-sale-top">
-                            <div class="quick-sale-tabs">
-                                <button type="button" class="quick-tab-btn active" id="tabQuickTop" data-tab="frecuentes" title="Productos fijados con estrella ⭐ en el catálogo">
-                                    <i class="fas fa-star" style="color: #f59e0b;"></i> Mostrador ⭐
-                                </button>
-                                <button type="button" class="quick-tab-btn" id="tabQuickPriority" data-tab="prioridad">
-                                    <i class="fas fa-fire" style="color: #ef4444;"></i> Salida Prioritaria
-                                    <span class="badge-priority-counter" id="priorityCountBadge" style="display: none;">0</span>
-                                </button>
-                            </div>
-                            <small class="quick-sale-hint"><i class="fas fa-hand-pointer"></i> 1 Clic para agregar</small>
-                        </div>
-                        <div class="quick-sale-items" id="quickSaleContainer">
-                            <!-- Cargado dinámicamente -->
-                        </div>
-                    </div>
-
-                    <!-- Resultados de búsqueda -->
+                    <!-- Resultados de búsqueda / Catálogo -->
                     <div class="results-section">
                         <div class="results-header">
-                            <h3><i class="fas fa-box-open"></i> Productos Disponibles</h3>
+                            <h3 id="resultsTitle"><i class="fas fa-boxes"></i> Productos Disponibles</h3>
                             <span class="results-count" id="resultsCount">0 productos</span>
                         </div>
 
@@ -370,16 +372,16 @@
 
 
     <!-- Configuración de Firebase -->
-    <script type="module" src="../js/config/firebase.js?v=4.0.1789570163"></script>
+    <script type="module" src="../js/config/firebase.js?v=4.0.1789654912"></script>
 
     <!-- Utilidades -->
-    <script src="../js/utils/helpers.js?v=4.0.1789570163"></script>
+    <script src="../js/utils/helpers.js?v=4.0.1789654912"></script>
 
     <!-- Scripts de Ventas -->
-    <script type="module" src="../js/controllers/ventas.js?v=4.0.1789570163"></script>
+    <script type="module" src="../js/controllers/ventas.js?v=4.0.1789654912"></script>
 
     <!-- Service Worker para actualización automática -->
-    <script src="../js/sw-register.js?v=4.0.1789570163"></script>
+    <script src="../js/sw-register.js?v=4.0.1789654912"></script>
 </body>
 
 </html>
